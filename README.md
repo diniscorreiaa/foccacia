@@ -14,7 +14,67 @@ ___
 
 ---
 
+## Foccacia
+
+Projeto multi-pacote em Node.js (ESM) usado no exercício IPW — documentação curta para instalação, testes e cobertura.
+
+### Estrutura verificada
+Pacotes presentes:
+- `foccacia-server`
+- `foccacia-web-api`
+- `foccacia-services`
+- `fapi-teams-data`
+- `foccacia-data-mem`
+
+Cada pacote tem `package.json`, `src/` e `test/` com testes ESM (`*.test.mjs`).
+
+### Requisitos
+- Node.js >= 18
+- npm
+- Ambiente: WSL/Ubuntu recomendado para scripts fornecidos
+
+### Configuração recomendada (root `package.json`)
+Adicionar workspaces para gestão centralizada:
+```json
+{
+"workspaces": [
+"foccacia-server",
+"foccacia-web-api",
+"foccacia-services",
+"fapi-teams-data",
+"foccacia-data-mem"
+]
+}
+```
+
+### Instalação
+```sh
+
+npm install
+```
+
+## Testes
+- Comando para executar todos os testes:
+```sh
+
+npm run test:all
+``` 
+
+## Coverage
+- Comando para gerar coverage de todos:
+```sh
+
+npm run coverage:all
+ ```
+
+## Boas práticas rápidas
+- Centralizar `devDependencies` (mocha, c8, prettier) na raiz se usar workspaces.
+- Usar `workspace:*` para dependências locais.
+
+___
+
 ## Simple Guide to Using GitHub Version Control
+___
 
 ### **In the Console**
 
@@ -68,3 +128,5 @@ ___
 1. **Go to GitHub and navigate to your repository.**
 2. **Switch to your branch.**
 3. **Open a Pull Request (PR) and request a review.**
+
+___
