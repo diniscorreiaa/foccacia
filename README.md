@@ -16,21 +16,21 @@ ___
 
 ## Foccacia
 
-Projeto multi-pacote em Node.js (ESM) usado no exercício IPW — documentação curta para instalação, testes e cobertura.
+Projeto multi-modulos em Node.js (ESM) - documentação curta para instalação, testes e cobertura.
 
 ### Estrutura verificada
-Pacotes presentes:
+Modulos presentes:
 - `foccacia-server`
 - `foccacia-web-api`
 - `foccacia-services`
 - `fapi-teams-data`
 - `foccacia-data-mem`
 
-Cada pacote tem `package.json`, `src/` e `test/` com testes ESM (`*.test.mjs`).
+Cada módulo tem `package.json`, `src/` e `test/` com testes ESM (`*.test.mjs`).
 
 ### Requisitos
 - Node.js >= 18
-- npm
+- npm >= 9
 - Ambiente: WSL/Ubuntu recomendado para scripts fornecidos
 
 ### Configuração recomendada (root `package.json`)
@@ -66,10 +66,6 @@ npm run test:all
 
 npm run coverage:all
  ```
-
-## Boas práticas rápidas
-- Centralizar `devDependencies` (mocha, c8, prettier) na raiz se usar workspaces.
-- Usar `workspace:*` para dependências locais.
 
 ___
 

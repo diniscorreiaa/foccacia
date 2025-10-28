@@ -5,8 +5,8 @@
   "type": "module",
   "main": "src/foccacia-web-api.mjs",
   "scripts": {
-    "test": "mocha --recursive \"test\" || true",
-    "coverage": "c8 mocha --recursive \"test\" || true"
+    "test": "mocha --recursive \"test\"",
+    "coverage": "c8 mocha --recursive \"test\""
   },
   "dependencies": {
     "express": "^4.18.2",

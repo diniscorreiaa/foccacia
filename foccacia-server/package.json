@@ -6,8 +6,8 @@
   "main": "src/foccacia-server.mjs",
   "scripts": {
     "start": "node src/foccacia-server.mjs",
-    "test": "mocha --recursive \"test\" || true",
-    "coverage": "c8 mocha --recursive \"test\" || true"
+    "test": "mocha --recursive \"test\"",
+    "coverage": "c8 mocha --recursive \"test\""
   },
   "dependencies": {
     "express": "^4.18.2",

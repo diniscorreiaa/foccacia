@@ -5,8 +5,8 @@
   "type": "module",
   "main": "src/fapi-teams-data.mjs",
   "scripts": {
-    "test": "mocha --recursive \"test\" || true",
-    "coverage": "c8 mocha --recursive \"test\" || true"
+    "test": "mocha --recursive \"test\"",
+    "coverage": "c8 mocha --recursive \"test\""
   },
   "dependencies": {
     "foccacia-data-mem": "file:../foccacia-data-mem"

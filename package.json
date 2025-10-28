@@ -14,14 +14,13 @@
     "test:foccacia-services": "npm --workspace=foccacia-services run test",
     "test:fapi-teams-data": "npm --workspace=fapi-teams-data run test",
     "test:foccacia-data-mem": "npm --workspace=foccacia-data-mem run test",
-    "test:others": "npm run test:foccacia-server && npm run test:foccacia-services && npm run test:fapi-teams-data && npm run test:foccacia-data-mem",
-    "test": "npm run test:web-api && npm run test:others",
+    "test:all": "npm run test:web-api && npm run test:foccacia-server && npm run test:foccacia-services && npm run test:fapi-teams-data && npm run test:foccacia-data-mem",
 
     "coverage:web-api": "npm --workspace=foccacia-web-api run coverage",
-    "coverage:foccacia-server": "npm --workspace=foccacia-server run coverage || true",
-    "coverage:foccacia-services": "npm --workspace=foccacia-services run coverage || true",
-    "coverage:fapi-teams-data": "npm --workspace=fapi-teams-data run coverage || true",
-    "coverage:foccacia-data-mem": "npm --workspace=foccacia-data-mem run coverage || true",
+    "coverage:foccacia-server": "npm --workspace=foccacia-server run coverage",
+    "coverage:foccacia-services": "npm --workspace=foccacia-services run coverage",
+    "coverage:fapi-teams-data": "npm --workspace=fapi-teams-data run coverage",
+    "coverage:foccacia-data-mem": "npm --workspace=foccacia-data-mem run coverage",
     "coverage:all": "npm run coverage:web-api && npm run coverage:foccacia-server && npm run coverage:foccacia-services && npm run coverage:fapi-teams-data && npm run coverage:foccacia-data-mem",
 
     "format:mjs": "prettier --write \"**/*.mjs\""
