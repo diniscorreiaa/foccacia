@@ -1,4 +1,4 @@
-import { logSuccess } from "../../log-utils.mjs";
+import { logSuccess } from "../../foccacia-utils/src/log-utils.mjs";
 
 export function hello(name = "world") {
   return `hello ${name}`;

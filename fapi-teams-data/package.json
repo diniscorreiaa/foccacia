@@ -10,9 +10,5 @@
   },
   "dependencies": {
     "foccacia-data-mem": "file:../foccacia-data-mem"
-  },
-  "devDependencies": {
-    "mocha": "^11.7.3",
-    "c8": "^10.1.3"
   }
 }

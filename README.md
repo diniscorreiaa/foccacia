@@ -25,6 +25,7 @@ Modulos presentes:
 - `foccacia-services`
 - `fapi-teams-data`
 - `foccacia-data-mem`
+- `foccacia-utils`
 
 Cada módulo tem `package.json`, `src/` e `test/` com testes ESM (`*.test.mjs`).
 
@@ -42,7 +43,8 @@ Adicionar workspaces para gestão centralizada:
 "foccacia-web-api",
 "foccacia-services",
 "fapi-teams-data",
-"foccacia-data-mem"
+"foccacia-data-mem",
+  "foccacia-utils"
 ]
 }
 ```
