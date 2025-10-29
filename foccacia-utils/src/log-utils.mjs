@@ -16,7 +16,7 @@ export function logError(message, error) {
   if (error) {
     console.error(
       `${now()} ❌ Erro: ${message}`,
-      error && error.stack ? error.stack : error
+      error.stack ? error.stack : error
     );
   } else {
     console.error(`${now()} ❌ Erro: ${message}`);
