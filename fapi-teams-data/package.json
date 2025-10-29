@@ -1,0 +1,14 @@
+{
+  "name": "fapi-teams-data",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/fapi-teams-data.mjs",
+  "scripts": {
+    "test": "mocha --recursive \"test\"",
+    "coverage": "c8 mocha --recursive \"test\""
+  },
+  "dependencies": {
+    "foccacia-data-mem": "file:../foccacia-data-mem"
+  }
+}

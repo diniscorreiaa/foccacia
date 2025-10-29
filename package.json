@@ -1,0 +1,54 @@
+{
+  "name": "isel-leic-ipw-pi-2526i-foccacia-leic2526i-ipw31d-g01",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FOCCACIA (Football Complete Clubs Api and Chelas Internet Application).",
+  "type": "module",
+  "workspaces": ["foccacia-server", "foccacia-web-api", "foccacia-services", "fapi-teams-data", "foccacia-data-mem", "foccacia-utils"],
+  "main": "foccacia-server/src/foccacia-server.mjs",
+  "scripts": {
+    "start": "node foccacia-server/src/foccacia-server.mjs",
+
+    "test:web-api": "npm --workspace=foccacia-web-api run test",
+    "test:foccacia-server": "npm --workspace=foccacia-server run test",
+    "test:foccacia-services": "npm --workspace=foccacia-services run test",
+    "test:fapi-teams-data": "npm --workspace=fapi-teams-data run test",
+    "test:foccacia-data-mem": "npm --workspace=foccacia-data-mem run test",
+    "test:foccacia-utils": "npm --workspace=foccacia-utils run test",
+    "test:all": "npm run test:web-api && npm run test:foccacia-server && npm run test:foccacia-services && npm run test:fapi-teams-data && npm run test:foccacia-data-mem && npm run test:foccacia-utils",
+
+    "coverage:web-api": "npm --workspace=foccacia-web-api run coverage",
+    "coverage:foccacia-server": "npm --workspace=foccacia-server run coverage",
+    "coverage:foccacia-services": "npm --workspace=foccacia-services run coverage",
+    "coverage:fapi-teams-data": "npm --workspace=fapi-teams-data run coverage",
+    "coverage:foccacia-data-mem": "npm --workspace=foccacia-data-mem run coverage",
+    "coverage:foccacia-utils": "npm --workspace=foccacia-utils run coverage",
+    "coverage:all": "npm run coverage:web-api && npm run coverage:foccacia-server && npm run coverage:foccacia-services && npm run coverage:fapi-teams-data && npm run coverage:foccacia-data-mem && npm run coverage:foccacia-utils",
+
+    "format:mjs": "prettier --write \"**/*.mjs\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isel-leic-ipw/isel-leic-ipw-pi-2526i-foccacia-leic2526i-ipw31d-g01"
+  },
+  "keywords": [],
+  "authors": [
+    "Nome Aluno <email do isel>",
+    "Nome Aluno <email do isel>",
+    "Tiago M. F. Nevoa <a35480@alunos.isel.pt>"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/isel-leic-ipw/isel-leic-ipw-pi-2526i-foccacia-leic2526i-ipw31d-g01/issues"
+  },
+  "homepage": "https://github.com/isel-leic-ipw/isel-leic-ipw-pi-2526i-foccacia-leic2526i-ipw31d-g01#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "mocha": "^11.7.3",
+    "c8": "^10.1.3",
+    "prettier": "^2.8.8"
+  }
+}

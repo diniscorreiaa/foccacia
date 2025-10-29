@@ -1,0 +1,14 @@
+{
+  "name": "foccacia-services",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/foccacia-services.mjs",
+  "scripts": {
+    "test": "mocha --recursive \"test\"",
+    "coverage": "c8 mocha --recursive \"test\""
+  },
+  "dependencies": {
+    "fapi-teams-data": "file:../fapi-teams-data"
+  }
+}
