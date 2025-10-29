@@ -1,4 +1,3 @@
-"use strict";
 
 import fs from "fs/promises";
 import { getDirName } from "../src/io-utils.mjs";
