@@ -1,6 +1,6 @@
 
 import fs from "fs/promises";
-import { getDirName } from "../src/io-utils.mjs";
+import { getDirName } from "./io-utils.mjs";
 
 export async function readJson(filePath) {
   const content = await fs.readFile(filePath, "utf8");
