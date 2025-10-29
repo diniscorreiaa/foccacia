@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/foccacia-utils.mjs",
   "scripts": {
-    "test": "mocha --recursive \"test\"",
-    "coverage": "c8 mocha --recursive \"test\""
+    "test": "mocha",
+    "coverage": "c8 mocha"
   }
 }
