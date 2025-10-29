@@ -1,5 +1,3 @@
-"use strict";
-
 export * from "./io-utils.mjs";
 export * from "./json-utils.mjs";
 export * from "./log-utils.mjs";
