@@ -27,8 +27,9 @@ describe("Log Utils – testes para log-utils.mjs", function () {
   it("logInfo escreve mensagem formatada no console.log", function () {
     logInfo("teste");
     assert.strictEqual(logged.length, 1);
+    const [output] = logged[0];
     assert.match(
-      String(logged[0][0]),
+      String(output),
       /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z ℹ️ Info: teste$/
     );
   });
@@ -36,8 +37,9 @@ describe("Log Utils – testes para log-utils.mjs", function () {
   it("logSuccess escreve mensagem formatada no console.log", function () {
     logSuccess("ok");
     assert.strictEqual(logged.length, 1);
+    const [output] = logged[0];
     assert.match(
-      String(logged[0][0]),
+      String(output),
       /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z ✅ Sucesso: ok$/
     );
   });
@@ -46,11 +48,12 @@ describe("Log Utils – testes para log-utils.mjs", function () {
     const err = new Error("boom");
     logError("falha", err);
     assert.strictEqual(errored.length, 1);
+    const [prefix, stack] = errored[0];
     assert.match(
-      String(errored[0][0]),
+      String(prefix),
       /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z ❌ Erro: falha$/
     );
-    assert.strictEqual(typeof errored[0][1], "string");
-    assert.ok(errored[0][1].includes("Error: boom"));
+    assert.strictEqual(typeof stack, "string");
+    assert.ok(stack.includes("Error: boom"));
   });
 });

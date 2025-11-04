@@ -2,8 +2,12 @@ import fs from "fs/promises";
 import { getDirName } from "./io-utils.mjs";
 
 export async function readJson(filePath) {
-  const content = await fs.readFile(filePath, "utf8");
-  return JSON.parse(content);
+  try {
+    const content = await fs.readFile(filePath, "utf8");
+    return JSON.parse(content);
+  } catch (err) {
+    throw new Error(`Erro a ler JSON: ${filePath}\n${err.message}`);
+  }
 }
 
 export async function writeJson(data, filePath) {

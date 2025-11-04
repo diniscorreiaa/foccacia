@@ -9,13 +9,17 @@ const logTypes = [
 ];
 
 export const { logInfo, logSuccess, logError } = Object.fromEntries(
-  logTypes.map(([name, label]) => [
+  [
+    ["logInfo", "ℹ️ Info"],
+    ["logSuccess", "✅ Sucesso"],
+    ["logError", "❌ Erro"],
+  ].map(([name, label]) => [
     name,
     (message, error) => {
-      const prefix = `${now()} ${label}:`;
+      const prefix = `${now()} ${label}: ${message}`;
       if (name === "logError" && error)
         console.error(prefix, error.stack ? error.stack : error);
-      else console.log(prefix, message);
+      else console.log(prefix);
     },
   ])
 );

@@ -1,0 +1,131 @@
+@prefix = http://localhost:1904
+@userToken = <?>
+
+###################################################
+# COMPETITIONS
+###################################################
+
+### GET - Lista todas as competições
+GET {{prefix}}/competitions
+Accept: application/json
+
+# Esperado:
+# [
+#   { "code": "PPL", "name": "Primeira Liga" },
+#   { "code": "CL", "name": "Champions League" }
+# ]
+
+
+### GET - Equipas e jogadores da Primeira Liga (2025)
+GET {{prefix}}/competitions/PPL/teams?season=2025
+Accept: application/json
+
+# Esperado:
+# [
+#   {
+#     "teamName": "SL Benfica",
+#     "country": "Portugal",
+#     "players": [
+#       { "playerName": "João Neves", "position": "Midfielder" },
+#       { "playerName": "Di María", "position": "Forward" }
+#     ]
+#   }
+# ]
+
+
+###################################################
+# USERS
+###################################################
+
+### POST - Cria novo utilizador e gera token UUID
+POST {{prefix}}/users
+Content-Type: application/json
+
+{
+  "username": "grupo1"
+}
+
+
+# Esperado: # {
+#   "username": "grupo1",
+#   "token": "123e4567-e89b-12d3-a456-426614174000"
+#
+}
+
+
+###################################################
+# GROUPS - CRUD
+###################################################
+
+### GET - Lista todos os grupos do utilizador
+GET {{prefix}}/groups
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+# Esperado:
+# [
+#   {
+#     "id": 1,
+#     "name": "Melhores da Liga 2025",
+#     "description": "Onze ideal da Primeira Liga",
+#     "competition": "PPL",
+#     "year": 2025
+#   }
+# ]
+
+
+### POST - Cria novo grupo
+POST {{prefix}}/groups
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "name": "Melhores da Champions",
+  "description": "Onze ideal da Champions 2025",
+  "competition": "CL",
+  "year": 2025
+}
+
+
+### GET - Detalhes de um grupo específico
+GET {{prefix}}/groups/1
+Authorization: Bearer {{userToken}}
+Accept: application/json
+
+
+### PUT - Atualiza nome e descrição do grupo
+PUT {{prefix}}/groups/1
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "name": "Atualizado",
+  "description": "Descrição alterada"
+}
+
+
+### DELETE - Remove grupo
+DELETE {{prefix}}/groups/1
+Authorization: Bearer {{userToken}}
+
+
+###################################################
+# PLAYERS - GESTÃO DO GRUPO “Best XI”
+###################################################
+
+### POST - Adiciona jogador ao grupo
+POST {{prefix}}/groups/1/players
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "playerId": 1903,
+  "playerName": "João Neves",
+  "teamCode": "SLB",
+  "teamName": "SL Benfica"
+}
+
+
+### DELETE - Remove jogador do grupo
+DELETE {{prefix}}/groups/1/players/1903
+Authorization: Bearer {{userToken}}

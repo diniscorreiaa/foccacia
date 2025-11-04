@@ -1,0 +1,379 @@
+openapi: 3.0.1
+
+info:
+  title: FOCCACIA API
+  description: |
+    FOCCACIA (Football Complete Clubs API and Chelas Internet Application).
+  contact:
+    name: Grupo 01 | IPW | LEIC31D | ISEL
+    url: https://github.com/isel-leic-ipw/isel-leic-ipw-pi-2526i-foccacia-leic2526i-ipw31d-g01/issues
+  license:
+    name: ISC
+    url: https://opensource.org/licenses/ISC
+  version: 1.0.0
+
+servers:
+  - description: Servidor local para testes da API
+    url: http://localhost:1904
+
+security:
+  - bearerAuth: [ ]
+
+tags:
+  - name: Competitions
+    description: Acesso a competições de futebol.
+  - name: Teams
+    description: Equipas e jogadores por competição e época.
+  - name: Users
+    description: Criação e autenticação de utilizadores.
+  - name: Groups
+    description: Gestão dos grupos “Best XI”.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: UUID
+
+paths:
+  /competitions:
+    get:
+      tags: [ Competitions ]
+      summary: Lista todas as competições disponíveis
+      description: Retorna o código e o nome de cada competição.
+      responses:
+        "200":
+          description: Lista de competições obtida com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                      example: "PPL"
+                    name:
+                      type: string
+                      example: "Primeira Liga"
+        "500":
+          description: Erro interno do servidor
+
+  /competitions/{code}/teams:
+    get:
+      tags: [ Teams ]
+      summary: Lista as equipas e jogadores de uma competição e época
+      description: Retorna as equipas da competição especificada e respetivos jogadores.
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Código da competição (ex. PPL, CL)
+        - name: season
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 2025
+          description: Ano da época desportiva
+      responses:
+        "200":
+          description: Equipas da competição obtidas com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    teamName:
+                      type: string
+                      example: "SL Benfica"
+                    country:
+                      type: string
+                      example: "Portugal"
+                    players:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          playerName:
+                            type: string
+                            example: "João Neves"
+                          position:
+                            type: string
+                            example: "Midfielder"
+        "404":
+          description: Competição não encontrada
+        "500":
+          description: Erro interno do servidor
+
+  /users:
+    post:
+      tags: [ Users ]
+      summary: Cria um novo utilizador
+      description: Cria um utilizador e gera um token UUID para autenticação nas operações de grupos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "grupo1"
+      responses:
+        "201":
+          description: Utilizador criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    example: "grupo1"
+                  token:
+                    type: string
+                    format: uuid
+                    example: "123e4567-e89b-12d3-a456-426614174000"
+        "400":
+          description: Pedido inválido (falta username)
+
+  /groups:
+    get:
+      tags: [ Groups ]
+      summary: Lista todos os grupos do utilizador
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Lista de grupos obtida com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: "Melhores da Liga 2025"
+                    description:
+                      type: string
+                      example: "Onze ideal da Primeira Liga"
+                    competition:
+                      type: string
+                      example: "PPL"
+                    year:
+                      type: integer
+                      example: 2025
+        "401":
+          description: Token inválido ou ausente
+
+    post:
+      tags: [ Groups ]
+      summary: Cria um novo grupo “Best XI”
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Melhores da Champions"
+                description:
+                  type: string
+                  example: "Onze ideal da Champions 2025"
+                competition:
+                  type: string
+                  example: "CL"
+                year:
+                  type: integer
+                  example: 2025
+      responses:
+        "201":
+          description: Grupo criado com sucesso
+        "400":
+          description: Dados inválidos
+        "401":
+          description: Token inválido ou ausente
+
+  /groups/{id}:
+    get:
+      tags: [ Groups ]
+      summary: Obtém os detalhes de um grupo
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Detalhes do grupo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "Melhores da Liga"
+                  description:
+                    type: string
+                    example: "Onze ideal 2025"
+                  competition:
+                    type: string
+                    example: "PPL"
+                  year:
+                    type: integer
+                    example: 2025
+                  players:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        playerId:
+                          type: integer
+                          example: 1903
+                        playerName:
+                          type: string
+                          example: "Vangelis Pavlidis"
+                        teamId:
+                          type: integer
+                          example: 67299
+                        teamName:
+                          type: string
+                          example: "SL Benfica"
+                        position:
+                          type: string
+                          example: "Offence"
+                        nationality:
+                          type: string
+                          example: "Greece"
+                        age:
+                          type: integer
+                          example: 27
+        "401":
+          description: Token inválido ou ausente
+        "404":
+          description: Grupo não encontrado
+
+    put:
+      tags: [ Groups ]
+      summary: Edita nome e descrição de um grupo
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Atualizado"
+                description:
+                  type: string
+                  example: "Descrição alterada"
+      responses:
+        "200":
+          description: Grupo atualizado com sucesso
+        "400":
+          description: Dados inválidos
+        "401":
+          description: Token inválido ou ausente
+        "404":
+          description: Grupo não encontrado
+
+    delete:
+      tags: [ Groups ]
+      summary: Remove um grupo
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "204":
+          description: Grupo removido com sucesso
+        "401":
+          description: Token inválido ou ausente
+        "404":
+          description: Grupo não encontrado
+
+  /groups/{id}/players:
+    post:
+      tags: [ Groups ]
+      summary: Adiciona jogador a um grupo “Best XI”
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                playerId:
+                  type: integer
+                  example: 1903
+                playerName:
+                  type: string
+                  example: "João Neves"
+                teamCode:
+                  type: string
+                  example: "SLB"
+                teamName:
+                  type: string
+                  example: "SL Benfica"
+      responses:
+        "200":
+          description: Jogador adicionado com sucesso
+        "400":
+          description: Grupo cheio ou dados inválidos
+        "401":
+          description: Token inválido ou ausente
+        "404":
+          description: Grupo não encontrado
+
+  /groups/{id}/players/{playerId}:
+    delete:
+      tags: [ Groups ]
+      summary: Remove jogador de um grupo
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: playerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Jogador removido com sucesso
+        "401":
+          description: Token inválido ou ausente
+        "404":
+          description: Grupo ou jogador não encontrado
