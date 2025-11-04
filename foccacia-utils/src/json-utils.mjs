@@ -1,4 +1,3 @@
-
 import fs from "fs/promises";
 import { getDirName } from "./io-utils.mjs";
 

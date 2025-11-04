@@ -2,21 +2,20 @@ function now() {
   return new Date().toISOString();
 }
 
-export function logInfo(message) {
-  console.log(`${now()} ℹ️ Info: ${message}`);
-}
+const logTypes = [
+  ["logInfo", "ℹ️ Info"],
+  ["logSuccess", "✅ Sucesso"],
+  ["logError", "❌ Erro"],
+];
 
-export function logSuccess(message) {
-  console.log(`${now()} ✅ Sucesso: ${message}`);
-}
-
-export function logError(message, error) {
-  if (error) {
-    console.error(
-      `${now()} ❌ Erro: ${message}`,
-      error.stack ? error.stack : error
-    );
-  } else {
-    console.error(`${now()} ❌ Erro: ${message}`);
-  }
-}
+export const { logInfo, logSuccess, logError } = Object.fromEntries(
+  logTypes.map(([name, label]) => [
+    name,
+    (message, error) => {
+      const prefix = `${now()} ${label}:`;
+      if (name === "logError" && error)
+        console.error(prefix, error.stack ? error.stack : error);
+      else console.log(prefix, message);
+    },
+  ])
+);
