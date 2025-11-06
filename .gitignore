@@ -141,4 +141,5 @@ vite.config.ts.timestamp-*
 # WebStorm
 /.idea/
 
-# Dependency version files
+# Private tokens and headers
+/docs/input/headers.private.json
