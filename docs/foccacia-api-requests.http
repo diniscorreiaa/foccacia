@@ -10,31 +10,36 @@
 GET {{api}}/competitions/{{compPPL}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
-> ./docs/output/fapi-competition-{{compPPL}}.json
+
+>> ./output/fapi-competition-{{compPPL}}.json
 
 ### GET - Equipas da Primeira Liga ({{season}})
 GET {{api}}/competitions/{{compPPL}}/teams?season={{season}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
-> ./docs/output/fapi-{{compPPL}}-teams-{{season}}.json
+
+>> ./output/fapi-{{compPPL}}-teams-{{season}}.json
 
 ### GET - Competição: UEFA Champions League ({{compCL}})
 GET {{api}}/competitions/{{compCL}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
-> ./docs/output/fapi-competition-{{compCL}}.json
+
+>> ./output/fapi-competition-{{compCL}}.json
 
 ### GET - Equipas da Champions ({{season}})
 GET {{api}}/competitions/{{compCL}}/teams?season={{season}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
-> ./docs/output/fapi-{{compCL}}-teams-{{season}}.json
+
+>> ./output/fapi-{{compCL}}-teams-{{season}}.json
 
 ### GET - Detalhes do SL Benfica ({{benficaId}})
 GET {{api}}/teams/{{benficaId}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
-> ./docs/output/fapi-team-{{benficaId}}.json
+
+>> ./output/fapi-team-{{benficaId}}.json
 
 ### NEGATIVO – 401 (token inválido)
 GET {{api}}/competitions/{{compPPL}}

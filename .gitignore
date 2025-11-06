@@ -143,3 +143,6 @@ vite.config.ts.timestamp-*
 
 # Private tokens and headers
 /docs/input/headers.private.json
+
+#outputs API
+/docs/output/football-api-responses/

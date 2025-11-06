@@ -1,5 +1,5 @@
 @api = http://api.football-data.org/v4
-@token = <PUT_YOUR_TOKEN_HERE>
+@token = a665d4ef3ef94e87bcafc8bdf1a4f9de
 @accept = application/json
 @season = 2025
 @compPPL = PPL
@@ -10,28 +10,33 @@
 GET {{api}}/competitions/{{compPPL}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
-> ./docs/output/fapi-competition-{{compPPL}}.json
+
+>> ./output/football-api-responses/fapi-competition-{{compPPL}}.json
 
 ### GET - Equipas da Primeira Liga Portuguesa ({{season}})
 GET {{api}}/competitions/{{compPPL}}/teams?season={{season}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
-> ./docs/output/fapi-{{compPPL}}-teams-{{season}}.json
+
+>> ./output/football-api-responses/fapi-{{compPPL}}-teams-{{season}}.json
 
 ### GET - Competição: UEFA Champions League
 GET {{api}}/competitions/{{compCL}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
-> ./docs/output/fapi-competition-{{compCL}}.json
+
+>> ./output/football-api-responses/fapi-competition-{{compCL}}.json
 
 ### GET - Equipas da Champions League ({{season}})
 GET {{api}}/competitions/{{compCL}}/teams?season={{season}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
-> ./docs/output/fapi-{{compCL}}-teams-{{season}}.json
+
+>> ./output/football-api-responses/fapi-{{compCL}}-teams-{{season}}.json
 
 ### GET - Detalhes da equipa SL Benfica
 GET {{api}}/teams/{{benficaId}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
-> ./docs/output/fapi-team-{{benficaId}}.json
+
+>> ./output/football-api-responses/fapi-team-{{benficaId}}.json
