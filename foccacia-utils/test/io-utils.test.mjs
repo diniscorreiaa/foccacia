@@ -34,7 +34,7 @@ describe("IO Utils – testes para io-utils.mjs (usar `docs/output`)", function 
   });
 
   it("getHeadersFilePath e getTeamsIdsFilePath apontam para `docs/input`", function () {
-    const expectedHeaders = path.join(docsInput, "headers.json");
+    const expectedHeaders = path.join(docsInput, "headers.private.json");
     const expectedTeams = path.join(docsInput, "teams-ids.json");
     assert.strictEqual(getHeadersFilePath(), expectedHeaders);
     assert.strictEqual(getTeamsIdsFilePath(), expectedTeams);

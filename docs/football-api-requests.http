@@ -1,38 +1,42 @@
 @api = http://api.football-data.org/v4
 @token = a665d4ef3ef94e87bcafc8bdf1a4f9de
-
-# ==========================================
-#  Testes à Football Data API – FOCCACIA
-#  Época: 2025
-# ==========================================
-
+@accept = application/json
+@season = 2025
+@compPPL = PPL
+@compCL = CL
+@benficaId = 1903
 
 ### GET - Competição: Primeira Liga Portuguesa
-GET {{api}}/competitions/PPL
+GET {{api}}/competitions/{{compPPL}}
 X-Auth-Token: {{token}}
-Accept: application/json
+Accept: {{accept}}
 
+>> ./output/football-api-responses/fapi-competition-{{compPPL}}.json
 
-### GET - Equipas da Primeira Liga Portuguesa (2025)
-GET {{api}}/competitions/PPL/teams?season=2025
+### GET - Equipas da Primeira Liga Portuguesa ({{season}})
+GET {{api}}/competitions/{{compPPL}}/teams?season={{season}}
 X-Auth-Token: {{token}}
-Accept: application/json
+Accept: {{accept}}
 
+>> ./output/football-api-responses/fapi-{{compPPL}}-teams-{{season}}.json
 
 ### GET - Competição: UEFA Champions League
-GET {{api}}/competitions/CL
+GET {{api}}/competitions/{{compCL}}
 X-Auth-Token: {{token}}
-Accept: application/json
+Accept: {{accept}}
 
+>> ./output/football-api-responses/fapi-competition-{{compCL}}.json
 
-### GET - Equipas da Champions League (2025)
-GET {{api}}/competitions/CL/teams?season=2025
+### GET - Equipas da Champions League ({{season}})
+GET {{api}}/competitions/{{compCL}}/teams?season={{season}}
 X-Auth-Token: {{token}}
-Accept: application/json
+Accept: {{accept}}
 
+>> ./output/football-api-responses/fapi-{{compCL}}-teams-{{season}}.json
 
 ### GET - Detalhes da equipa SL Benfica
-# Benfica normalmente tem o ID 1903 na Football Data API
-GET {{api}}/teams/1903
+GET {{api}}/teams/{{benficaId}}
 X-Auth-Token: {{token}}
-Accept: application/json
+Accept: {{accept}}
+
+>> ./output/football-api-responses/fapi-team-{{benficaId}}.json

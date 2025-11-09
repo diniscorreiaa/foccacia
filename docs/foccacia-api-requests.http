@@ -1,131 +1,47 @@
-@prefix = http://localhost:1904
-@userToken = <?>
+@api = http://api.football-data.org/v4
+@token = <PUT_YOUR_TOKEN_HERE>
+@accept = application/json
+@season = 2025
+@compPPL = PPL
+@compCL = CL
+@benficaId = 1903
 
-###################################################
-# COMPETITIONS
-###################################################
+### GET - Competição: Primeira Liga ({{compPPL}})
+GET {{api}}/competitions/{{compPPL}}
+X-Auth-Token: {{token}}
+Accept: {{accept}}
 
-### GET - Lista todas as competições
-GET {{prefix}}/competitions
-Accept: application/json
+>> ./output/fapi-competition-{{compPPL}}.json
 
-# Esperado:
-# [
-#   { "code": "PPL", "name": "Primeira Liga" },
-#   { "code": "CL", "name": "Champions League" }
-# ]
+### GET - Equipas da Primeira Liga ({{season}})
+GET {{api}}/competitions/{{compPPL}}/teams?season={{season}}
+X-Auth-Token: {{token}}
+Accept: {{accept}}
 
+>> ./output/fapi-{{compPPL}}-teams-{{season}}.json
 
-### GET - Equipas e jogadores da Primeira Liga (2025)
-GET {{prefix}}/competitions/PPL/teams?season=2025
-Accept: application/json
+### GET - Competição: UEFA Champions League ({{compCL}})
+GET {{api}}/competitions/{{compCL}}
+X-Auth-Token: {{token}}
+Accept: {{accept}}
 
-# Esperado:
-# [
-#   {
-#     "teamName": "SL Benfica",
-#     "country": "Portugal",
-#     "players": [
-#       { "playerName": "João Neves", "position": "Midfielder" },
-#       { "playerName": "Di María", "position": "Forward" }
-#     ]
-#   }
-# ]
+>> ./output/fapi-competition-{{compCL}}.json
 
+### GET - Equipas da Champions ({{season}})
+GET {{api}}/competitions/{{compCL}}/teams?season={{season}}
+X-Auth-Token: {{token}}
+Accept: {{accept}}
 
-###################################################
-# USERS
-###################################################
+>> ./output/fapi-{{compCL}}-teams-{{season}}.json
 
-### POST - Cria novo utilizador e gera token UUID
-POST {{prefix}}/users
-Content-Type: application/json
+### GET - Detalhes do SL Benfica ({{benficaId}})
+GET {{api}}/teams/{{benficaId}}
+X-Auth-Token: {{token}}
+Accept: {{accept}}
 
-{
-  "username": "grupo1"
-}
+>> ./output/fapi-team-{{benficaId}}.json
 
-
-# Esperado: # {
-#   "username": "grupo1",
-#   "token": "123e4567-e89b-12d3-a456-426614174000"
-#
-}
-
-
-###################################################
-# GROUPS - CRUD
-###################################################
-
-### GET - Lista todos os grupos do utilizador
-GET {{prefix}}/groups
-Authorization: Bearer {{userToken}}
-Accept: application/json
-
-# Esperado:
-# [
-#   {
-#     "id": 1,
-#     "name": "Melhores da Liga 2025",
-#     "description": "Onze ideal da Primeira Liga",
-#     "competition": "PPL",
-#     "year": 2025
-#   }
-# ]
-
-
-### POST - Cria novo grupo
-POST {{prefix}}/groups
-Authorization: Bearer {{userToken}}
-Content-Type: application/json
-
-{
-  "name": "Melhores da Champions",
-  "description": "Onze ideal da Champions 2025",
-  "competition": "CL",
-  "year": 2025
-}
-
-
-### GET - Detalhes de um grupo específico
-GET {{prefix}}/groups/1
-Authorization: Bearer {{userToken}}
-Accept: application/json
-
-
-### PUT - Atualiza nome e descrição do grupo
-PUT {{prefix}}/groups/1
-Authorization: Bearer {{userToken}}
-Content-Type: application/json
-
-{
-  "name": "Atualizado",
-  "description": "Descrição alterada"
-}
-
-
-### DELETE - Remove grupo
-DELETE {{prefix}}/groups/1
-Authorization: Bearer {{userToken}}
-
-
-###################################################
-# PLAYERS - GESTÃO DO GRUPO “Best XI”
-###################################################
-
-### POST - Adiciona jogador ao grupo
-POST {{prefix}}/groups/1/players
-Authorization: Bearer {{userToken}}
-Content-Type: application/json
-
-{
-  "playerId": 1903,
-  "playerName": "João Neves",
-  "teamCode": "SLB",
-  "teamName": "SL Benfica"
-}
-
-
-### DELETE - Remove jogador do grupo
-DELETE {{prefix}}/groups/1/players/1903
-Authorization: Bearer {{userToken}}
+### NEGATIVO – 401 (token inválido)
+GET {{api}}/competitions/{{compPPL}}
+X-Auth-Token: invalid-token
+Accept: {{accept}}
