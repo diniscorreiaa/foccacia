@@ -1,4 +1,4 @@
-@api = http://api.football-data.org/v4
+@api = http://localhost:1904
 @token = <PUT_YOUR_TOKEN_HERE>
 @accept = application/json
 @season = 2025
