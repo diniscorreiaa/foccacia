@@ -128,3 +128,14 @@ ___
 3. **Open a Pull Request (PR) and request a review.**
 
 ___
+
+### TODO 
+
+1. OpenApi properly located and name
+2. foccacia-api-requests.http confirm proper parameters
+3. Get the available competitions. For each competition it must return the code and name.
+   - get /competitions from the football API
+     - on proper module access football API
+     - proper filtering of response
+   - create a cache from football API response
+   - create competitions ([{code : "", name: ""}]).json
