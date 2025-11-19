@@ -131,11 +131,11 @@ ___
 
 ### TODO 
 
-1. OpenApi properly located and name
-2. foccacia-api-requests.http confirm proper parameters
-3. Get the available competitions. For each competition it must return the code and name.
+1. Define status code 403 for all group requests necessary (we  must differenciate 403 from 401) 
+2. Get the available competitions. For each competition it must return the code and name.
    - get /competitions from the football API
      - on proper module access football API
      - proper filtering of response
    - create a cache from football API response
    - create competitions ([{code : "", name: ""}]).json
+3. Make foccacia server run
