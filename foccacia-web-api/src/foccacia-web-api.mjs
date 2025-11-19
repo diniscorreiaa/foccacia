@@ -4,7 +4,24 @@ export function hello(name = "world") {
   return `hello ${name}`;
 }
 
+function getToken(req) {
+  const auth = req.get("Authorization");
+  if (!auth) return "";
+  const arr = auth.split(" ");
+  if (arr.length !== 2 && arr[0].toLower() !== "bearer") return "";
+  return arr[1];
+}
+
 export function getCompetitions(req, rsp) {
+  const token = getToken(req);
+
+  if (token == "") {
+    return rsp.status(403).send({
+      uri: req.path,
+      description: "The access to the resource is forbidden",
+    });
+  }
+
   services.getCompetitions().then((competitions) => rsp.json(competitions));
   // rsp.set("Content-Type", "application/json");
   // rsp.send(JSON.stringify(COMPETITIONS));
@@ -14,9 +31,9 @@ export function getCompetitions(req, rsp) {
 // TODO: replace above function with data from foccacia-services
 
 export function getCompetition(req, rsp) {
-  let competition = COMPETITIONS.find(
-    (competition) => req.params.code === competition.code
-  );
+  let competition = services
+    .getCompetitions()
+    .find((competition) => req.params.code === competition.code);
   rsp.json(competition);
 }
 
