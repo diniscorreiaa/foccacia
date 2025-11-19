@@ -1,47 +1,156 @@
 @api = http://localhost:1904
-@token = <PUT_YOUR_TOKEN_HERE>
-@accept = application/json
+@token = Bearer <PUT_YOUR_TOKEN_HERE>
+### TODO Make invalid but existing user token to test 403 status code
+@invalidToken = <TODO> 
+@accept-content = application/json
 @season = 2025
 @compPPL = PPL
 @compCL = CL
 @benficaId = 1903
+@groupId = 1
+@playerId = 1903
+
+
+### GET - Todas as Competições Disponíveis
+GET {{api}}/competitions
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+>> ./output/foccacia-competition-all.json
 
 ### GET - Competição: Primeira Liga ({{compPPL}})
 GET {{api}}/competitions/{{compPPL}}
-X-Auth-Token: {{token}}
-Accept: {{accept}}
+Authorization: {{token}}
+Accept: {{accept-content}}
 
->> ./output/fapi-competition-{{compPPL}}.json
+>> ./output/foccacia-competition-{{compPPL}}.json
 
-### GET - Equipas da Primeira Liga ({{season}})
-GET {{api}}/competitions/{{compPPL}}/teams?season={{season}}
-X-Auth-Token: {{token}}
-Accept: {{accept}}
+### GET - Equipas da Primeira Liga da Época 2025 ({{season}})
+GET {{api}}/competitions/{{compPPL}}/seasons/{{season}}/teams
+Authorization: {{token}}
+Accept: {{accept-content}}
 
->> ./output/fapi-{{compPPL}}-teams-{{season}}.json
+>> ./output/foccacia-{{compPPL}}-teams-{{season}}.json
 
 ### GET - Competição: UEFA Champions League ({{compCL}})
 GET {{api}}/competitions/{{compCL}}
-X-Auth-Token: {{token}}
-Accept: {{accept}}
+Authorization: {{token}}
+Accept: {{accept-content}}
 
->> ./output/fapi-competition-{{compCL}}.json
+>> ./output/foccacia-competition-{{compCL}}.json
 
-### GET - Equipas da Champions ({{season}})
+### GET - Equipas da Champions League da Época 2025 ({{season}})
 GET {{api}}/competitions/{{compCL}}/teams?season={{season}}
-X-Auth-Token: {{token}}
-Accept: {{accept}}
+Authorization: {{token}}
+Accept: {{accept-content}}
 
->> ./output/fapi-{{compCL}}-teams-{{season}}.json
+>> ./output/foccacia-{{compCL}}-teams-{{season}}.json
 
 ### GET - Detalhes do SL Benfica ({{benficaId}})
 GET {{api}}/teams/{{benficaId}}
-X-Auth-Token: {{token}}
-Accept: {{accept}}
+Authorization: {{token}}
+Accept: {{accept-content}}
 
->> ./output/fapi-team-{{benficaId}}.json
+>> ./output/foccacia-team-{{benficaId}}.json
 
 ### NEGATIVO – 401 (token inválido)
 GET {{api}}/competitions/{{compPPL}}
-X-Auth-Token: invalid-token
-Accept: {{accept}}
+Authorization: invalid-token
+Accept: {{accept-content}}
+
+
+
+### POST - Cria um novo Utilizador
+POST {{api}}/users
+Content-Type: {{accept-content}}
+{
+        "username": "grupo1"
+}
+
+### NEGATIVO - 400 (Falta username)
+POST {{api}}/users
+Content-Type: {{accept-content}}
+{
+
+}
+
+
+
+### GET - Grupos do Utilizador
+GET {{api}}/groups
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### POST - Cria um Novo Grupo
+POST {{api}}/groups
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+{
+        "name": "Melhores da Champions",
+        "description": "Onze ideal da Champions 2025",
+        "competition": "CL",
+        "year": 2025
+}
+
+### GET - Grupo {{groupId}} do Utilizador
+GET {{api}}/groups/{{groupId}}
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 404 (Grupo não encontrado)
+GET {{api}}/groups/99999
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### PUT - Edita Nome e Descrição de um Grupo
+PUT {{api}}/groups/{{{{groupId}}}}
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+{
+        "name": "Atualizado",
+        "description": "Descrição alterada"
+}
+
+### NEGATIVO - 400 (Dados Inválidos)
+PUT {{api}}/groups/{{{{groupId}}}}
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+{
+        "name": "I+*!nv?1aL-ªi`+Do",
+        "description": "Nome inválido"
+}
+
+### DELETE - Remove um Grupo {{groupId}}
+DELETE  {{api}}/groups/{{{{groupId}}}}
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+// TODO Definir status code 403 para todos os requests de grupo que forem necessários
+### NEGATIVO - 403 (Pedido vindo de utilizador sem permissões)
+DELETE  {{api}}/groups/{{{{groupId}}}}
+Authorization: {{invalidToken}}
+Accept: {{accept-content}}
+
+### POST - Adiciona Jogador a Grupo
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+{
+        "playerId": 1903,
+        "playerName": "João Neves",
+        "teamCode": "SLB",
+        "teamName": "SL Benfica"
+}
+
+### NEGATIVO - 422 (Violação de regra: Each group may have 11 players at maximum, and each player must belong to the year and competition of the group.)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+{
+        // TODO Test status code for this situation: Each group may have 11 players at maximum, and each player must belong to the year and competition of the group.
+}
+
+### DELETE - Remove Jogador de um Grupo
+DELETE {{api}}/groups/{{groupId}}/players/{{playerId}}
+Authorization: {{token}}
+Accept: {{accept-content}}

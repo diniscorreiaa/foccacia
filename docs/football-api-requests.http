@@ -11,16 +11,16 @@ GET {{api}}/competitions
 X-Auth-Token: {{token}}
 Accept: {{accept}}
 
->> ./output/football-api-responses/fapi-competition-{{compPPL}}.json
+>> ./output/football-api-responses/fapi-competitions.json
 
 ### GET - Competição: Primeira Liga Portuguesa
 GET {{api}}/competitions/{{compPPL}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
 
->> ./output/football-api-responses/fapi-competition-{{compPPL}}.json
+>> ./output/football-api-responses/fapi-competitions-{{compPPL}}.json
 
-### GET - Equipas da Primeira Liga Portuguesa ({{season}})
+### GET - Equipas da Primeira Liga Portuguesa da Época 2025 ({{season}})
 GET {{api}}/competitions/{{compPPL}}/teams?season={{season}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
@@ -32,9 +32,9 @@ GET {{api}}/competitions/{{compCL}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
 
->> ./output/football-api-responses/fapi-competition-{{compCL}}.json
+>> ./output/football-api-responses/fapi-competitions-{{compCL}}.json
 
-### GET - Equipas da Champions League ({{season}})
+### GET - Equipas da Champions League da Época 2025 ({{season}})
 GET {{api}}/competitions/{{compCL}}/teams?season={{season}}
 X-Auth-Token: {{token}}
 Accept: {{accept}}
