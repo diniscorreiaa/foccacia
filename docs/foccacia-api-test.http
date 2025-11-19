@@ -1,4 +1,0 @@
-@prefix = http://localhost:1904/api/
-
-### Get All Competitions
-GET {{prefix}}/competitions
