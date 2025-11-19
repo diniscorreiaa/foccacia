@@ -1,27 +1,21 @@
+import * as services from "foccacia-services/src/foccacia-services.mjs";
+
 export function hello(name = "world") {
   return `hello ${name}`;
 }
 
-function Competition(code, name) {
-  this.code = code;
-  this.name = name;
-}
-
-const COMPETITIONS = [
-  new Competition("PL", "Premier League"),
-  new Competition("LL", "La Liga"),
-  new Competition("PPL", "Primeira Liga"),
-];
-
 export function getCompetitions(req, rsp) {
-  rsp.set("Content-Type", "application/json");
-  rsp.send(JSON.stringify(COMPETITIONS));
+  services.getCompetitions().then((competitions) => rsp.json(competitions));
+  // rsp.set("Content-Type", "application/json");
+  // rsp.send(JSON.stringify(COMPETITIONS));
   // rsp.json(JSON.stringify(COMPETITIONS))
 }
 
+// TODO: replace above function with data from foccacia-services
+
 export function getCompetition(req, rsp) {
   let competition = COMPETITIONS.find(
-    (competition) => req.params.code === competition.id
+    (competition) => req.params.code === competition.code
   );
   rsp.json(competition);
 }

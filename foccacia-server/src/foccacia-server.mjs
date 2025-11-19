@@ -8,16 +8,17 @@ import {
   updateCompetition,
 } from "foccacia-web-api";
 
-const app = express();
-
-const COMPETITIONS = "/competitions";
-const COMPETITION = "/competitions:code";
-
 export function hello(name = "world") {
   return `hello ${name}`;
 }
 
-logSuccess(hello());
+const app = express();
+
+// TODO : criar todos os endpoints necessarios
+
+const COMPETITIONS = "/api/competitions";
+const COMPETITION = `${COMPETITIONS}/:code`;
+const TEAMS = `${COMPETITION}/seasons/:season/teams`;
 
 app.get(COMPETITIONS, getCompetitions);
 app.post(COMPETITIONS, createCompetition);
@@ -27,9 +28,8 @@ app.put(COMPETITION, updateCompetition);
 app.delete(COMPETITION, deleteCompetition);
 
 const PORT = 1904;
-app.listen(PORT, () => logSuccess(`Server listening on port ${PORT}`));
-
-/* TODO: implement foccacia-server
-
-
- */
+logSuccess(
+  "FOCCACIA (Football Complete Clubs API and Chelas Internet Application) by Grupo 1 LEIC31D",
+  ""
+);
+app.listen(PORT, () => logSuccess(`Server listening on port ${PORT}`, ""));
