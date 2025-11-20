@@ -4,6 +4,10 @@ export function hello(name = "world") {
   return `hello ${name}`;
 }
 
+const INITIAL_COMPETITIONS = 3;
+
+let nextId = 4;
+
 const COMPETITIONS = [
   new Competition("PL", "Premier League"),
   new Competition("LL", "La Liga"),

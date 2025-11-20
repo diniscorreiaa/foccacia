@@ -20,6 +20,8 @@ const COMPETITIONS = "/api/competitions";
 const COMPETITION = `${COMPETITIONS}/:code`;
 const TEAMS = `${COMPETITION}/seasons/:season/teams`;
 
+app.use(express.json());
+
 app.get(COMPETITIONS, getCompetitions);
 app.post(COMPETITIONS, createCompetition);
 
