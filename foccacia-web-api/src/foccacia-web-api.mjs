@@ -4,6 +4,12 @@ export function hello(name = "world") {
   return `hello ${name}`;
 }
 
+export const getCompetitions = getCompetitionsInternal;
+export const getCompetition = getCompetitionInternal;
+export const createCompetition = createCompetitionInternal;
+export const deleteCompetition = deleteCompetitionInternal;
+export const updateCompetition = updateCompetitionInternal;
+
 function getToken(req) {
   const auth = req.get("Authorization");
   if (!auth) return "";
@@ -13,48 +19,40 @@ function getToken(req) {
   return arr[1];
 }
 
-export function getCompetitions(req, rsp) {
+export function verifyToken(req, rsp, next) {
   const token = getToken(req);
-
   if (!token) {
     return rsp.status(403).send({
       uri: req.path,
       description: "The access to the resource is forbidden",
     });
   }
-
-  services.getCompetitions().then((competitions) => rsp.json(competitions));
+  req.token = token;
+  next();
 }
 
-export async function getCompetition(req, rsp) {
-  const token = getToken(req);
-  if (!token) {
-    return rsp.status(403).json({
-      uri: req.path,
-      description: "The access to the resource is forbidden",
-    });
-  }
+function getCompetitionsInternal(req, rsp) {
+  services.getCompetitions(req.token).then((competitions) => {
+    console.log("getCompetitions response generated");
+    rsp.json(competitions);
+  });
+}
 
-  const competitions = await services.getCompetitions();
-  const competition = competitions.find((c) => c.code == req.params.code);
-
-  if (!competition) {
-    return rsp.status(404).json({
-      uri: req.path,
-      description: "Competition not found",
-    });
-  }
-
-  rsp.json(competition);
+// TODO : Adapatar as funcionalidade da nossa api
+function getCompetitionInternal(req, rsp) {
+  services
+    .getCompetitions(req.params.code, req.token)
+    .then((competition) => rsp.json(competition))
+    .catch((ae) => {});
 }
 
 // TODO: replace above function with data from foccacia-services
 
-export function createCompetition(req, rsp) {
+function createCompetitionInternal(req, rsp) {
   rsp.send(`Create competition called`);
 }
 
-export function deleteCompetition(req, rsp) {
+function deleteCompetitionInternal(req, rsp) {
   let competitionCode = req.params.code;
   let idx = COMPETITIONS.findIndex(
     (competition) => competitionCode == competition.code
@@ -65,6 +63,6 @@ export function deleteCompetition(req, rsp) {
   });
 }
 
-export function updateCompetition(req, rsp) {
+function updateCompetitionInternal(req, rsp) {
   rsp.send(`Update Competition with code ${req.params.code} called`);
 }

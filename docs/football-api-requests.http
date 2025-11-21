@@ -7,9 +7,9 @@
 @benficaId = 1903
 
 ### GET - Todas as Competições
-GET {api}/competitions
-X-Auth-Token: {token}
-Accept: {accept}
+GET {{api}}/competitions
+X-Auth-Token: {{token}}
+Accept: {{accept}}
 
 >> ./output/football-api-responses/fapi-competitions.json
 

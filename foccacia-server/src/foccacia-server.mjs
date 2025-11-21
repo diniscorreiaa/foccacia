@@ -6,6 +6,7 @@ import {
   getCompetition,
   getCompetitions,
   updateCompetition,
+  verifyToken,
 } from "foccacia-web-api";
 
 export function hello(name = "world") {
@@ -20,8 +21,14 @@ const COMPETITIONS = "/api/competitions";
 const COMPETITION = `${COMPETITIONS}/:code`;
 const TEAMS = `${COMPETITION}/seasons/:season/teams`;
 
-app.use(express.json());
+// TODO : understand middleware and use it properly
+function callMe(req, rsp, next) {
+  console.log("I've been called");
+  next();
+  console.log("I've been called after next");
+}
 
+app.use(verifyToken);
 app.get(COMPETITIONS, getCompetitions);
 app.post(COMPETITIONS, createCompetition);
 

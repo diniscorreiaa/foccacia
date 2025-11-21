@@ -158,3 +158,9 @@ DELETE {api}/groups/{groupId}/players/{playerId}
 Authorization: {token}
 Accept: {accept-content}
 
+
+
+
+
+
+
