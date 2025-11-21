@@ -1,24 +1,41 @@
+// application-to-http-errors.mjs
 import { ERROR_CODES } from "./errors.mjs";
+import { logError } from "foccacia-utils";
 
-function HttpError(status, obj) {
-  this.status = status;
-  this.body = obj;
-}
+export function sendApplicationError(err, req, res) {
+  if (!err || typeof err.code !== "number") {
+    logError(`Unhandled error for ${req.method} ${req.path}`, err);
+    return res.status(500).json({
+      uri: req.path,
+      description: "Internal server error",
+    });
+  }
 
-const ERROR_MAPPING = {
-  [ERROR_CODES.InvalidData]: 400,
-  [ERROR_CODES.NotFound]: 404,
-  [ERROR_CODES.NotAuthorized]: 403,
-};
+  let status;
+  switch (err.code) {
+    case ERROR_CODES.InvalidData:
+      status = 400;
+      break;
+    case ERROR_CODES.NotFound:
+      status = 404;
+      break;
+    case ERROR_CODES.NotAuthorized:
+      status = 403;
+      break;
+    case ERROR_CODES.TooManyRequests:
+      status = 429;
+      break;
+    default:
+      status = 500;
+  }
 
-const INTERNAL_ERROR = new HttpError(500, {
-  message: `Unexpected error. Contact your administrator`,
-});
+  logError(
+    `Application error (${status}) on ${req.method} ${req.path}: ${err.message}`,
+    ""
+  );
 
-export default function (applicationError) {
-  const httpErr = new HttpError(ERROR_MAPPING[applicationError.code], {
-    message: applicationError.message,
+  return res.status(status).json({
+    uri: req.path,
+    description: err.message,
   });
-  if (httpErr.status != undefined) return httpErr;
-  return INTERNAL_ERROR;
 }

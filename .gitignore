@@ -146,3 +146,5 @@ vite.config.ts.timestamp-*
 
 #outputs API
 /docs/output/football-api-responses/
+/docs/input/headers.json
+/docs/output/

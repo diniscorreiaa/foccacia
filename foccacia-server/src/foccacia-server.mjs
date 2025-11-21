@@ -1,11 +1,9 @@
 import { logSuccess } from "foccacia-utils";
 import express from "express";
 import {
-  createCompetition,
-  deleteCompetition,
   getCompetition,
   getCompetitions,
-  updateCompetition,
+  getTeamsForCompetitionAndSeason,
   verifyToken,
 } from "foccacia-web-api";
 
@@ -14,6 +12,8 @@ export function hello(name = "world") {
 }
 
 const app = express();
+app.use(express.json());
+app.use(verifyToken);
 
 // TODO : criar todos os endpoints necessarios
 
@@ -28,13 +28,11 @@ function callMe(req, rsp, next) {
   console.log("I've been called after next");
 }
 
-app.use(verifyToken);
 app.get(COMPETITIONS, getCompetitions);
-app.post(COMPETITIONS, createCompetition);
-
 app.get(COMPETITION, getCompetition);
-app.put(COMPETITION, updateCompetition);
-app.delete(COMPETITION, deleteCompetition);
+app.get(TEAMS, getTeamsForCompetitionAndSeason);
+
+// TODO : ap.get app.post app.put app.delete
 
 const PORT = 1904;
 logSuccess(

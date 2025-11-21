@@ -1,4 +1,6 @@
 import * as services from "foccacia-services/src/foccacia-services.mjs";
+import { sendApplicationError } from "foccacia-server/src/application-to-http-errors.mjs";
+import { teamToDto } from "./foccacia-dtos.mjs";
 
 export function hello(name = "world") {
   return `hello ${name}`;
@@ -6,9 +8,11 @@ export function hello(name = "world") {
 
 export const getCompetitions = getCompetitionsInternal;
 export const getCompetition = getCompetitionInternal;
-export const createCompetition = createCompetitionInternal;
-export const deleteCompetition = deleteCompetitionInternal;
-export const updateCompetition = updateCompetitionInternal;
+export const getTeamsForCompetitionAndSeason =
+  getTeamsForCompetitionAndSeasonInternal;
+export const verifyToken = verifyTokenInternal;
+
+// TODO : createUser, deleteUser, updateUser, createGroup, deleteGroup, updateGroup, getTeams
 
 function getToken(req) {
   const auth = req.get("Authorization");
@@ -19,50 +23,74 @@ function getToken(req) {
   return arr[1];
 }
 
-export function verifyToken(req, rsp, next) {
+function verifyTokenInternal(req, res, next) {
   const token = getToken(req);
   if (!token) {
-    return rsp.status(403).send({
+    return res.status(403).json({
       uri: req.path,
       description: "The access to the resource is forbidden",
     });
   }
-  req.token = token;
+
+  req.token = token; // guardado para futura lógica (users/groups)
   next();
 }
 
-function getCompetitionsInternal(req, rsp) {
-  services.getCompetitions(req.token).then((competitions) => {
-    console.log("getCompetitions response generated");
-    rsp.json(competitions);
-  });
+async function getCompetitionsInternal(req, res) {
+  try {
+    const competitions = await services.getCompetitions();
+    res.json(competitions);
+  } catch (err) {
+    console.error(err);
+    sendApplicationError(err, req, res);
+  }
 }
 
-// TODO : Adapatar as funcionalidade da nossa api
-function getCompetitionInternal(req, rsp) {
-  services
-    .getCompetitions(req.params.code, req.token)
-    .then((competition) => rsp.json(competition))
-    .catch((ae) => {});
+async function getTeamsForCompetitionAndSeasonInternal(req, res) {
+  const { code, season } = req.params;
+
+  try {
+    const teams = await services.getTeamsForCompetitionAndSeason(code, season);
+    res.json(teams.map(teamToDto));
+  } catch (err) {
+    console.error(err);
+    sendApplicationError(err, req, res);
+  }
 }
 
-// TODO: replace above function with data from foccacia-services
+// async function verifyTokenInternal(req, res, next) {
+//   const token = getToken(req);
+//   if (!token) {
+//     return res.status(403).json({
+//       uri: req.path,
+//       description: "The access to the resource is forbidden",
+//     });
+//   }
+//
+//   try {
+//     const userId = await services.convertTokenToUserId(token);
+//     req.token = token;
+//     req.userId = userId;
+//     next();
+//   } catch (err) {
+//     return sendApplicationError(err, req, res);
+//   }
+// }
 
-function createCompetitionInternal(req, rsp) {
-  rsp.send(`Create competition called`);
-}
+// async function getCompetitionsInternal(req, res) {
+//   try {
+//     const competitions = await services.getCompetitions();
+//     res.json(competitions);
+//   } catch (err) {
+//     sendApplicationError(err, req, res);
+//   }
+// }
 
-function deleteCompetitionInternal(req, rsp) {
-  let competitionCode = req.params.code;
-  let idx = COMPETITIONS.findIndex(
-    (competition) => competitionCode == competition.code
-  );
-  COMPETITIONS.splice(idx, 1);
-  rsp.json({
-    status: `Competition with code ${competitionCode} deleted`,
-  });
-}
-
-function updateCompetitionInternal(req, rsp) {
-  rsp.send(`Update Competition with code ${req.params.code} called`);
+async function getCompetitionInternal(req, res) {
+  try {
+    const competition = await services.getCompetitionByCode(req.params.code);
+    res.json(competition);
+  } catch (err) {
+    sendApplicationError(err, req, res);
+  }
 }

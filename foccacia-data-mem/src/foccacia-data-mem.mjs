@@ -1,91 +1,81 @@
-import { Competition, Team, User } from "./domain-model.mjs";
+import { Group, User } from "./domain-model.mjs";
 
 export function hello(name = "world") {
   return `hello ${name}`;
 }
 
-const INITIAL_COMPETITIONS = 3;
-
-let nextId = 4;
-
-const COMPETITIONS = [
-  new Competition("PL", "Premier League"),
-  new Competition("LL", "La Liga"),
-  new Competition("PPL", "Primeira Liga"),
-];
-
-const TEAMS = [
-  new Team("SL Benfica", "Portugal", [
-    { playerName: "João Neves", position: "Midfielder" },
-    { playerName: "Gonçalo Ramos", position: "Forward" },
-  ]),
-  new Team("SC Braga", "Portugal", [
-    { playerName: "Ricardo Horta", position: "Forward" },
-    { playerName: "Paulinho", position: "Midfielder" },
-  ]),
-  new Team("Vitória SC", "Portugal", [
-    { playerName: "André Almeida", position: "Defender" },
-    { playerName: "Óscar Estupiñán", position: "Forward" },
-  ]),
-];
+let nextUserId = 1;
+let nextGroupId = 1;
 
 const USERS = [];
 const GROUPS = [];
 
-export function getCompetitions() {
-  return Promise.resolve(COMPETITIONS);
-}
-export function setCompetitions(competitions) {
-  COMPETITIONS.length = 0; // Clear COMPETITIONS existing elements
-  COMPETITIONS.push(...competitions); // Push to COMPETITIONS, competitions elements one by one
-}
+// Users
 
-function createUser(name) {
-  new User(nextId++, name, crypto.randomUUID());
-}
-
-export function addUser(user) {
+export function createUser(username, token) {
+  const user = new User(nextUserId++, username, token);
   USERS.push(user);
   return user;
 }
 
 export function findUserByUsername(username) {
-  return USERS.find((u) => u.username == username);
+  return USERS.find((u) => u.username === username) || null;
 }
 
 export function findUserByToken(token) {
-  return USERS.find((u) => u.token == token);
+  return USERS.find((u) => u.token === token) || null;
 }
 
 export function getAllUsers() {
   return [...USERS];
 }
 
-export function addGroup(group) {
+// Groups
+
+export function createGroup(
+  name,
+  ownerUserId,
+  description,
+  competitionCode,
+  season
+) {
+  const group = new Group(
+    nextGroupId++,
+    name,
+    ownerUserId,
+    description,
+    competitionCode,
+    season,
+    []
+  );
   GROUPS.push(group);
   return group;
 }
 
-export function getGroupById(groupId) {
-  return GROUPS.find((g) => g.id === groupId);
+export function getGroupById(id) {
+  return GROUPS.find((g) => g.id === id) || null;
 }
 
-export function getGroupsByUserId(userId) {
-  return GROUPS.filter((g) => g.ownerUserId === userId);
+export function getGroupsByUser(ownerUserId) {
+  return GROUPS.filter((g) => g.ownerUserId === ownerUserId);
 }
 
-export function updateGroup(updatedGroup) {
-  const idx = GROUPS.findIndex((g) => g.id === updatedGroup.id);
+export function updateGroup(group) {
+  const idx = GROUPS.findIndex((g) => g.id === group.id);
   if (idx === -1) return null;
-  GROUPS[idx] = updatedGroup;
-  return updatedGroup;
+  GROUPS[idx] = group;
+  return group;
 }
 
-export function deleteGroup(groupId) {
-  const idx = GROUPS.findIndex((g) => g.id === groupId);
+export function deleteGroup(id) {
+  const idx = GROUPS.findIndex((g) => g.id === id);
   if (idx === -1) return false;
   GROUPS.splice(idx, 1);
   return true;
 }
 
 // TODO: Apos implementar o domain-model, criar exemplos de dados e os funções para manipula-los
+
+export function getCompetitions() {
+  return Promise.resolve(COMPETITIONS);
+}

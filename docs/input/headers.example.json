@@ -1,6 +1,4 @@
 {
-  "headers": {
-    "X-Auth-Token": "<PUT_YOUR_TOKEN_HERE>",
-    "Accept": "application/json"
-  }
+  "X-Auth-Token": "<PUT_YOUR_TOKEN_HERE>",
+  "Accept": "application/json"
 }
