@@ -10,6 +10,7 @@
 @groupId = 1
 @playerId = 1903
 
+// TODO : todas as variaveis globais entre {{VAR}}
 
 ### GET - Todas as Competições Disponíveis
 GET {{api}}/competitions
@@ -25,6 +26,13 @@ Accept: {{accept-content}}
 
 >> ./output/foccacia-competition-{{compPPL}}.json
 
+### GET - Competição: UEFA Champions League ({{compCL}})
+GET {{api}}/competitions/{{compCL}}
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+>> ./output/foccacia-competition-{{compCL}}.json
+
 ### GET - Equipas da Primeira Liga da Época 2025 ({{season}})
 GET {{api}}/competitions/{{compPPL}}/seasons/{{season}}/teams
 Authorization: {{token}}
@@ -32,31 +40,17 @@ Accept: {{accept-content}}
 
 >> ./output/foccacia-{{compPPL}}-teams-{{season}}.json
 
-### GET - Competição: UEFA Champions League ({{compCL}})
-GET {api}/competitions/{compCL}
-Authorization: {token}
-Accept: {accept-content}
-
->> ./output/foccacia-competition-{{compCL}}.json
-
 ### GET - Equipas da Champions League da Época 2025 ({{season}})
-GET {api}/competitions/{compCL}/teams?season={season}
-Authorization: {token}
-Accept: {accept-content}
+GET {{api}}/competitions/{{compCL}}/seasons/{{season}}/teams
+Authorization: {{token}}
+Accept: {{accept-content}}
 
 >> ./output/foccacia-{{compCL}}-teams-{{season}}.json
 
-### GET - Detalhes do SL Benfica ({{benficaId}})
-GET {api}/teams/{benficaId}
-Authorization: {token}
-Accept: {accept-content}
-
->> ./output/foccacia-team-{{benficaId}}.json
-
 ### NEGATIVO – 401 (token inválido)
-GET {api}/competitions/{compPPL}
+GET {{api}}/competitions/{{compPPL}}
 Authorization: invalid-token
-Accept: {accept-content}
+Accept: {{accept-content}}
 
 ### POST - Cria um novo Utilizador
 POST {api}/users
@@ -157,11 +151,3 @@ Content-Type: {accept-content}
 DELETE {api}/groups/{groupId}/players/{playerId}
 Authorization: {token}
 Accept: {accept-content}
-
-
-
-
-
-
-
-

@@ -1,55 +1,109 @@
-// foccacia-services.mjs
-import * as dataMem from "foccacia-data-mem/src/foccacia-data-mem.mjs";
-import errors from "foccacia-server/src/errors.mjs";
-import { randomUUID } from "crypto";
-import {
-  fetchCompetitions,
-  fetchCompetitionTeams,
-  fetchTeamWithSquad,
-} from "fapi-teams-data/src/fapi-teams-data.mjs";
 import {
   Competition,
   Player,
   Team,
 } from "foccacia-data-mem/src/domain-model.mjs";
+import {
+  fetchCompetitions,
+  fetchCompetitionTeams,
+  fetchTeamWithSquad,
+} from "fapi-teams-data/src/fapi-teams-data.mjs";
+import errors from "foccacia-server/src/errors.mjs";
+import { logError, logInfo } from "foccacia-utils";
 
 // Competitions
 
 export async function getCompetitions() {
-  const rawCompetitions = await fetchCompetitions();
+  return fetchCompetitions()
+    .then((raw) => {
+      const competitions = raw.map(
+        (competition) => new Competition(competition.code, competition.name)
+      );
 
-  return rawCompetitions.map((c) => new Competition(c.code, c.name));
+      logInfo(`Service: loaded ${competitions.length} competitions`, "");
+      return competitions;
+    })
+    .catch((err) => {
+      logError("Service getCompetitions failed", err);
+
+      // TODO : Decidir qual erro lançar
+      return Promise.reject(err);
+    });
 }
 
-export async function getTeamsForCompetitionAndSeason(code, season) {
-  const teams = await fetchCompetitionTeams(code, season);
-
-  let teamsWithSquad;
-  try {
-    teamsWithSquad = await Promise.all(
-      teams.map((t) => fetchTeamWithSquad(t.id))
-    );
-  } catch (err) {
-    if (err.status === 429) {
-      throw errors.RATE_LIMIT(
-        "Atingido o limite de pedidos à Football Data API. Tente novamente dentro de alguns segundos."
-      );
-    }
-    throw err;
+// TODO : Adaptar para usar Promises e logs
+export async function getCompetitionByCode(code) {
+  const competitions = await getCompetitions();
+  const competition = competitions.find(
+    (competition) => competition.code == code
+  );
+  if (!competition) {
+    throw errors.NOT_FOUND(`Competition with code ${code} not found`);
   }
+  return competition;
+}
 
-  return teamsWithSquad.map((teamJson) => {
-    const players = (teamJson.squad ?? []).map(
-      (p) => new Player(p.id, p.name, p.position)
-    );
+// Teams and Players
 
-    return new Team(
-      teamJson.id,
-      teamJson.name,
-      teamJson.area?.name ?? null,
-      players
-    );
-  });
+export async function getTeamsForCompetitionAndSeason(code, season) {
+  return fetchCompetitionTeams(code, season)
+    .then((teams) => {
+      logInfo(
+        `Service: fetched ${teams.length} teams for competition ${code} season ${season}`,
+        ""
+      );
+
+      return Promise.all(
+        teams.map((team) =>
+          fetchTeamWithSquad(team.id).catch((err) => {
+            if (err.status === 429) {
+              logError(
+                `Rate limit from Football API while fetching team ${team.id}`,
+                err
+              );
+              return Promise.reject(
+                errors.RATE_LIMIT(
+                  "Atingido o limite de pedidos à Football Data API. Tente novamente dentro de alguns segundos."
+                )
+              );
+            }
+            logError(
+              `Unexpected error fetching team ${team.id} for ${code} ${season}`,
+              err
+            );
+            return Promise.reject(err);
+          })
+        )
+      );
+    })
+    .then((teamsWithSquad) => {
+      const result = teamsWithSquad.map((teamJson) => {
+        const players = (teamJson.squad ?? []).map(
+          (player) => new Player(player.id, player.name, player.position)
+        );
+        return new Team(
+          teamJson.id,
+          teamJson.name,
+          teamJson.area?.name ?? null,
+          players
+        );
+      });
+      logInfo(
+        `Service: built ${result.length} Team objects for competition ${code} season ${season}`,
+        ""
+      );
+      return result;
+    })
+    .catch((err) => {
+      if (err.code) {
+        return Promise.reject(err);
+      }
+      logError(
+        `Service getTeamsForCompetitionAndSeason(${code}, ${season}) failed`,
+        err
+      );
+      return Promise.reject(err);
+    });
 }
 
 // TODO : diferente estrutura em baixo
@@ -65,41 +119,32 @@ export async function getTeamsForCompetitionAndSeason(code, season) {
 //   return competitions;
 // }
 
-export async function getCompetitionByCode(code) {
-  const competitions = await getCompetitions();
-  const comp = competitions.find((c) => c.code == code);
-  if (!comp) {
-    throw errors.NOT_FOUND(`Competition with code ${code} not found`);
-  }
-  return comp;
-}
-
 // Users
 
-export async function createUser(username) {
-  const existing = dataMem.findUserByUsername(username);
-  if (existing) {
-    throw errors.INVALID_DATA(`Username ${username} already exists`);
-  }
-  const token = randomUUID();
-  const user = dataMem.createUser(username, token);
-  return user;
-}
-
-// usado pelo middleware para validar token
-export async function convertTokenToUserId(token) {
-  const user = dataMem.findUserByToken(token);
-  if (!user) {
-    throw errors.NOT_AUTHORIZED("Invalid token");
-  }
-  return user.id;
-}
+// export async function createUser(username) {
+//   const existing = dataMem.findUserByUsername(username);
+//   if (existing) {
+//     throw errors.INVALID_DATA(`Username ${username} already exists`);
+//   }
+//   const token = randomUUID();
+//   const user = dataMem.createUser(username, token);
+//   return user;
+// }
+//
+// // usado pelo middleware para validar token
+// export async function convertTokenToUserId(token) {
+//   const user = dataMem.findUserByToken(token);
+//   if (!user) {
+//     throw errors.NOT_AUTHORIZED("Invalid token");
+//   }
+//   return user.id;
+// }
 
 // Groups
 // TODO : criar regras como max 11 jogadores
-export async function getGroupsByUser(userId) {
-  return dataMem.getGroupsByUser(userId);
-}
+// export async function getGroupsByUser(userId) {
+//   return dataMem.getGroupsByUser(userId);
+// }
 
 // TODO : Adaptar as funcionalidades do nosso projecto
 
@@ -132,5 +177,3 @@ export async function getGroupsByUser(userId) {
 //     }
 //   }
 // }
-
-// TODO: Implementar a logica de todas as funções da aplicação

@@ -1,4 +1,3 @@
-// application-to-http-errors.mjs
 import { ERROR_CODES } from "./errors.mjs";
 import { logError } from "foccacia-utils";
 

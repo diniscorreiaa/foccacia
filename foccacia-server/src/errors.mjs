@@ -13,9 +13,12 @@ export const ERROR_CODES = {
 export default {
   INVALID_DATA: (message) =>
     new ApplicationError(ERROR_CODES.InvalidData, message),
+
   NOT_FOUND: (message) => new ApplicationError(ERROR_CODES.NotFound, message),
+
   NOT_AUTHORIZED: (message) =>
     new ApplicationError(ERROR_CODES.NotAuthorized, message),
+
   RATE_LIMIT: (message) =>
     new ApplicationError(ERROR_CODES.TooManyRequests, message),
 };

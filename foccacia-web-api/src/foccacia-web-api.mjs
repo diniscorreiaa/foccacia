@@ -1,6 +1,8 @@
 import * as services from "foccacia-services/src/foccacia-services.mjs";
 import { sendApplicationError } from "foccacia-server/src/application-to-http-errors.mjs";
 import { teamToDto } from "./foccacia-dtos.mjs";
+import errors from "foccacia-server/src/errors.mjs";
+import { logInfo } from "foccacia-utils";
 
 export function hello(name = "world") {
   return `hello ${name}`;
@@ -23,39 +25,73 @@ function getToken(req) {
   return arr[1];
 }
 
-function verifyTokenInternal(req, res, next) {
+async function verifyTokenInternal(req, res, next) {
   const token = getToken(req);
   if (!token) {
-    return res.status(403).json({
-      uri: req.path,
-      description: "The access to the resource is forbidden",
-    });
+    const err = errors.NOT_AUTHORIZED("Missing or invalid Bearer token");
+    return sendApplicationError(err, req, res);
   }
 
-  req.token = token; // guardado para futura lógica (users/groups)
+  // TODO : Apos validacao da token em services
+  // return services
+  //   .convertTokenToUserId(token)
+  //   .then((userId) => {
+  //     req.token = token;
+  //     req.userId = userId;
+  //     logInfo(`Request authorized for user ${userId} ${req.method} ${req.path}`);
+  //     next();
+  //   })
+  //   .catch((err) => sendApplicationError(err, req, res));
+
+  req.token = token;
+  logInfo(`Request authorized for ${req.method} ${req.path}`, "");
   next();
 }
 
-async function getCompetitionsInternal(req, res) {
+// Get Competitions
+
+function getCompetitionsInternal(req, res) {
+  services
+    .getCompetitions()
+    .then((competitions) => {
+      logInfo(
+        `API: responding with ${competitions.length} competitions for ${req.path}`,
+        ""
+      );
+      res.json(competitions);
+    })
+    .catch((err) => {
+      sendApplicationError(err, req, res);
+    });
+}
+
+// TODO : usar promises e remover try catch
+async function getCompetitionInternal(req, res) {
   try {
-    const competitions = await services.getCompetitions();
-    res.json(competitions);
+    const competition = await services.getCompetitionByCode(req.params.code);
+    res.json(competition);
   } catch (err) {
-    console.error(err);
     sendApplicationError(err, req, res);
   }
 }
 
-async function getTeamsForCompetitionAndSeasonInternal(req, res) {
+// Get Teams
+
+function getTeamsForCompetitionAndSeasonInternal(req, res) {
   const { code, season } = req.params;
 
-  try {
-    const teams = await services.getTeamsForCompetitionAndSeason(code, season);
-    res.json(teams.map(teamToDto));
-  } catch (err) {
-    console.error(err);
-    sendApplicationError(err, req, res);
-  }
+  services
+    .getTeamsForCompetitionAndSeason(code, season)
+    .then((teams) => {
+      logInfo(
+        `API: responding with ${teams.length} teams for ${code} season ${season}`,
+        ""
+      );
+      res.json(teams.map(teamToDto));
+    })
+    .catch((err) => {
+      sendApplicationError(err, req, res);
+    });
 }
 
 // async function verifyTokenInternal(req, res, next) {
@@ -76,21 +112,3 @@ async function getTeamsForCompetitionAndSeasonInternal(req, res) {
 //     return sendApplicationError(err, req, res);
 //   }
 // }
-
-// async function getCompetitionsInternal(req, res) {
-//   try {
-//     const competitions = await services.getCompetitions();
-//     res.json(competitions);
-//   } catch (err) {
-//     sendApplicationError(err, req, res);
-//   }
-// }
-
-async function getCompetitionInternal(req, res) {
-  try {
-    const competition = await services.getCompetitionByCode(req.params.code);
-    res.json(competition);
-  } catch (err) {
-    sendApplicationError(err, req, res);
-  }
-}

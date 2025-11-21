@@ -13,7 +13,6 @@ export function hello(name = "world") {
 
 const app = express();
 app.use(express.json());
-app.use(verifyToken);
 
 // TODO : criar todos os endpoints necessarios
 
@@ -21,13 +20,7 @@ const COMPETITIONS = "/api/competitions";
 const COMPETITION = `${COMPETITIONS}/:code`;
 const TEAMS = `${COMPETITION}/seasons/:season/teams`;
 
-// TODO : understand middleware and use it properly
-function callMe(req, rsp, next) {
-  console.log("I've been called");
-  next();
-  console.log("I've been called after next");
-}
-
+app.use(verifyToken);
 app.get(COMPETITIONS, getCompetitions);
 app.get(COMPETITION, getCompetition);
 app.get(TEAMS, getTeamsForCompetitionAndSeason);
@@ -40,3 +33,11 @@ logSuccess(
   ""
 );
 app.listen(PORT, () => logSuccess(`Server listening on port ${PORT}`, ""));
+
+// TODO : understand middleware and use it properly
+
+// function callMe(req, rsp, next) {
+//   console.log("I've been called");
+//   next();
+//   console.log("I've been called after next");
+// }
