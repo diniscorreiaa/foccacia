@@ -11,6 +11,9 @@ import {
 import errors from "foccacia-server/src/errors.mjs";
 import { logError, logInfo } from "foccacia-utils";
 
+
+
+
 // Competitions
 
 export async function getCompetitions() {
@@ -31,21 +34,7 @@ export async function getCompetitions() {
     });
 }
 
-// TODO : Adaptar para usar Promises e logs
-export async function getCompetitionByCode(code) {
-  const competitions = await getCompetitions();
-  const competition = competitions.find(
-    (competition) => competition.code == code
-  );
-  if (!competition) {
-    throw errors.NOT_FOUND(`Competition with code ${code} not found`);
-  }
-  return competition;
-}
-
-// Teams and Players
-
-export async function getTeamsForCompetitionAndSeason(code, season) {
+export async function getTeams(code, season) {
   return fetchCompetitionTeams(code, season)
     .then((teams) => {
       logInfo(
@@ -105,7 +94,14 @@ export async function getTeamsForCompetitionAndSeason(code, season) {
       return Promise.reject(err);
     });
 }
-
+export function createUser() {}
+export function getGroups() {}
+export function createGroup() {}
+export function getGroup() {}
+export function replaceGroup() {}
+export function deleteGroup() {}
+export function addPlayerToGroup() {}
+export function deletePlayerFromGroup() {}
 // TODO : diferente estrutura em baixo
 
 // export async function getCompetitions() {
