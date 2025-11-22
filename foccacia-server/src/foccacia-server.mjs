@@ -11,9 +11,9 @@ import {
   getGroups,
   getTeams,
   replaceGroup,
+  sendApplicationError,
   verifyToken,
 } from "foccacia-web-api";
-import { sendApplicationError } from "foccacia-web-api/src/application-to-http-errors.mjs";
 
 const PORT = 1904;
 

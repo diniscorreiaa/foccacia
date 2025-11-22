@@ -4,6 +4,8 @@ import errors from "foccacia-errors";
 import { logInfo } from "foccacia-utils";
 import { sendApplicationError } from "./application-to-http-errors.mjs";
 
+export { sendApplicationError } from "./application-to-http-errors.mjs";
+
 function getToken(req) {
   const auth = req.get("Authorization");
   if (!auth) return "";
