@@ -34,7 +34,7 @@ app.get(TEAMS, getTeams);
 
 app.post(USERS, createUser);
 
-app.use(verifyToken)
+app.use(verifyToken);
 app.get(GROUPS, getGroups);
 app.post(GROUPS, createGroup);
 app.get(GROUP, getGroup);
@@ -42,12 +42,6 @@ app.put(GROUP, replaceGroup);
 app.delete(GROUP, deleteGroup);
 app.post(GROUP_PLAYERS, addPlayerToGroup);
 app.delete(GROUP_PLAYER, deletePlayerFromGroup);
-
-/*app.use(verifyToken);
-app.get(COMPETITIONS, getCompetitions);
-app.get(COMPETITION, getCompetition);
-app.get(TEAMS, getTeamsForCompetitionAndSeason);
-Previous commit */
 
 logSuccess(
   "FOCCACIA (Football Complete Clubs API and Chelas Internet Application) by Grupo 1 LEIC31D",
