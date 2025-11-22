@@ -10,13 +10,15 @@ import {
   readJson,
   writeJson,
 } from "foccacia-utils";
+import errors from "foccacia-server/src/errors.mjs";
 
 export function hello(name = "world") {
   return `hello ${name}`;
 }
 
-const FOOTBALL_API = "https://api.football-data.org/v4";
+const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 
+// TODO : Mapping do erro para erros possiveis da API
 async function loadAuthHeaders() {
   const headersJson = await readJson(getHeadersFilePath());
   const token = headersJson["X-Auth-Token"];
@@ -26,6 +28,19 @@ async function loadAuthHeaders() {
   return { "X-Auth-Token": token };
 }
 
+// TODO : Msg em ingles e adicionar todos erros possiveis usando um when
+function buildFootballApiError(url, status) {
+  if (status == 429) {
+    return errors.RATE_LIMIT(
+      "Atingido o limite de pedidos à Football Data API. Tente novamente dentro de um minuto."
+    );
+  }
+  const err = new Error(`Football API error ${status} for ${url}`);
+  err.status = status;
+  return err;
+}
+
+// Competitions
 export async function fetchCompetitions() {
   const cachePath = getCompetitionsFilePath();
 
@@ -37,15 +52,11 @@ export async function fetchCompetitions() {
   logInfo("Fetching competitions from Football Data API", "");
   const headers = await loadAuthHeaders();
 
-  const response = await fetch(`${FOOTBALL_API}/competitions`, {
-    headers,
-  });
+  const competitions_url = `${FOOTBALL_API_URI}/competitions`;
+  const response = await fetch(competitions_url, { headers });
 
   if (!response.ok) {
-    const err = new Error(
-      `Football API error ${response.status} for /competitions`
-    );
-    err.status = response.status;
+    const err = buildFootballApiError(competitions_url, response.status);
     logError("Error fetching competitions", err);
     throw err;
   }
@@ -63,6 +74,7 @@ export async function fetchCompetitions() {
   return competitions;
 }
 
+// Teams
 export async function fetchCompetitionTeams(code, season) {
   const cachePath = getCompetitionTeamsFilePath(code, season);
 
@@ -78,14 +90,11 @@ export async function fetchCompetitionTeams(code, season) {
   );
 
   const headers = await loadAuthHeaders();
+  const url_teams = `${FOOTBALL_API_URI}/competitions/${code}/teams?season=${season}`;
+  const response = await fetch(url_teams, { headers });
 
-  // TODO : url como variavel global
-  const url = `${FOOTBALL_API}/competitions/${code}/teams?season=${season}`;
-
-  const response = await fetch(url, { headers });
   if (!response.ok) {
-    const err = new Error(`Football API error ${response.status} for ${url}`);
-    err.status = response.status;
+    const err = buildFootballApiError(url_teams, response.status);
     logError("Error fetching competition teams", err);
     throw err;
   }
@@ -96,6 +105,7 @@ export async function fetchCompetitionTeams(code, season) {
   return body.teams;
 }
 
+// Team with Squad
 export async function fetchTeamWithSquad(teamId) {
   const cachePath = getTeamPlayersFilePath(teamId);
 
@@ -106,14 +116,12 @@ export async function fetchTeamWithSquad(teamId) {
 
   logInfo(`Fetching team with squad for id ${teamId}`, "");
   const headers = await loadAuthHeaders();
-  // TODO : url como variavel global
-  const url = `${FOOTBALL_API}/teams/${teamId}`;
-
-  const response = await fetch(url, { headers });
+  const url_team = `${FOOTBALL_API_URI}/teams/${teamId}`;
+  const response = await fetch(url_team, { headers });
 
   if (!response.ok) {
-    const err = new Error(`Football API error ${response.status} for ${url}`);
-    err.status = response.status;
+    const err = buildFootballApiError(url_team, response.status);
+    logError(`Error fetching team ${teamId}`, err);
     throw err;
   }
 

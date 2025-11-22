@@ -10,6 +10,10 @@ function getInputFilePath(fileName = "") {
   return path.join(ROOT_DIR, "docs", "input", fileName);
 }
 
+function getOutputFootballApiFilePath(fileName = "") {
+  return path.join(ROOT_DIR, "docs", "output", "football-api-cache", fileName);
+}
+
 function getOutputFilePath(fileName = "") {
   return path.join(ROOT_DIR, "docs", "output", fileName);
 }
@@ -20,7 +24,7 @@ export function fileExists(filePath) {
 
 export function getTeamPlayersFilePath(id) {
   const fileName = `team-${id}-players.json`;
-  return getOutputFilePath(fileName);
+  return getOutputFootballApiFilePath(fileName);
 }
 
 export function getHeadersFilePath() {
@@ -39,10 +43,10 @@ export function getDirName(filePath) {
 
 export function getCompetitionsFilePath() {
   const fileName = "competitions.json";
-  return getOutputFilePath(fileName);
+  return getOutputFootballApiFilePath(fileName);
 }
 
 export function getCompetitionTeamsFilePath(code, season) {
   const fileName = `competition-${code}-${season}-teams.json`;
-  return getOutputFilePath(fileName);
+  return getOutputFootballApiFilePath(fileName);
 }

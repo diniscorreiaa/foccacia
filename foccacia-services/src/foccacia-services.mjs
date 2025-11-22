@@ -8,114 +8,58 @@ import {
   fetchCompetitionTeams,
   fetchTeamWithSquad,
 } from "fapi-teams-data/src/fapi-teams-data.mjs";
-import errors from "foccacia-server/src/errors.mjs";
-import { logError, logInfo } from "foccacia-utils";
+import { logInfo } from "foccacia-utils";
 
 // Competitions
-
 export async function getCompetitions() {
-  return fetchCompetitions()
-    .then((raw) => {
-      const competitions = raw.map(
-        (competition) => new Competition(competition.code, competition.name)
-      );
-
-      logInfo(`Service: loaded ${competitions.length} competitions`, "");
-      return competitions;
-    })
-    .catch((err) => {
-      if(err.status == 500) {   // Erro 500 (internal error) do football api corresponde a bad_gateway para a nossa api
-      logError("Error fetching external service competitions from Football Data Api", err);
-      return Promise.reject(errors.BAD_GATEWAY("Impossível obter informação ao serviço externo Football Api"));
-      }
-      if(err.status == 429) {   
-      logError("Error: reached limit of requests to Football Api", err);
-      return Promise.reject(errors.RATE_LIMIT("Não tens esta informação em cache e atingiste o limite de pedidos à Football Api"));
-      }
-      logError("Unexpected error fetching for all competitions")
-      return Promise.reject(err)
-    });
-}
-
-// TODO : Adaptar para usar Promises e logs
-export async function getCompetitionByCode(code) {
-  const competitions = await getCompetitions();
-  const competition = competitions.find(
-    (competition) => competition.code === code
+  const raw = await fetchCompetitions();
+  const competitions = raw.map(
+    (competition) => new Competition(competition.code, competition.name)
   );
-  if (!competition) {
-    throw errors.NOT_FOUND(`Competition with code ${code} not found`);
-  }
-  return competition;
+  logInfo(`Service: loaded ${competitions.length} competitions`, "");
+  return competitions;
 }
 
-// Teams and Players
+// Teams
+export async function getTeams(code, season) {
+  const teams = await fetchCompetitionTeams(code, season);
+  logInfo(
+    `Service: fetched ${teams.length} teams for competition ${code} season ${season}`,
+    ""
+  );
 
-export async function getTeamsForCompetitionAndSeason(code, season) {
-  return fetchCompetitionTeams(code, season)
-    .then((teams) => {
-      logInfo(
-        `Service: fetched ${teams.length} teams for competition ${code} season ${season}`,
-        ""
-      );
+  const squads = await Promise.all(
+    teams.map((team) => fetchTeamWithSquad(team.id))
+  );
 
-      return Promise.all(
-        teams.map((team) =>
-          fetchTeamWithSquad(team.id).catch((err) => {
-            if (err.status === 404) {
-              logError(
-                `The combination competition ${code} and season ${season} was not found`,
-                err
-              );
-              return Promise.reject(
-                errors.NOT_FOUND(
-                  "Não foi possível encontrar um resultado para a competição com época respetiva"
-                )
-              );
-            }
-            if (err.status === 429) {
-              logError(
-                `Rate limit from Football API while fetching team ${team.id}`,
-                err
-              );
-              return Promise.reject(
-                errors.RATE_LIMIT(
-                  "Atingido o limite de pedidos à Football Data API. Tente novamente dentro de alguns segundos."
-                )
-              );
-            }
-            if (err.status === 500) {
-              logError("Error fetching external service teams from Football Data Api", err);
-              return Promise.reject(errors.BAD_GATEWAY("Impossível obter informação ao serviço externo Football Api"));
-            }
-            logError(
-              `Unexpected error fetching team ${team.id} for ${code} ${season}`,
-              err
-            );
-            return Promise.reject(err);
-          })
-        )
-      );
-    })
-    .then((teamsWithSquad) => {
-      const result = teamsWithSquad.map((teamJson) => {
-        const players = (teamJson.squad ?? []).map(
-          (player) => new Player(player.id, player.name, player.position)
-        );
-        return new Team(
-          teamJson.id,
-          teamJson.name,
-          teamJson.area?.name ?? null,
-          players
-        );
-      });
-      logInfo(
-        `Service: built ${result.length} Team objects for competition ${code} season ${season}`,
-        ""
-      );
-      return result;
-    })
-  }
+  // TODO : players acrescentar o resto das propriedades do player e o seu dto
+  const result = squads.map((teamJson) => {
+    const players = (teamJson.squad ?? []).map(
+      (player) => new Player(player.id, player.name, player.position)
+    );
+
+    return new Team(
+      teamJson.id,
+      teamJson.name,
+      teamJson.area?.name ?? null,
+      players
+    );
+  });
+
+  logInfo(
+    `Service: built ${result.length} Team objects for competition ${code} season ${season}`
+  );
+  return result;
+}
+
+export function createUser() {}
+export function getGroups() {}
+export function createGroup() {}
+export function getGroup() {}
+export function replaceGroup() {}
+export function deleteGroup() {}
+export function addPlayerToGroup() {}
+export function deletePlayerFromGroup() {}
 
 // TODO : diferente estrutura em baixo
 
