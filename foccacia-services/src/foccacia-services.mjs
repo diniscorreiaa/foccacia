@@ -24,14 +24,34 @@ export async function getCompetitions() {
       return competitions;
     })
     .catch((err) => {
-      logError("Service getCompetitions failed", err);
-
-      // TODO : Decidir qual erro lançar
-      return Promise.reject(err);
+      if(err.status == 500) {   // Erro 500 (internal error) do football api corresponde a bad_gateway para a nossa api
+      logError("Error fetching external service competitions from Football Data Api", err);
+      return Promise.reject(errors.BAD_GATEWAY("Impossível obter informação ao serviço externo Football Api"));
+      }
+      if(err.status == 429) {   
+      logError("Error: reached limit of requests to Football Api", err);
+      return Promise.reject(errors.RATE_LIMIT("Não tens esta informação em cache e atingiste o limite de pedidos à Football Api"));
+      }
+      logError("Unexpected error fetching for all competitions")
+      return Promise.reject(err)
     });
 }
 
-export async function getTeams(code, season) {
+// TODO : Adaptar para usar Promises e logs
+export async function getCompetitionByCode(code) {
+  const competitions = await getCompetitions();
+  const competition = competitions.find(
+    (competition) => competition.code === code
+  );
+  if (!competition) {
+    throw errors.NOT_FOUND(`Competition with code ${code} not found`);
+  }
+  return competition;
+}
+
+// Teams and Players
+
+export async function getTeamsForCompetitionAndSeason(code, season) {
   return fetchCompetitionTeams(code, season)
     .then((teams) => {
       logInfo(
@@ -42,6 +62,17 @@ export async function getTeams(code, season) {
       return Promise.all(
         teams.map((team) =>
           fetchTeamWithSquad(team.id).catch((err) => {
+            if (err.status === 404) {
+              logError(
+                `The combination competition ${code} and season ${season} was not found`,
+                err
+              );
+              return Promise.reject(
+                errors.NOT_FOUND(
+                  "Não foi possível encontrar um resultado para a competição com época respetiva"
+                )
+              );
+            }
             if (err.status === 429) {
               logError(
                 `Rate limit from Football API while fetching team ${team.id}`,
@@ -52,6 +83,10 @@ export async function getTeams(code, season) {
                   "Atingido o limite de pedidos à Football Data API. Tente novamente dentro de alguns segundos."
                 )
               );
+            }
+            if (err.status === 500) {
+              logError("Error fetching external service teams from Football Data Api", err);
+              return Promise.reject(errors.BAD_GATEWAY("Impossível obter informação ao serviço externo Football Api"));
             }
             logError(
               `Unexpected error fetching team ${team.id} for ${code} ${season}`,
@@ -80,25 +115,8 @@ export async function getTeams(code, season) {
       );
       return result;
     })
-    .catch((err) => {
-      if (err.code) {
-        return Promise.reject(err);
-      }
-      logError(
-        `Service getTeamsForCompetitionAndSeason(${code}, ${season}) failed`,
-        err
-      );
-      return Promise.reject(err);
-    });
-}
-export function createUser() {}
-export function getGroups() {}
-export function createGroup() {}
-export function getGroup() {}
-export function replaceGroup() {}
-export function deleteGroup() {}
-export function addPlayerToGroup() {}
-export function deletePlayerFromGroup() {}
+  }
+
 // TODO : diferente estrutura em baixo
 
 // export async function getCompetitions() {
