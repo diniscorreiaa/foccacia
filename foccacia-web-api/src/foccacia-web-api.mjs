@@ -4,18 +4,6 @@ import { teamToDto } from "./foccacia-dtos.mjs";
 import errors from "foccacia-server/src/errors.mjs";
 import { logInfo } from "foccacia-utils";
 
-export function hello(name = "world") {
-  return `hello ${name}`;
-}
-
-export const getCompetitions = getCompetitionsInternal;
-export const getCompetition = getCompetitionInternal;
-export const getTeamsForCompetitionAndSeason =
-  getTeamsForCompetitionAndSeasonInternal;
-export const verifyToken = verifyTokenInternal;
-
-// TODO : createUser, deleteUser, updateUser, createGroup, deleteGroup, updateGroup, getTeams
-
 function getToken(req) {
   const auth = req.get("Authorization");
   if (!auth) return "";
@@ -25,7 +13,7 @@ function getToken(req) {
   return arr[1];
 }
 
-async function verifyTokenInternal(req, res, next) {
+export function verifyToken(req, res, next) {
   const token = getToken(req);
   if (!token) {
     const err = errors.NOT_AUTHORIZED("Missing or invalid Bearer token");
@@ -48,52 +36,6 @@ async function verifyTokenInternal(req, res, next) {
   next();
 }
 
-// Get Competitions
-
-function getCompetitionsInternal(req, res) {
-  services
-    .getCompetitions()
-    .then((competitions) => {
-      logInfo(
-        `API: responding with ${competitions.length} competitions for ${req.path}`,
-        ""
-      );
-      res.json(competitions);
-    })
-    .catch((err) => {
-      sendApplicationError(err, req, res);
-    });
-}
-
-// TODO : usar promises e remover try catch
-async function getCompetitionInternal(req, res) {
-  try {
-    const competition = await services.getCompetitionByCode(req.params.code);
-    res.json(competition);
-  } catch (err) {
-    sendApplicationError(err, req, res);
-  }
-}
-
-// Get Teams
-
-function getTeamsForCompetitionAndSeasonInternal(req, res) {
-  const { code, season } = req.params;
-
-  services
-    .getTeamsForCompetitionAndSeason(code, season)
-    .then((teams) => {
-      logInfo(
-        `API: responding with ${teams.length} teams for ${code} season ${season}`,
-        ""
-      );
-      res.json(teams.map(teamToDto));
-    })
-    .catch((err) => {
-      sendApplicationError(err, req, res);
-    });
-}
-
 // async function verifyTokenInternal(req, res, next) {
 //   const token = getToken(req);
 //   if (!token) {
@@ -112,3 +54,70 @@ function getTeamsForCompetitionAndSeasonInternal(req, res) {
 //     return sendApplicationError(err, req, res);
 //   }
 // }
+
+async function genericApiRoute(
+  req,
+  res,
+  servicesFunc,
+  { transformObj = (obj) => obj, servicesFuncArgs = [] } = {}
+) {
+  try {
+    const obj = await servicesFunc(...servicesFuncArgs);
+    logInfo(`API: responding with ${obj.length} for path ${req.path}`, ""); // TODO think of useful generic log
+    res.json(transformObj(obj));
+  } catch (err) {
+    sendApplicationError(err, req, res);
+  }
+}
+
+export async function getCompetitions(req, res) {
+  await genericApiRoute(req, res, services.getCompetitions);
+}
+
+export async function getTeams(req, res) {
+  const { competitionCode, seasonYear } = req.params;
+  await genericApiRoute(req, res, services.getTeams, {
+    transformObj: (teamsArr) => teamsArr.map(teamToDto),
+    servicesFuncArgs: [competitionCode, seasonYear],
+  });
+}
+
+// Users
+export async function createUser(req, res) {
+  await genericApiRoute(req, res, services.createUser, {
+    transformObj: (createdToken) => ({ token: createdToken }),
+  });
+}
+
+// Groups
+export async function getGroups(req, res) {
+  await genericApiRoute(req, res, services.getGroups);
+}
+
+export async function createGroup(req, res) {
+  await genericApiRoute(req, res, services.createGroup);
+}
+
+export async function getGroup(req, res) {
+  await genericApiRoute(req, res, services.getGroup);
+}
+
+export async function replaceGroup(req, res) {
+  await genericApiRoute(req, res, services.replaceGroup);
+}
+
+export async function deleteGroup(req, res) {
+  await genericApiRoute(req, res, services.deleteGroup);
+}
+
+export async function addPlayerToGroup(req, res) {
+  await genericApiRoute(req, res, services.addPlayerToGroup);
+}
+
+export async function deletePlayerFromGroup(req, res) {
+  await genericApiRoute(req, res, services.deletePlayerFromGroup);
+}
+
+export function hello(name = "world") {
+  return `hello ${name}`;
+}

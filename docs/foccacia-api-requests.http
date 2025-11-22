@@ -1,4 +1,4 @@
-@api = http://localhost:1904/api
+@api = http://localhost:1904
 @token = Bearer 123
 ### TODO Make invalid but existing user token to test 403 status code
 @invalidToken = <TODO> 
@@ -19,19 +19,6 @@ Accept: {{accept-content}}
 
 >> ./output/foccacia-competition-all.json
 
-### GET - Competição: Primeira Liga ({{compPPL}})
-GET {{api}}/competitions/{{compPPL}}
-Authorization: {{token}}
-Accept: {{accept-content}}
-
->> ./output/foccacia-competition-{{compPPL}}.json
-
-### GET - Competição: UEFA Champions League ({{compCL}})
-GET {{api}}/competitions/{{compCL}}
-Authorization: {{token}}
-Accept: {{accept-content}}
-
->> ./output/foccacia-competition-{{compCL}}.json
 
 ### GET - Equipas da Primeira Liga da Época 2025 ({{season}})
 GET {{api}}/competitions/{{compPPL}}/seasons/{{season}}/teams

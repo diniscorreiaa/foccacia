@@ -47,7 +47,8 @@ export function listGroups(userId) {
   return GROUPS.filter((g) => g.ownerId === userId);
 }
 
-export function updateGroup(groupId, changes) { // changes vai ser o objeto obtido a partir do body enviado no request com os campos name e description a atualizar
+export function updateGroup(groupId, changes) {
+  // changes vai ser o objeto obtido a partir do body enviado no request com os campos name e description a atualizar
   const group = GROUPS.filter((g) => g.id === groupId);
   if (changes.name != undefined) group.name = changes.name;
   if (changes.description != undefined) group.description = changes.description;
@@ -66,7 +67,8 @@ export function getGroup(groupId) {
 }
 
 // GROUP PLAYERS
-export function addPlayerToGroup(groupId, playerData) { // A mesma coisa da função update se aplica aqui para playerData
+export function addPlayerToGroup(groupId, playerData) {
+  // A mesma coisa da função update se aplica aqui para playerData
   const group = GROUPS.find((g) => g.id === groupId);
   if (!group) return null;
   const player = new Player(

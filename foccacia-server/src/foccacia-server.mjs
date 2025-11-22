@@ -1,43 +1,61 @@
 import { logSuccess } from "foccacia-utils";
 import express from "express";
 import {
-  getCompetition,
+  addPlayerToGroup,
+  createGroup,
+  createUser,
+  deleteGroup,
+  deletePlayerFromGroup,
   getCompetitions,
-  getTeamsForCompetitionAndSeason,
+  getGroup,
+  getGroups,
+  getTeams,
+  replaceGroup,
   verifyToken,
 } from "foccacia-web-api";
 
-export function hello(name = "world") {
-  return `hello ${name}`;
-}
+const PORT = 1904;
+
+const COMPETITIONS = "/competitions"; // Se aqui houver algum problema, é pq antes tinha /api/
+const TEAMS = `${COMPETITIONS}/:competitionCode/seasons/:seasonYear/teams`;
+const USERS = "/users";
+const GROUPS = "/groups";
+const GROUP = `${GROUPS}/:groupId`;
+const GROUP_PLAYERS = `${GROUPS}/:groupId/player`;
+const GROUP_PLAYER = `${GROUP_PLAYERS}/:playerId`;
 
 const app = express();
+
 app.use(express.json());
 
-// TODO : criar todos os endpoints necessarios
+app.get(COMPETITIONS, getCompetitions);
 
-const COMPETITIONS = "/api/competitions";
-const COMPETITION = `${COMPETITIONS}/:code`;
-const TEAMS = `${COMPETITION}/seasons/:season/teams`;
+app.get(TEAMS, getTeams);
 
-app.use(verifyToken);
+app.post(USERS, createUser);
+
+app.use(verifyToken)
+app.get(GROUPS, getGroups);
+app.post(GROUPS, createGroup);
+app.get(GROUP, getGroup);
+app.put(GROUP, replaceGroup);
+app.delete(GROUP, deleteGroup);
+app.post(GROUP_PLAYERS, addPlayerToGroup);
+app.delete(GROUP_PLAYER, deletePlayerFromGroup);
+
+/*app.use(verifyToken);
 app.get(COMPETITIONS, getCompetitions);
 app.get(COMPETITION, getCompetition);
 app.get(TEAMS, getTeamsForCompetitionAndSeason);
+Previous commit */
 
-// TODO : ap.get app.post app.put app.delete
-
-const PORT = 1904;
 logSuccess(
   "FOCCACIA (Football Complete Clubs API and Chelas Internet Application) by Grupo 1 LEIC31D",
   ""
 );
+
 app.listen(PORT, () => logSuccess(`Server listening on port ${PORT}`, ""));
 
-// TODO : understand middleware and use it properly
-
-// function callMe(req, rsp, next) {
-//   console.log("I've been called");
-//   next();
-//   console.log("I've been called after next");
-// }
+export function hello(name = "world") {
+  return `hello ${name}`;
+}
