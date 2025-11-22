@@ -18,7 +18,11 @@ export function createUser(username) {
 }
 
 export function findUserByToken(token) {
-  return USERS.find((u) => u.token == token);
+  return USERS.find((u) => u.token === token) || null;
+}
+
+export function getAllUsers() {
+  return [...USERS];
 }
 
 // GROUPS
@@ -35,31 +39,35 @@ export function createGroup(userId, name, description, competition, year) {
   return group;
 }
 
+export function getGroupById(id) {
+  return GROUPS.find((g) => g.id === id) || null;
+}
+
 export function listGroups(userId) {
-  return GROUPS.filter((g) => g.ownerId == userId);
+  return GROUPS.filter((g) => g.ownerId === userId);
 }
 
 export function updateGroup(groupId, changes) { // changes vai ser o objeto obtido a partir do body enviado no request com os campos name e description a atualizar
-  const group = GROUPS.filter((g) => g.id == groupId);
+  const group = GROUPS.filter((g) => g.id === groupId);
   if (changes.name != undefined) group.name = changes.name;
   if (changes.description != undefined) group.description = changes.description;
   return group;
 }
 
 export function deleteGroup(groupId) {
-  const idx = GROUPS.findIndex(g.id == groupId);
+  const idx = GROUPS.findIndex(g.id === groupId);
   if (idx == -1) return false;
   GROUPS.splice(idx, 1);
   return true;
 }
 
 export function getGroup(groupId) {
-  return GROUPS.find((g) => g.id == groupId);
+  return GROUPS.find((g) => g.id === groupId) || null;
 }
 
 // GROUP PLAYERS
 export function addPlayerToGroup(groupId, playerData) { // A mesma coisa da função update se aplica aqui para playerData
-  const group = GROUPS.find((g) => g.id == groupId);
+  const group = GROUPS.find((g) => g.id === groupId);
   if (!group) return null;
   const player = new Player(
     playerData.id,

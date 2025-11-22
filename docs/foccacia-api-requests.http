@@ -1,4 +1,4 @@
-@api = http://localhost:1904/api/
+@api = http://localhost:1904/api
 @token = Bearer 123
 ### TODO Make invalid but existing user token to test 403 status code
 @invalidToken = <TODO> 
