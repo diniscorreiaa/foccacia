@@ -3,39 +3,51 @@ export function Competition(code, name) {
   this.name = name;
 }
 
-export function Team(id, teamName, country, players = []) {
-  this.id = id;
+export function Team(teamId, teamName, country, players) {
+  this.id = teamId;
   this.teamName = teamName;
   this.country = country;
   this.players = players;
 }
 
-export function Player(id, playerName, position) {
-  this.id = id; // id da Football Data API
+export function Player(
+  playerId,
+  playerName,
+  teamId,
+  teamName,
+  position,
+  nationality,
+  age
+) {
+  this.id = playerId;
   this.playerName = playerName;
+  this.teamId = teamId;
+  this.teamName = teamName;
   this.position = position;
+  this.nationality = nationality;
+  this.age = age;
 }
 
-export function User(id, username, token) {
-  this.id = id; // usar um contador simples
+export function User(userId, username) {
+  this.id = userId;
   this.username = username;
-  this.token = token; // crypto.randomUUID() guardado aqui
+  this.token = crypto.randomUUID();
 }
 
 export function Group(
-  id,
+  userId,
+  groupId,
   name,
-  ownerUserId,
   description,
   competitionCode,
-  season,
+  year,
   players = []
 ) {
-  this.id = id;
+  this.ownerId = userId;
+  this.id = groupId;
   this.name = name;
-  this.ownerUserId = ownerUserId; // referencia User
   this.description = description;
   this.competitionCode = competitionCode;
-  this.season = season;
+  this.year = year;
   this.players = players;
 }

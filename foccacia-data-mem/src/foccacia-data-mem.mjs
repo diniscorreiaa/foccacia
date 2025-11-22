@@ -10,16 +10,11 @@ let nextGroupId = 1;
 const USERS = [];
 const GROUPS = [];
 
-// Users
-
-export function createUser(username, token) {
-  const user = new User(nextUserId++, username, token);
+// USERS
+export function createUser(username) {
+  const user = new User(nextUserId++, username);
   USERS.push(user);
   return user;
-}
-
-export function findUserByUsername(username) {
-  return USERS.find((u) => u.username === username) || null;
 }
 
 export function findUserByToken(token) {
@@ -30,23 +25,15 @@ export function getAllUsers() {
   return [...USERS];
 }
 
-// Groups
-
-export function createGroup(
-  name,
-  ownerUserId,
-  description,
-  competitionCode,
-  season
-) {
+// GROUPS
+export function createGroup(userId, name, description, competition, year) {
   const group = new Group(
+    userId,
     nextGroupId++,
     name,
-    ownerUserId,
     description,
-    competitionCode,
-    season,
-    []
+    competition,
+    year
   );
   GROUPS.push(group);
   return group;
@@ -56,26 +43,46 @@ export function getGroupById(id) {
   return GROUPS.find((g) => g.id === id) || null;
 }
 
-export function getGroupsByUser(ownerUserId) {
-  return GROUPS.filter((g) => g.ownerUserId === ownerUserId);
+export function listGroups(userId) {
+  return GROUPS.filter((g) => g.ownerId === userId);
 }
 
-export function updateGroup(group) {
-  const idx = GROUPS.findIndex((g) => g.id === group.id);
-  if (idx === -1) return null;
-  GROUPS[idx] = group;
+export function updateGroup(groupId, changes) { // changes vai ser o objeto obtido a partir do body enviado no request com os campos name e description a atualizar
+  const group = GROUPS.filter((g) => g.id === groupId);
+  if (changes.name != undefined) group.name = changes.name;
+  if (changes.description != undefined) group.description = changes.description;
   return group;
 }
 
-export function deleteGroup(id) {
-  const idx = GROUPS.findIndex((g) => g.id === id);
-  if (idx === -1) return false;
+export function deleteGroup(groupId) {
+  const idx = GROUPS.findIndex(g.id === groupId);
+  if (idx == -1) return false;
   GROUPS.splice(idx, 1);
   return true;
 }
 
-// TODO: Apos implementar o domain-model, criar exemplos de dados e os funções para manipula-los
+export function getGroup(groupId) {
+  return GROUPS.find((g) => g.id === groupId) || null;
+}
 
-export function getCompetitions() {
-  return Promise.resolve(COMPETITIONS);
+// GROUP PLAYERS
+export function addPlayerToGroup(groupId, playerData) { // A mesma coisa da função update se aplica aqui para playerData
+  const group = GROUPS.find((g) => g.id === groupId);
+  if (!group) return null;
+  const player = new Player(
+    playerData.id,
+    playerData.name,
+    playerData.teamId,
+    playerData.teamName
+  );
+  group.players.push(player);
+  return player;
+}
+export function removePlayerFromGroup(groupId, playerId) {
+  const group = GROUPS.find((g) => g.id == groupId);
+  if (!group) return null;
+  const idx = group.players.findIndex((p) => p.id == playerId);
+  if (idx == -1) return null;
+  group.players.splice(idx, 1);
+  return playerId;
 }
