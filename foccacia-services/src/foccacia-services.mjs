@@ -11,9 +11,6 @@ import {
 import errors from "foccacia-server/src/errors.mjs";
 import { logError, logInfo } from "foccacia-utils";
 
-
-
-
 // Competitions
 
 export async function getCompetitions() {
