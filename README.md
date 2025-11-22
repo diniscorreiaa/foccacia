@@ -474,7 +474,7 @@ ___
 
 ---
 
-### 4.2. Fase 2 – Erros e autenticação (David Correia)
+### 4.2. Fase 2 – Erros e autenticação (Dinis Correia)
 
 1. Implementar e testar `foccacia-errors`:
     - factories (`INVALID_DATA`, `UNAUTHORIZED`, etc.).

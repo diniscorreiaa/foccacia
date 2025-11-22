@@ -25,14 +25,10 @@ GET {{api}}/competitions/{{compPPL}}/seasons/{{season}}/teams
 Authorization: {{token}}
 Accept: {{accept-content}}
 
->> ./output/foccacia-{{compPPL}}-teams-{{season}}.json
-
 ### GET - Equipas da Champions League da Época 2025 ({{season}})
 GET {{api}}/competitions/{{compCL}}/seasons/{{season}}/teams
 Authorization: {{token}}
 Accept: {{accept-content}}
-
->> ./output/foccacia-{{compCL}}-teams-{{season}}.json
 
 ### NEGATIVO – 401 (token inválido)
 GET {{api}}/competitions/{{compPPL}}

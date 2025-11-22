@@ -29,6 +29,7 @@ export async function getTeams(code, season) {
     ""
   );
 
+  // TODO : squads to teams
   const squads = await Promise.all(
     teams.map((team) => fetchTeamWithSquad(team.id))
   );
