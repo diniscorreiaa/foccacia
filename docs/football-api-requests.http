@@ -1,5 +1,5 @@
 @api = http://api.football-data.org/v4
-@token = a665d4ef3ef94e87bcafc8bdf1a4f9de
+@token = 2a9ead5dc8b04ba0a24f98658854c547
 @accept = application/json
 @season = 2025
 @compPPL = PPL
@@ -23,9 +23,9 @@ Accept: {accept}
 >> ./output/football-api-responses/fapi-competitions-{{compPPL}}.json
 
 ### GET - Equipas da Primeira Liga Portuguesa da Época 2025 ({{season}})
-GET {api}/competitions/{compPPL}/teams?season={season}
-X-Auth-Token: {token}
-Accept: {accept}
+GET {{api}}/competitions/{{compPPL}}/teams?season={{season}}
+X-Auth-Token: {{token}}
+Accept: {{accept}}
 
 >> ./output/football-api-responses/fapi-{{compPPL}}-teams-{{season}}.json
 

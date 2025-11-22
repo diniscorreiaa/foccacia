@@ -15,15 +15,23 @@ export function sendApplicationError(err, req, res) {
     case ERROR_CODES.InvalidData:
       status = 400;
       break;
+    case ERROR_CODES.Unauthorized:
+      status = 401;
+      break;
     case ERROR_CODES.NotFound:
       status = 404;
       break;
-    case ERROR_CODES.NotAuthorized:
+    case ERROR_CODES.Forbidden:
       status = 403;
+      break;
+    case ERROR_CODES.Unprocessable:
+      status = 422;
       break;
     case ERROR_CODES.TooManyRequests:
       status = 429;
       break;
+    case ERROR_CODES.BadGateway:
+      status = 502;
     default:
       status = 500;
   }
