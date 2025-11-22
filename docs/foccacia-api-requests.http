@@ -1,5 +1,5 @@
 @api = http://localhost:1904/api/
-@token = Bearer <PUT_YOUR_TOKEN_HERE>
+@token = Bearer 123
 ### TODO Make invalid but existing user token to test 403 status code
 @invalidToken = <TODO> 
 @accept-content = application/json
@@ -10,6 +10,7 @@
 @groupId = 1
 @playerId = 1903
 
+// TODO : todas as variaveis globais entre {{VAR}}
 
 ### GET - Todas as Competições Disponíveis
 GET {{api}}/competitions
@@ -25,13 +26,6 @@ Accept: {{accept-content}}
 
 >> ./output/foccacia-competition-{{compPPL}}.json
 
-### GET - Equipas da Primeira Liga da Época 2025 ({{season}})
-GET {{api}}/competitions/{{compPPL}}/seasons/{{season}}/teams
-Authorization: {{token}}
-Accept: {{accept-content}}
-
->> ./output/foccacia-{{compPPL}}-teams-{{season}}.json
-
 ### GET - Competição: UEFA Champions League ({{compCL}})
 GET {{api}}/competitions/{{compCL}}
 Authorization: {{token}}
@@ -39,30 +33,29 @@ Accept: {{accept-content}}
 
 >> ./output/foccacia-competition-{{compCL}}.json
 
+### GET - Equipas da Primeira Liga da Época 2025 ({{season}})
+GET {{api}}/competitions/{{compPPL}}/seasons/{{season}}/teams
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+>> ./output/foccacia-{{compPPL}}-teams-{{season}}.json
+
 ### GET - Equipas da Champions League da Época 2025 ({{season}})
-GET {{api}}/competitions/{{compCL}}/teams?season={{season}}
+GET {{api}}/competitions/{{compCL}}/seasons/{{season}}/teams
 Authorization: {{token}}
 Accept: {{accept-content}}
 
 >> ./output/foccacia-{{compCL}}-teams-{{season}}.json
-
-### GET - Detalhes do SL Benfica ({{benficaId}})
-GET {{api}}/teams/{{benficaId}}
-Authorization: {{token}}
-Accept: {{accept-content}}
-
->> ./output/foccacia-team-{{benficaId}}.json
 
 ### NEGATIVO – 401 (token inválido)
 GET {{api}}/competitions/{{compPPL}}
 Authorization: invalid-token
 Accept: {{accept-content}}
 
-
-
 ### POST - Cria um novo Utilizador
-POST {{api}}/users
-Content-Type: {{accept-content}}
+POST {api}/users
+Content-Type: {accept-content}
+
 {
         "username": "grupo1"
 }
@@ -70,21 +63,21 @@ Content-Type: {{accept-content}}
 ### NEGATIVO - 400 (Falta username)
 POST {{api}}/users
 Content-Type: {{accept-content}}
+
 {
 
 }
 
-
-
 ### GET - Grupos do Utilizador
-GET {{api}}/groups
-Authorization: {{token}}
-Accept: {{accept-content}}
+GET {api}/groups
+Authorization: {token}
+Accept: {accept-content}
 
 ### POST - Cria um Novo Grupo
-POST {{api}}/groups
-Authorization: {{token}}
-Content-Type: {{accept-content}}
+POST {api}/groups
+Authorization: {token}
+Content-Type: {accept-content}
+
 {
         "name": "Melhores da Champions",
         "description": "Onze ideal da Champions 2025",
@@ -93,48 +86,51 @@ Content-Type: {{accept-content}}
 }
 
 ### GET - Grupo {{groupId}} do Utilizador
-GET {{api}}/groups/{{groupId}}
-Authorization: {{token}}
-Accept: {{accept-content}}
+GET {api}/groups/{groupId}
+Authorization: {token}
+Accept: {accept-content}
 
 ### NEGATIVO - 404 (Grupo não encontrado)
-GET {{api}}/groups/99999
-Authorization: {{token}}
-Accept: {{accept-content}}
+GET {api}/groups/99999
+Authorization: {token}
+Accept: {accept-content}
 
 ### PUT - Edita Nome e Descrição de um Grupo
-PUT {{api}}/groups/{{{{groupId}}}}
-Authorization: {{token}}
-Content-Type: {{accept-content}}
+PUT {api}/groups/{groupId}
+Authorization: {token}
+Content-Type: {accept-content}
+
 {
         "name": "Atualizado",
         "description": "Descrição alterada"
 }
 
 ### NEGATIVO - 400 (Dados Inválidos)
-PUT {{api}}/groups/{{{{groupId}}}}
-Authorization: {{token}}
-Content-Type: {{accept-content}}
+PUT {api}/groups/{groupId}
+Authorization: {token}
+Content-Type: {accept-content}
+
 {
         "name": "I+*!nv?1aL-ªi`+Do",
         "description": "Nome inválido"
 }
 
 ### DELETE - Remove um Grupo {{groupId}}
-DELETE  {{api}}/groups/{{{{groupId}}}}
-Authorization: {{token}}
-Accept: {{accept-content}}
+DELETE  {api}/groups/{groupId}
+Authorization: {token}
+Accept: {accept-content}
 
 // TODO Definir status code 403 para todos os requests de grupo que forem necessários
 ### NEGATIVO - 403 (Pedido vindo de utilizador sem permissões)
-DELETE  {{api}}/groups/{{{{groupId}}}}
-Authorization: {{invalidToken}}
-Accept: {{accept-content}}
+DELETE  {api}/groups/{groupId}
+Authorization: {invalidToken}
+Accept: {accept-content}
 
 ### POST - Adiciona Jogador a Grupo
-POST {{api}}/groups/{{groupId}}/players
-Authorization: {{token}}
-Content-Type: {{accept-content}}
+POST {api}/groups/{groupId}/players
+Authorization: {token}
+Content-Type: {accept-content}
+
 {
         "playerId": 1903,
         "playerName": "João Neves",
@@ -143,14 +139,15 @@ Content-Type: {{accept-content}}
 }
 
 ### NEGATIVO - 422 (Violação de regra: Each group may have 11 players at maximum, and each player must belong to the year and competition of the group.)
-POST {{api}}/groups/{{groupId}}/players
-Authorization: {{token}}
-Content-Type: {{accept-content}}
+POST {api}/groups/{groupId}/players
+Authorization: {token}
+Content-Type: {accept-content}
+
 {
         // TODO Test status code for this situation: Each group may have 11 players at maximum, and each player must belong to the year and competition of the group.
 }
 
 ### DELETE - Remove Jogador de um Grupo
-DELETE {{api}}/groups/{{groupId}}/players/{{playerId}}
-Authorization: {{token}}
-Accept: {{accept-content}}
+DELETE {api}/groups/{groupId}/players/{playerId}
+Authorization: {token}
+Accept: {accept-content}

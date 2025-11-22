@@ -36,3 +36,13 @@ export function getTeamsIdsFilePath() {
 export function getDirName(filePath) {
   return path.dirname(filePath);
 }
+
+export function getCompetitionsFilePath() {
+  const fileName = "competitions.json";
+  return getOutputFilePath(fileName);
+}
+
+export function getCompetitionTeamsFilePath(code, season) {
+  const fileName = `competition-${code}-${season}-teams.json`;
+  return getOutputFilePath(fileName);
+}

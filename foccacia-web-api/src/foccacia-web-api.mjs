@@ -1,40 +1,114 @@
 import * as services from "foccacia-services/src/foccacia-services.mjs";
+import { sendApplicationError } from "foccacia-server/src/application-to-http-errors.mjs";
+import { teamToDto } from "./foccacia-dtos.mjs";
+import errors from "foccacia-server/src/errors.mjs";
+import { logInfo } from "foccacia-utils";
 
 export function hello(name = "world") {
   return `hello ${name}`;
 }
 
-export function getCompetitions(req, rsp) {
-  services.getCompetitions().then((competitions) => rsp.json(competitions));
-  // rsp.set("Content-Type", "application/json");
-  // rsp.send(JSON.stringify(COMPETITIONS));
-  // rsp.json(JSON.stringify(COMPETITIONS))
+export const getCompetitions = getCompetitionsInternal;
+export const getCompetition = getCompetitionInternal;
+export const getTeamsForCompetitionAndSeason =
+  getTeamsForCompetitionAndSeasonInternal;
+export const verifyToken = verifyTokenInternal;
+
+// TODO : createUser, deleteUser, updateUser, createGroup, deleteGroup, updateGroup, getTeams
+
+function getToken(req) {
+  const auth = req.get("Authorization");
+  if (!auth) return "";
+
+  const arr = auth.split(" ");
+  if (arr.length !== 2 || arr[0].toLowerCase() !== "bearer") return "";
+  return arr[1];
 }
 
-// TODO: replace above function with data from foccacia-services
+async function verifyTokenInternal(req, res, next) {
+  const token = getToken(req);
+  if (!token) {
+    const err = errors.NOT_AUTHORIZED("Missing or invalid Bearer token");
+    return sendApplicationError(err, req, res);
+  }
 
-export function getCompetition(req, rsp) {
-  let competition = COMPETITIONS.find(
-    (competition) => req.params.code === competition.code
-  );
-  rsp.json(competition);
+  // TODO : Apos validacao da token em services
+  // return services
+  //   .convertTokenToUserId(token)
+  //   .then((userId) => {
+  //     req.token = token;
+  //     req.userId = userId;
+  //     logInfo(`Request authorized for user ${userId} ${req.method} ${req.path}`);
+  //     next();
+  //   })
+  //   .catch((err) => sendApplicationError(err, req, res));
+
+  req.token = token;
+  logInfo(`Request authorized for ${req.method} ${req.path}`, "");
+  next();
 }
 
-export function createCompetition(req, rsp) {
-  rsp.send(`Create competition called`);
+// Get Competitions
+
+function getCompetitionsInternal(req, res) {
+  services
+    .getCompetitions()
+    .then((competitions) => {
+      logInfo(
+        `API: responding with ${competitions.length} competitions for ${req.path}`,
+        ""
+      );
+      res.json(competitions);
+    })
+    .catch((err) => {
+      sendApplicationError(err, req, res);
+    });
 }
 
-export function deleteCompetition(req, rsp) {
-  let competitionCode = req.params.code;
-  let idx = COMPETITIONS.findIndex(
-    (competition) => competitionCode === competition.code
-  );
-  COMPETITIONS.splice(idx, 1);
-  rsp.json({
-    status: `Competition with code ${competitionCode} deleted`,
-  });
+// TODO : usar promises e remover try catch
+async function getCompetitionInternal(req, res) {
+  try {
+    const competition = await services.getCompetitionByCode(req.params.code);
+    res.json(competition);
+  } catch (err) {
+    sendApplicationError(err, req, res);
+  }
 }
 
-export function updateCompetition(req, rsp) {
-  rsp.send(`Update Competition with code ${req.params.code} called`);
+// Get Teams
+
+function getTeamsForCompetitionAndSeasonInternal(req, res) {
+  const { code, season } = req.params;
+
+  services
+    .getTeamsForCompetitionAndSeason(code, season)
+    .then((teams) => {
+      logInfo(
+        `API: responding with ${teams.length} teams for ${code} season ${season}`,
+        ""
+      );
+      res.json(teams.map(teamToDto));
+    })
+    .catch((err) => {
+      sendApplicationError(err, req, res);
+    });
 }
+
+// async function verifyTokenInternal(req, res, next) {
+//   const token = getToken(req);
+//   if (!token) {
+//     return res.status(403).json({
+//       uri: req.path,
+//       description: "The access to the resource is forbidden",
+//     });
+//   }
+//
+//   try {
+//     const userId = await services.convertTokenToUserId(token);
+//     req.token = token;
+//     req.userId = userId;
+//     next();
+//   } catch (err) {
+//     return sendApplicationError(err, req, res);
+//   }
+// }

@@ -62,11 +62,10 @@ components:
       schema:
         type: integer
 
-
 paths:
   /competitions:
     get:
-      tags: [ Competitions ]
+      tags: [Competitions]
       summary: Lista todas as competições disponíveis
       description: Retorna o código e o nome de cada competição.
       responses:
@@ -90,12 +89,12 @@ paths:
 
   /competitions/{competitionCode}/seasons/{seasonYear}/teams:
     get:
-      tags: [ Teams ]
+      tags: [Teams]
       summary: Lista as equipas e jogadores de uma competição e época
       description: Retorna as equipas da competição especificada e respetivos jogadores.
       parameters:
-        - $ref: '#/components/parameters/competitionCodePath'
-        - $ref: '#/components/parameters/seasonYearPath'
+        - $ref: "#/components/parameters/competitionCodePath"
+        - $ref: "#/components/parameters/seasonYearPath"
       responses:
         "200":
           description: Equipas da competição obtidas com sucesso
@@ -130,7 +129,7 @@ paths:
 
   /users:
     post:
-      tags: [ Users ]
+      tags: [Users]
       summary: Cria um novo utilizador
       description: Cria um utilizador e gera um token UUID para autenticação nas operações de grupos.
       requestBody:
@@ -140,7 +139,7 @@ paths:
             schema:
               # ADICIONADO required
               type: object
-              required: [ username ]    # <— adicionado
+              required: [username] # <— adicionado
               properties:
                 username:
                   type: string
@@ -165,10 +164,10 @@ paths:
 
   /groups:
     get:
-      tags: [ Groups ]
+      tags: [Groups]
       summary: Lista todos os grupos do utilizador
       security:
-        - bearerAuth: [ ]        # Add security Bearer Tokens
+        - bearerAuth: [] # Add security Bearer Tokens
       responses:
         "200":
           description: Lista de grupos obtida com sucesso
@@ -198,10 +197,10 @@ paths:
           description: Token inválido ou ausente
 
     post:
-      tags: [ Groups ]
+      tags: [Groups]
       summary: Cria um novo grupo “Best XI”
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -209,7 +208,7 @@ paths:
             schema:
               # ADICIONADO required
               type: object
-              required: [ name, competition, year ]   # <— adicionado
+              required: [name, competition, year] # <— adicionado
               properties:
                 name:
                   type: string
@@ -254,12 +253,12 @@ paths:
 
   /groups/{groupId}:
     parameters:
-      - $ref: '#/components/parameters/groupIdPath'
+      - $ref: "#/components/parameters/groupIdPath"
     get:
-      tags: [ Groups ]
+      tags: [Groups]
       summary: Obtém os detalhes de um grupo
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       responses:
         "200":
           description: Detalhes do grupo
@@ -315,10 +314,10 @@ paths:
           description: Grupo não encontrado
 
     put:
-      tags: [ Groups ]
+      tags: [Groups]
       summary: Edita nome e descrição de um grupo
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -326,7 +325,7 @@ paths:
             schema:
               # ADICIONADO required
               type: object
-              required: [ name, description ]   # <— adicionado
+              required: [name, description] # <— adicionado
               properties:
                 name:
                   type: string
@@ -345,10 +344,10 @@ paths:
           description: Grupo não encontrado
 
     delete:
-      tags: [ Groups ]
+      tags: [Groups]
       summary: Remove um grupo
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       responses:
         "204":
           description: Grupo removido com sucesso
@@ -359,12 +358,12 @@ paths:
 
   /groups/{groupId}/players:
     parameters:
-      - $ref: '#/components/parameters/groupIdPath'
+      - $ref: "#/components/parameters/groupIdPath"
     post:
-      tags: [ Groups ]
+      tags: [Groups]
       summary: Adiciona jogador a um grupo “Best XI”
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -372,7 +371,7 @@ paths:
             schema:
               # ADICIONADO required
               type: object
-              required: [ playerId, playerName, teamCode, teamName ]   # <— adicionado
+              required: [playerId, playerName, teamCode, teamName] # <— adicionado
               properties:
                 playerId:
                   type: integer
@@ -400,13 +399,13 @@ paths:
 
   /groups/{groupId}/players/{playerId}:
     parameters:
-      - $ref: '#/components/parameters/groupIdPath'
-      - $ref: '#/components/parameters/playerIdPath'
+      - $ref: "#/components/parameters/groupIdPath"
+      - $ref: "#/components/parameters/playerIdPath"
     delete:
-      tags: [ Groups ]
+      tags: [Groups]
       summary: Remove jogador de um grupo
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       responses:
         "200":
           description: Jogador removido com sucesso

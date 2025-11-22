@@ -1,11 +1,10 @@
 import { logSuccess } from "foccacia-utils";
 import express from "express";
 import {
-  createCompetition,
-  deleteCompetition,
   getCompetition,
   getCompetitions,
-  updateCompetition,
+  getTeamsForCompetitionAndSeason,
+  verifyToken,
 } from "foccacia-web-api";
 
 export function hello(name = "world") {
@@ -13,6 +12,7 @@ export function hello(name = "world") {
 }
 
 const app = express();
+app.use(express.json());
 
 // TODO : criar todos os endpoints necessarios
 
@@ -20,12 +20,12 @@ const COMPETITIONS = "/api/competitions";
 const COMPETITION = `${COMPETITIONS}/:code`;
 const TEAMS = `${COMPETITION}/seasons/:season/teams`;
 
+app.use(verifyToken);
 app.get(COMPETITIONS, getCompetitions);
-app.post(COMPETITIONS, createCompetition);
-
 app.get(COMPETITION, getCompetition);
-app.put(COMPETITION, updateCompetition);
-app.delete(COMPETITION, deleteCompetition);
+app.get(TEAMS, getTeamsForCompetitionAndSeason);
+
+// TODO : ap.get app.post app.put app.delete
 
 const PORT = 1904;
 logSuccess(
@@ -33,3 +33,11 @@ logSuccess(
   ""
 );
 app.listen(PORT, () => logSuccess(`Server listening on port ${PORT}`, ""));
+
+// TODO : understand middleware and use it properly
+
+// function callMe(req, rsp, next) {
+//   console.log("I've been called");
+//   next();
+//   console.log("I've been called after next");
+// }
