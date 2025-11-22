@@ -86,7 +86,7 @@ paths:
                       example: "Primeira Liga"
         "429":
           description: Limite de pedidos à Football Api esgotado
-        "502": 
+        "502":
           description: Erro do serviço externo Football Api
         "500":
           description: Erro interno do servidor

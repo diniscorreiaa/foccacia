@@ -1,7 +1,7 @@
-import { ERROR_CODES } from "./errors.mjs";
+import { ERROR_CODES } from "foccacia-errors";
 import { logError } from "foccacia-utils";
 
-export function sendApplicationError(err, req, res) {
+export function sendApplicationError(err, req, res, next) {
   if (!err || typeof err.code !== "number") {
     logError(`Unhandled error for ${req.method} ${req.path}`, err);
     return res.status(500).json({
@@ -32,13 +32,14 @@ export function sendApplicationError(err, req, res) {
       break;
     case ERROR_CODES.BadGateway:
       status = 502;
+      break;
     default:
       status = 500;
   }
 
   logError(
     `Application error (${status}) on ${req.method} ${req.path}: ${err.message}`,
-    ""
+    err
   );
 
   return res.status(status).json({

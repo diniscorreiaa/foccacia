@@ -1,14 +1,15 @@
-import {
-  Competition,
-  Player,
-  Team,
-} from "foccacia-data-mem/src/domain-model.mjs";
+import { Competition, Player, Team } from "foccacia-data-mem";
 import {
   fetchCompetitions,
   fetchCompetitionTeams,
   fetchTeamWithSquad,
-} from "fapi-teams-data/src/fapi-teams-data.mjs";
+} from "fapi-teams-data";
 import { logInfo } from "foccacia-utils";
+// import errors from "foccacia-errors";
+// import {
+//   createUser as createUserMem,
+//   // ... listGroups, createGroup, etc...
+// } from "foccacia-data-mem";
 
 // Competitions
 export async function getCompetitions() {

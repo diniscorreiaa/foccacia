@@ -1,5 +1,5 @@
-import { logSuccess } from "foccacia-utils";
 import express from "express";
+import { logSuccess } from "foccacia-utils";
 import {
   addPlayerToGroup,
   createGroup,
@@ -13,6 +13,7 @@ import {
   replaceGroup,
   verifyToken,
 } from "foccacia-web-api";
+import { sendApplicationError } from "foccacia-web-api/src/application-to-http-errors.mjs";
 
 const PORT = 1904;
 
@@ -29,12 +30,11 @@ const app = express();
 app.use(express.json());
 
 app.get(COMPETITIONS, getCompetitions);
-
 app.get(TEAMS, getTeams);
-
 app.post(USERS, createUser);
 
 app.use(verifyToken);
+
 app.get(GROUPS, getGroups);
 app.post(GROUPS, createGroup);
 app.get(GROUP, getGroup);
@@ -42,6 +42,9 @@ app.put(GROUP, replaceGroup);
 app.delete(GROUP, deleteGroup);
 app.post(GROUP_PLAYERS, addPlayerToGroup);
 app.delete(GROUP_PLAYER, deletePlayerFromGroup);
+
+// error handler no fim
+app.use(sendApplicationError);
 
 logSuccess(
   "FOCCACIA (Football Complete Clubs API and Chelas Internet Application) by Grupo 1 LEIC31D",

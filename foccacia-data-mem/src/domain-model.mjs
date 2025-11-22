@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 export function Competition(code, name) {
   this.code = code;
   this.name = name;
@@ -31,7 +33,7 @@ export function Player(
 export function User(userId, username) {
   this.id = userId;
   this.username = username;
-  this.token = crypto.randomUUID();
+  this.token = randomUUID();
 }
 
 export function Group(
