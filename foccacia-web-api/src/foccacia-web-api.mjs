@@ -55,8 +55,6 @@ export function verifyToken(req, res, next) {
 //   }
 // }
 
-// Inspiration for the options parameter:
-// https://www.reddit.com/r/learnjavascript/comments/1c7hm3e/comment/l0872a2/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
 async function genericApiRoute(
   req,
   res,

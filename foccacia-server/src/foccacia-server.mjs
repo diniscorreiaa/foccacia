@@ -34,13 +34,14 @@ app.get(TEAMS, getTeams);
 
 app.post(USERS, createUser);
 
-app.get(GROUPS, verifyToken, getGroups);
-app.post(GROUPS, verifyToken, createGroup);
-app.get(GROUP, verifyToken, getGroup);
-app.put(GROUP, verifyToken, replaceGroup);
-app.delete(GROUP, verifyToken, deleteGroup);
-app.post(GROUP_PLAYERS, verifyToken, addPlayerToGroup);
-app.delete(GROUP_PLAYER, verifyToken, deletePlayerFromGroup);
+app.use(verifyToken)
+app.get(GROUPS, getGroups);
+app.post(GROUPS, createGroup);
+app.get(GROUP, getGroup);
+app.put(GROUP, replaceGroup);
+app.delete(GROUP, deleteGroup);
+app.post(GROUP_PLAYERS, addPlayerToGroup);
+app.delete(GROUP_PLAYER, deletePlayerFromGroup);
 
 /*app.use(verifyToken);
 app.get(COMPETITIONS, getCompetitions);
