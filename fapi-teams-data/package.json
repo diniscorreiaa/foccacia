@@ -9,6 +9,7 @@
     "coverage": "c8 mocha"
   },
   "dependencies": {
-    "foccacia-data-mem": "file:../foccacia-data-mem"
+    "foccacia-utils": "file:../foccacia-utils",
+    "foccacia-errors": "file:../foccacia-errors"
   }
 }

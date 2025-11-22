@@ -10,7 +10,7 @@ import {
   readJson,
   writeJson,
 } from "foccacia-utils";
-import errors from "foccacia-server/src/errors.mjs";
+import errors from "foccacia-errors";
 
 export function hello(name = "world") {
   return `hello ${name}`;
@@ -53,7 +53,7 @@ export async function fetchCompetitions() {
   const headers = await loadAuthHeaders();
 
   const competitions_url = `${FOOTBALL_API_URI}/competitions`;
-  const response = await fetch(competitions_url, { headers });
+  const response = await fetch(competitions_url, { headers: headers });
 
   if (!response.ok) {
     const err = buildFootballApiError(competitions_url, response.status);
@@ -117,7 +117,7 @@ export async function fetchTeamWithSquad(teamId) {
   logInfo(`Fetching team with squad for id ${teamId}`, "");
   const headers = await loadAuthHeaders();
   const url_team = `${FOOTBALL_API_URI}/teams/${teamId}`;
-  const response = await fetch(url_team, { headers });
+  const response = await fetch(url_team, { headers: headers });
 
   if (!response.ok) {
     const err = buildFootballApiError(url_team, response.status);

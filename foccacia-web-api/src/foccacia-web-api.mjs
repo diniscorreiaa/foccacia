@@ -1,8 +1,8 @@
-import * as services from "foccacia-services/src/foccacia-services.mjs";
-import { sendApplicationError } from "foccacia-server/src/application-to-http-errors.mjs";
+import * as services from "foccacia-services";
 import { teamToDto } from "./foccacia-dtos.mjs";
-import errors from "foccacia-server/src/errors.mjs";
+import errors from "foccacia-errors";
 import { logInfo } from "foccacia-utils";
+import { sendApplicationError } from "./application-to-http-errors.mjs";
 
 function getToken(req) {
   const auth = req.get("Authorization");

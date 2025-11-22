@@ -1,0 +1,11 @@
+{
+  "name": "foccacia-errors",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/errors.mjs",
+  "scripts": {
+    "test": "mocha",
+    "coverage": "c8 mocha"
+  }
+}

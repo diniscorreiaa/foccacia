@@ -2,12 +2,6 @@ function now() {
   return new Date().toISOString();
 }
 
-const logTypes = [
-  ["logInfo", "ℹ️ Info"],
-  ["logSuccess", "✅ Sucesso"],
-  ["logError", "❌ Erro"],
-];
-
 export const { logInfo, logSuccess, logError } = Object.fromEntries(
   [
     ["logInfo", "ℹ️ Info"],
@@ -17,8 +11,8 @@ export const { logInfo, logSuccess, logError } = Object.fromEntries(
     name,
     (message, error) => {
       const prefix = `${now()} ${label}: ${message}`;
-      if (name === "logError" && error)
-        console.error(prefix, error.stack ? error.stack : error);
+      if (name === "logError")
+        console.error(prefix, error && (error.stack ? error.stack : error));
       else console.log(prefix);
     },
   ])

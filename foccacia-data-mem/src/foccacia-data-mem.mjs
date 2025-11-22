@@ -4,6 +4,8 @@ export function hello(name = "world") {
   return `hello ${name}`;
 }
 
+export { Competition, Team, Player, User, Group } from "./domain-model.mjs";
+
 let nextUserId = 1;
 let nextGroupId = 1;
 
