@@ -30,22 +30,14 @@ export function getAllUsers() {
 }
 
 // GROUPS
-export function createGroup(
-  userId,
-  name,
-  description,
-  competition,
-  year,
-  players
-) {
+export function createGroup(userId, name, description, competition, year) {
   const group = new Group(
     userId,
     nextGroupId++,
     name,
     description,
     competition,
-    year,
-    players
+    year
   );
   GROUPS.push(group);
   return group;
@@ -64,7 +56,7 @@ export function updateGroup(groupId, changes) {
 }
 
 export function deleteGroup(groupId) {
-  const idx = findGroupInternalIndex(groupId);
+  const idx = GROUPS.findIndex((g) => g.id === groupId);
   if (idx === -1) return false;
   GROUPS.splice(idx, 1);
   return true;
@@ -98,9 +90,4 @@ export function removePlayerFromGroup(groupId, playerId) {
   if (idx === -1) return null;
   group.players.splice(idx, 1);
   return playerId;
-}
-
-// Helpers
-function findGroupInternalIndex(groupId) {
-  return GROUPS.findIndex((g) => g.id === groupId);
 }
