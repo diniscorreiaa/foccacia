@@ -17,9 +17,6 @@ GET {{api}}/competitions
 Authorization: {{token}}
 Accept: {{accept-content}}
 
->> ./output/foccacia-competition-all.json
-
-
 ### GET - Equipas da Primeira Liga da Época 2025 ({{season}})
 GET {{api}}/competitions/{{compPPL}}/seasons/{{season}}/teams
 Authorization: {{token}}
