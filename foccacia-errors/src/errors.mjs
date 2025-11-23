@@ -11,6 +11,8 @@ export const ERROR_CODES = {
   TooManyRequests: 5,
   Unprocessable: 6,
   BadGateway: 7,
+  IO_Error: 8, // Input/output
+  Unexpected: 9,
 };
 
 export default {
@@ -31,5 +33,10 @@ export default {
     new ApplicationError(ERROR_CODES.Unprocessable, message),
 
   BAD_GATEWAY: (message) =>
+    new ApplicationError(ERROR_CODES.BadGateway, message),
+
+  IO_ERROR: (message) => new ApplicationError(ERROR_CODES.BadGateway, message),
+
+  UNEXPECTED: (message) =>
     new ApplicationError(ERROR_CODES.BadGateway, message),
 };

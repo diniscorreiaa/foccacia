@@ -49,8 +49,7 @@ export function listGroups(userId) {
 
 export function updateGroup(groupId, changes) {
   // changes is going to be obtained by filtering relevant properties from the group object received in the body
-  // TODO : usar find em vez de filter
-  const group = GROUPS.filter((g) => g.id === groupId);
+  const group = GROUPS.find((g) => g.id === groupId);
   if (changes.name) group.name = changes.name;
   if (changes.description) group.description = changes.description;
   return group;
