@@ -97,6 +97,7 @@ export async function fetchCompetitionTeams(code, season) {
   const cachePath = getCompetitionTeamsFilePath(code, season);
 
   if (!cachePath) {
+    logError("Error getting cache path for competition teams")
     throw errors.UNEXPECTED("Unexpected internal error");
   }
   if (fileExists(cachePath)) {
