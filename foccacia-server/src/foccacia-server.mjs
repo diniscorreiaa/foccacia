@@ -47,6 +47,14 @@ app.delete(ROUTES.GROUP, deleteGroup);
 app.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
 app.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
 
+// Erro especial que o nosso Error Handling Middleware não deteta
+app.use((req, res, next) => {
+  res.status(404).json({
+    uri: req.path,
+    description: "Route not found",
+  });
+});
+
 // Error Handling Middleware
 app.use(sendApplicationError);
 

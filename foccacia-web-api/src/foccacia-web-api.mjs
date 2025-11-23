@@ -27,6 +27,8 @@ export const verifyToken = wrapAsync(async (req, res, next) => {
   // Deve devolver o userId correspondente ao token ou lançar UNAUTHORIZED
   const userId = await services.convertTokenToUserId(token); // quando existirem services
 
+  // TODO : if(token nao pertence a nenhum user) throw
+  // TODO : esta incompleto ou errado
   req.token = token;
   req.userId = userId;
   logInfo(

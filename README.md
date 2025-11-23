@@ -348,7 +348,6 @@ ___
 
 5. **Corrigir `foccacia-web-api`**
     - Corrigir `verifyToken` para usar `errors.UNAUTHORIZED(...)`.
-    - Ajustar `genericApiRoute` para não depender sempre de `.length` (usar `Array.isArray`).
     - Em todos os handlers:
         - passar `req.userId`, `req.params` e `req.body` explicitamente para os services.
     - `createUser`:
