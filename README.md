@@ -324,20 +324,8 @@ ___
 
 ### 3.1. Melhorias/correções no estado atual
 
-1. **Erros e nomes de ficheiros**
-    - Renomear `erros.mjs` → `errors.mjs` e/ou mover para `foccacia-errors`.
-    - Renomear `application-to-http-erros.mjs` → `application-to-http-errors.mjs`.
-    - Corrigir nomes das funções:
-        - `NOT_FORBIDDEN` → `FORBIDDEN`.
-        - `NOT_AUTHORIZED` nos usos → `UNAUTHORIZED`.
-
-2. **Criar módulo `foccacia-errors`**
-    - Criar workspace `foccacia-errors` e mover lá `ApplicationError`, `ERROR_CODES` e factories.
-    - Atualizar imports em:
-        - `fapi-teams-data`
-        - `foccacia-services`
-        - `foccacia-web-api`.
-
+1. **DONE**
+2. **DONE**
 3. **Corrigir bugs em `foccacia-data-mem`**
     - `updateGroup`:
         - Trocar `filter` por `find`.
@@ -354,15 +342,11 @@ ___
         - Importar `randomUUID` de `node:crypto`.
 
 4. **Corrigir `foccacia-services`**
-    - Adicionar dependências no `package.json`:
-        - `"foccacia-data-mem"`, `"foccacia-utils"`, `"foccacia-errors"`.
-    - Deixar de importar `"outro-modulo/src/...mjs"` e passar a importar o módulo (`"foccacia-data-mem"`, `"fapi-teams-data"`).
     - Alinhar `Player`:
         - ou simplificar o modelo em `domain-model.mjs` para o que é usado.
         - ou criar DTOs sem usar `new Player(...)`.
 
 5. **Corrigir `foccacia-web-api`**
-    - Atualizar imports para usar `foccacia-errors` e `foccacia-web-api/src/application-to-http-errors.mjs`.
     - Corrigir `verifyToken` para usar `errors.UNAUTHORIZED(...)`.
     - Ajustar `genericApiRoute` para não depender sempre de `.length` (usar `Array.isArray`).
     - Em todos os handlers:
@@ -370,15 +354,10 @@ ___
     - `createUser`:
         - ler `req.body.username` e passar ao service.
 
-6. **`foccacia-server`**
-    - Importar `sendApplicationError` a partir de `foccacia-web-api`.
-    - Registar `app.use(sendApplicationError)` como último middleware.
-    - Confirmar que as rotas batem certo com o enunciado e com o OpenAPI.
+6. **Done**
 
-7. **`package.json` de cada módulo**
-    - Evitar dependências desnecessárias (ex.: `express` em `foccacia-web-api` se não é usado).
-    - Garantir que todos os módulos usam apenas os pacotes de que realmente dependem.
-
+7. **Done**
+   
 ---
 
 ### 3.2. Novas features para cumprir o enunciado
@@ -459,18 +438,7 @@ ___
 
 ### 4.1. Fase 1 – Arquitetura e dependências (Tiago Nevoa)
 
-1. Criar o módulo `foccacia-errors` (ficheiro `src/errors.mjs` + `package.json`).
-2. Atualizar o root `package.json` para incluir `"foccacia-errors"` em `workspaces`.
-3. Mover/renomear `application-to-http-erros.mjs` para  
-   `foccacia-web-api/src/application-to-http-errors.mjs`.
-4. Atualizar `package.json` de cada módulo com as dependências corretas:
-    - `fapi-teams-data` → `foccacia-utils`, `foccacia-errors`.
-    - `foccacia-services` → `fapi-teams-data`, `foccacia-data-mem`, `foccacia-utils`, `foccacia-errors`.
-    - `foccacia-web-api` → `foccacia-services`, `foccacia-utils`, `foccacia-errors`.
-    - `foccacia-server` → `express`, `foccacia-web-api`, `foccacia-utils`.
-5. Garantir que `foccacia-server`:
-    - importa handlers da `foccacia-web-api`.
-    - regista `sendApplicationError` como último middleware.
+**Done**
 
 ---
 

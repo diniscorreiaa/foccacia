@@ -1,11 +1,11 @@
-import { Competition, Player, Team } from "foccacia-data-mem";
+import { Competition, findUserByToken, Player, Team } from "foccacia-data-mem";
 import {
   fetchCompetitions,
   fetchCompetitionTeams,
   fetchTeamWithSquad,
 } from "fapi-teams-data";
 import { logInfo } from "foccacia-utils";
-// import errors from "foccacia-errors";
+import errors from "foccacia-errors";
 // import {
 //   createUser as createUserMem,
 //   // ... listGroups, createGroup, etc...
@@ -52,6 +52,14 @@ export async function getTeams(code, season) {
     `Service: built ${result.length} Team objects for competition ${code} season ${season}`
   );
   return result;
+}
+
+export async function convertTokenToUserId(token) {
+  const user = findUserByToken(token);
+  if (!user) {
+    throw errors.UNAUTHORIZED("Invalid token");
+  }
+  return user.id;
 }
 
 export function createUser() {}

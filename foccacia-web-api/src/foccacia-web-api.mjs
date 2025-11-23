@@ -2,60 +2,40 @@ import * as services from "foccacia-services";
 import { teamToDto } from "./foccacia-dtos.mjs";
 import errors from "foccacia-errors";
 import { logInfo } from "foccacia-utils";
-import { sendApplicationError } from "./application-to-http-errors.mjs";
 
 export { sendApplicationError } from "./application-to-http-errors.mjs";
+
+const wrapAsync = (fn) => (req, res, next) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
 
 function getToken(req) {
   const auth = req.get("Authorization");
   if (!auth) return "";
 
-  const arr = auth.split(" ");
-  if (arr.length !== 2 || arr[0].toLowerCase() !== "bearer") return "";
-  return arr[1];
+  const [type, value] = auth.split(" ");
+  if (type?.toLowerCase() !== "bearer" || !value) return "";
+  return value;
 }
 
-export function verifyToken(req, res, next) {
+export const verifyToken = wrapAsync(async (req, res, next) => {
   const token = getToken(req);
   if (!token) {
-    const err = errors.NOT_AUTHORIZED("Missing or invalid Bearer token");
-    return sendApplicationError(err, req, res);
+    throw errors.UNAUTHORIZED("Missing or invalid Bearer token");
   }
 
-  // TODO : Apos validacao da token em services
-  // return services
-  //   .convertTokenToUserId(token)
-  //   .then((userId) => {
-  //     req.token = token;
-  //     req.userId = userId;
-  //     logInfo(`Request authorized for user ${userId} ${req.method} ${req.path}`);
-  //     next();
-  //   })
-  //   .catch((err) => sendApplicationError(err, req, res));
+  // TODO: implementar em services
+  // Deve devolver o userId correspondente ao token ou lançar UNAUTHORIZED
+  const userId = await services.convertTokenToUserId(token); // quando existirem services
 
   req.token = token;
-  logInfo(`Request authorized for ${req.method} ${req.path}`, "");
-  next();
-}
+  req.userId = userId;
+  logInfo(
+    `Request authorized for user ${userId} ${req.method} ${req.path}`,
+    ""
+  );
 
-// async function verifyTokenInternal(req, res, next) {
-//   const token = getToken(req);
-//   if (!token) {
-//     return res.status(403).json({
-//       uri: req.path,
-//       description: "The access to the resource is forbidden",
-//     });
-//   }
-//
-//   try {
-//     const userId = await services.convertTokenToUserId(token);
-//     req.token = token;
-//     req.userId = userId;
-//     next();
-//   } catch (err) {
-//     return sendApplicationError(err, req, res);
-//   }
-// }
+  next();
+});
 
 async function genericApiRoute(
   req,
@@ -63,62 +43,60 @@ async function genericApiRoute(
   servicesFunc,
   { transformObj = (obj) => obj, servicesFuncArgs = [] } = {}
 ) {
-  try {
-    const obj = await servicesFunc(...servicesFuncArgs);
-    logInfo(`API: responding with ${obj.length} for path ${req.path}`, ""); // TODO think of useful generic log
-    res.json(transformObj(obj));
-  } catch (err) {
-    sendApplicationError(err, req, res);
-  }
+  const obj = await servicesFunc(...servicesFuncArgs);
+
+  logInfo(`API: responding with ${obj.length} for path ${req.path}`, ""); // TODO think of useful generic log
+  res.json(transformObj(obj));
 }
 
-export async function getCompetitions(req, res) {
-  await genericApiRoute(req, res, services.getCompetitions);
-}
+// Competitions
+export const getCompetitions = wrapAsync((req, res) =>
+  genericApiRoute(req, res, services.getCompetitions)
+);
 
-export async function getTeams(req, res) {
-  const { competitionCode, seasonYear } = req.params;
-  await genericApiRoute(req, res, services.getTeams, {
+// Teams
+export const getTeams = wrapAsync((req, res) =>
+  genericApiRoute(req, res, services.getTeams, {
     transformObj: (teamsArr) => teamsArr.map(teamToDto),
-    servicesFuncArgs: [competitionCode, seasonYear],
-  });
-}
+    servicesFuncArgs: [req.params.competitionCode, req.params.seasonYear],
+  })
+);
 
 // Users
-export async function createUser(req, res) {
-  await genericApiRoute(req, res, services.createUser, {
+export const createUser = wrapAsync((req, res) =>
+  genericApiRoute(req, res, services.createUser, {
     transformObj: (createdToken) => ({ token: createdToken }),
-  });
-}
+  })
+);
 
 // Groups
-export async function getGroups(req, res) {
-  await genericApiRoute(req, res, services.getGroups);
-}
+export const getGroups = wrapAsync((req, res) =>
+  genericApiRoute(req, res, services.getGroups)
+);
 
-export async function createGroup(req, res) {
-  await genericApiRoute(req, res, services.createGroup);
-}
+export const createGroup = wrapAsync((req, res) =>
+  genericApiRoute(req, res, services.createGroup)
+);
 
-export async function getGroup(req, res) {
-  await genericApiRoute(req, res, services.getGroup);
-}
+export const getGroup = wrapAsync((req, res) =>
+  genericApiRoute(req, res, services.getGroup)
+);
 
-export async function replaceGroup(req, res) {
-  await genericApiRoute(req, res, services.replaceGroup);
-}
+export const replaceGroup = wrapAsync((req, res) =>
+  genericApiRoute(req, res, services.replaceGroup)
+);
 
-export async function deleteGroup(req, res) {
-  await genericApiRoute(req, res, services.deleteGroup);
-}
+export const deleteGroup = wrapAsync((req, res) =>
+  genericApiRoute(req, res, services.deleteGroup)
+);
 
-export async function addPlayerToGroup(req, res) {
-  await genericApiRoute(req, res, services.addPlayerToGroup);
-}
+export const addPlayerToGroup = wrapAsync((req, res) =>
+  genericApiRoute(req, res, services.addPlayerToGroup)
+);
 
-export async function deletePlayerFromGroup(req, res) {
-  await genericApiRoute(req, res, services.deletePlayerFromGroup);
-}
+export const deletePlayerFromGroup = wrapAsync((req, res) =>
+  genericApiRoute(req, res, services.deletePlayerFromGroup)
+);
 
 export function hello(name = "world") {
   return `hello ${name}`;

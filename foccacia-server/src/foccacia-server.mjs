@@ -17,33 +17,37 @@ import {
 
 const PORT = 1904;
 
-const COMPETITIONS = "/competitions"; // Se aqui houver algum problema, é pq antes tinha /api/
-const TEAMS = `${COMPETITIONS}/:competitionCode/seasons/:seasonYear/teams`;
-const USERS = "/users";
-const GROUPS = "/groups";
-const GROUP = `${GROUPS}/:groupId`;
-const GROUP_PLAYERS = `${GROUPS}/:groupId/player`;
-const GROUP_PLAYER = `${GROUP_PLAYERS}/:playerId`;
+const ROUTES = {
+  COMPETITIONS: "/competitions",
+  TEAMS: "/competitions/:competitionCode/seasons/:seasonYear/teams",
+  USERS: "/users",
+  GROUPS: "/groups",
+  GROUP: "/groups/:groupId",
+  GROUP_PLAYERS: "/groups/:groupId/players",
+  GROUP_PLAYER: "/groups/:groupId/players/:playerId",
+};
 
 const app = express();
-
 app.use(express.json());
 
-app.get(COMPETITIONS, getCompetitions);
-app.get(TEAMS, getTeams);
-app.post(USERS, createUser);
+//Rotas Públicas
+app.get(ROUTES.COMPETITIONS, getCompetitions);
+app.get(ROUTES.TEAMS, getTeams);
+app.post(ROUTES.USERS, createUser);
 
+// Middleware de Autenticação
 app.use(verifyToken);
 
-app.get(GROUPS, getGroups);
-app.post(GROUPS, createGroup);
-app.get(GROUP, getGroup);
-app.put(GROUP, replaceGroup);
-app.delete(GROUP, deleteGroup);
-app.post(GROUP_PLAYERS, addPlayerToGroup);
-app.delete(GROUP_PLAYER, deletePlayerFromGroup);
+// Rotas Privadas
+app.get(ROUTES.GROUPS, getGroups);
+app.post(ROUTES.GROUPS, createGroup);
+app.get(ROUTES.GROUP, getGroup);
+app.put(ROUTES.GROUP, replaceGroup);
+app.delete(ROUTES.GROUP, deleteGroup);
+app.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
+app.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
 
-// error handler no fim
+// Error Handling Middleware
 app.use(sendApplicationError);
 
 logSuccess(
