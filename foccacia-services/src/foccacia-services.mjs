@@ -104,28 +104,24 @@ export function getGroups(userId) {
 }
 
 export function createGroup(userId, name, description, competition, year) {
-    if (!name) {
-    }
-    if (!description) {
-    }
-    if (!competition) {
-    }
-    if (!year) {
-    }
-    return createGroupData(userId, name, description, competition, year);
+  if (!name || !description || !competition || !year) {
+    throw errors.INVALID_DATA("Make sure you provide userId, name, description, competition and year for this operation")
+  }
+  return createGroupData(userId, name, description, competition, year);
 }
 
 export function getGroup(groupId) {
-    if (!groupId) {
-    }
-    return getGroupData(groupId);
+  if (!groupId) {
+    throw errors.INVALID_DATA("Make sure you provide the group id for this operation")
+  }
+  return getGroupData(groupId);
 }
 
 export function replaceGroup(groupId, changes) {
-    if (!groupId) {
-    }
-    if (!changes){}
-    return updateGroup(parseInt(groupId), changes);
+  if (!groupId) {
+    throw errors.INVALID_DATA("Make sure you provide the group id for this operation")
+  }
+  return updateGroup(groupId, changes);
 }
 export function deleteGroup(groupId) {}
 

@@ -65,13 +65,13 @@ Content-Type: {{accept-content}}
 
 ### GET - Grupo {{groupId}} do Utilizador
 GET {api}/groups/{groupId}
-Authorization: {token}
-Accept: {accept-content}
+Authorization: {{token}}
+Accept: {{accept-content}}
 
 ### NEGATIVO - 404 (Grupo não encontrado)
 GET {api}/groups/99999
-Authorization: {token}
-Accept: {accept-content}
+Authorization: {{token}}
+Accept: {{accept-content}}
 
 ### PUT - Edita Nome e Descrição de um Grupo
 PUT {{api}}/groups/{{groupId}}
@@ -87,8 +87,8 @@ Content-Type: {{accept-content}}
 
 ### NEGATIVO - 400 (Dados Inválidos)
 PUT {api}/groups/{groupId}
-Authorization: {token}
-Content-Type: {accept-content}
+Authorization: {{token}}
+Content-Type: {{accept-content}}
 
 {
         "name": "I+*!nv?1aL-ªi`+Do",
@@ -97,19 +97,18 @@ Content-Type: {accept-content}
 
 ### DELETE - Remove um Grupo {{groupId}}
 DELETE  {api}/groups/{groupId}
-Authorization: {token}
-Accept: {accept-content}
+Authorization: {{token}}
+Accept: {{accept-content}}
 
-// TODO Definir status code 403 para todos os requests de grupo que forem necessários
 ### NEGATIVO - 403 (Pedido vindo de utilizador sem permissões)
 DELETE  {api}/groups/{groupId}
-Authorization: {invalidToken}
-Accept: {accept-content}
+Authorization: {{invalidToken}}
+Accept: {{accept-content}}
 
 ### POST - Adiciona Jogador a Grupo
 POST {api}/groups/{groupId}/players
-Authorization: {token}
-Content-Type: {accept-content}
+Authorization: {{token}}
+Content-Type: {{accept-content}}
 
 {
         "playerId": 1903,
@@ -120,8 +119,8 @@ Content-Type: {accept-content}
 
 ### NEGATIVO - 422 (Violação de regra: Each group may have 11 players at maximum, and each player must belong to the year and competition of the group.)
 POST {api}/groups/{groupId}/players
-Authorization: {token}
-Content-Type: {accept-content}
+Authorization: {{token}}
+Content-Type: {{accept-content}}
 
 {
         // TODO Test status code for this situation: Each group may have 11 players at maximum, and each player must belong to the year and competition of the group.
@@ -129,5 +128,5 @@ Content-Type: {accept-content}
 
 ### DELETE - Remove Jogador de um Grupo
 DELETE {api}/groups/{groupId}/players/{playerId}
-Authorization: {token}
-Accept: {accept-content}
+Authorization: {{token}}
+Accept: {{accept-content}}
