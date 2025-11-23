@@ -104,65 +104,33 @@ export function getGroups(userId) {
 }
 
 export function createGroup(userId, name, description, competition, year) {
-  if (!name) {
-  }
-  if (!description) {
-  }
-  if (!competition) {
-  }
-  if (!year) {
+  if (!name || !description || !competition || !year) {
+    throw errors.INVALID_DATA("Make sure you provide userId, name, description, competition and year for this operation")
   }
   return createGroupData(userId, name, description, competition, year);
 }
 
 export function getGroup(groupId) {
   if (!groupId) {
+    throw errors.INVALID_DATA("Make sure you provide the group id for this operation")
   }
   return getGroupData(groupId);
 }
 
 export function replaceGroup(groupId, changes) {
   if (!groupId) {
+    throw errors.INVALID_DATA("Make sure you provide the group id for this operation")
+  }
+  return updateGroup(groupId, changes);
   }
   if (!changes) {
   }
   return updateGroup(parseInt(groupId), changes);
 }
-export function deleteGroup(groupId) {}
 
+export function deleteGroup(groupId) {}
 export function addPlayerToGroup() {}
 export function deletePlayerFromGroup() {}
 
 // TODO : criar regras como max 11 jogadores
 
-// TODO : Adaptar as funcionalidades do nosso projecto
-
-// export default function (data, users) {
-//   return {
-//     getBooks: getBooks,
-//     getBook: getBook,
-//   };
-//
-//   async function getBooks(token) {
-//     return data.getBooks();
-//   }
-//
-//   export async function getBook(bookId, token) {
-//     return data
-//       .getBook(bookId)
-//       .then((book) =>
-//         users.convertTokenToId(token).then((id) => validateOwner(book, id))
-//       );
-//
-//     function validateOwner(book, userId) {
-//       if (book.ownerId == userId) {
-//         return book;
-//       }
-//       return Promise.reject(
-//         errors.NOT_AUTHORIZED(
-//           `The user does not have access to the book with id ${bookId}`
-//         )
-//       );
-//     }
-//   }
-// }
