@@ -23,6 +23,7 @@ async function loadAuthHeaders() {
   const headersJson = await readJson(getHeadersFilePath());
   const token = headersJson["X-Auth-Token"];
   if (!token) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
     throw new Error("Missing X-Auth-Token in headers.json");
   }
   return { "X-Auth-Token": token };
@@ -35,7 +36,7 @@ function buildFootballApiError(url, status) {
     case 403:
       return errors.FORBIDDEN("Access denied to external service Football API");
     case 429:
-      return errors.RATE_LIMIT(
+      return errors.TOO_MANY_REQUESTS(
         "Reached limit of requests to external service Football API, try again in a few moments"
       );
     default:
@@ -58,6 +59,9 @@ export async function fetchCompetitions() {
   const headers = await loadAuthHeaders();
 
   const competitions_url = `${FOOTBALL_API_URI}/competitions`;
+  if (!competitions_url) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
   const response = await fetch(competitions_url, { headers: headers });
 
   if (!response.ok) {
@@ -81,8 +85,17 @@ export async function fetchCompetitions() {
 
 // Teams
 export async function fetchCompetitionTeams(code, season) {
+  if (!code) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
+  if (!season) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
   const cachePath = getCompetitionTeamsFilePath(code, season);
 
+  if (!cachePath) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
   if (fileExists(cachePath)) {
     logInfo(`Using teams cache for competition ${code} season ${season}`, "");
     const cached = await readJson(cachePath);
@@ -96,6 +109,9 @@ export async function fetchCompetitionTeams(code, season) {
 
   const headers = await loadAuthHeaders();
   const url_teams = `${FOOTBALL_API_URI}/competitions/${code}/teams?season=${season}`;
+  if (!url_teams) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
   const response = await fetch(url_teams, { headers });
 
   if (!response.ok) {
@@ -112,8 +128,13 @@ export async function fetchCompetitionTeams(code, season) {
 
 // Team with Squad
 export async function fetchTeamWithSquad(teamId) {
+  if (!teamId) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
   const cachePath = getTeamPlayersFilePath(teamId);
-
+  if (!cachePath) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
   if (fileExists(cachePath)) {
     logInfo(`Using team cache for id ${teamId}`, "");
     return readJson(cachePath);
@@ -122,6 +143,9 @@ export async function fetchTeamWithSquad(teamId) {
   logInfo(`Fetching team with squad for id ${teamId}`, "");
   const headers = await loadAuthHeaders();
   const url_team = `${FOOTBALL_API_URI}/teams/${teamId}`;
+  if (!url_team) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
   const response = await fetch(url_team, { headers: headers });
 
   if (!response.ok) {

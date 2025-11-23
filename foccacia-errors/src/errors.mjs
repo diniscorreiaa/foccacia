@@ -22,10 +22,9 @@ export default {
 
   NOT_FOUND: (message) => new ApplicationError(ERROR_CODES.NotFound, message),
 
-  NOT_FORBIDDEN: (message) =>
-    new ApplicationError(ERROR_CODES.Forbidden, message),
+  FORBIDDEN: (message) => new ApplicationError(ERROR_CODES.Forbidden, message),
 
-  RATE_LIMIT: (message) =>
+  TOO_MANY_REQUESTS: (message) =>
     new ApplicationError(ERROR_CODES.TooManyRequests, message),
 
   UNPROCESSABLE: (message) =>

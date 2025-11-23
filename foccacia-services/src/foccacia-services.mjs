@@ -1,4 +1,4 @@
-import { Competition, findUserByToken, Player, Team, createUser } from "foccacia-data-mem";
+import { Competition, findUserByToken, Player, Team } from "foccacia-data-mem";
 import {
   fetchCompetitions,
   fetchCompetitionTeams,
@@ -13,56 +13,58 @@ import errors from "foccacia-errors";
 
 // Competitions
 export async function getCompetitions() {
-  try {
-    const raw = await fetchCompetitions();
-    const competitions = raw.map(
-      (competition) => new Competition(competition.code, competition.name)
-    );
-    logInfo(`Service: loaded ${competitions.length} competitions`, "");
-    return competitions;
-  } catch (err) {
-    throw err;
-  }
+  const raw = await fetchCompetitions();
+  const competitions = raw.map(
+    (competition) => new Competition(competition.code, competition.name)
+  );
+  logInfo(`Service: loaded ${competitions.length} competitions`, "");
+  return competitions;
 }
 
 // Teams
 export async function getTeams(code, season) {
-  try {
-    const teams = await fetchCompetitionTeams(code, season);
-    logInfo(
-      `Service: fetched ${teams.length} teams for competition ${code} season ${season}`,
-      ""
-    );
-
-    // TODO : squads to teams
-    const squads = await Promise.all(
-      teams.map((team) => fetchTeamWithSquad(team.id))
-    );
-
-    // TODO : players acrescentar o resto das propriedades do player e o seu dto
-    const result = squads.map((teamJson) => {
-      const players = (teamJson.squad ?? []).map(
-        (player) => new Player(player.id, player.name, player.position)
-      );
-
-      return new Team(
-        teamJson.id,
-        teamJson.name,
-        teamJson.area?.name ?? null,
-        players
-      );
-    });
-
-    logInfo(
-      `Service: built ${result.length} Team objects for competition ${code} season ${season}`
-    );
-    return result;
-  } catch (err) {
-    throw err;
+  if (!code) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
   }
+  if (!season) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
+  const teams = await fetchCompetitionTeams(code, season);
+  logInfo(
+    `Service: fetched ${teams.length} teams for competition ${code} season ${season}`,
+    ""
+  );
+
+  // TODO : squads to teams
+  const squads = await Promise.all(
+    teams.map((team) => fetchTeamWithSquad(team.id))
+  );
+
+  // TODO : players acrescentar o resto das propriedades do player e o seu dto
+  const result = squads.map((teamJson) => {
+    const players = (teamJson.squad ?? []).map(
+      (player) => new Player(player.id, player.name, player.position)
+    );
+
+    return new Team(
+      teamJson.id,
+      teamJson.name,
+      teamJson.area?.name ?? null,
+      players
+    );
+  });
+
+  logInfo(
+    `Service: built ${result.length} Team objects for competition ${code} season ${season}`,
+    ""
+  );
+  return result;
 }
 
 export async function convertTokenToUserId(token) {
+  if (!token) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
   const user = findUserByToken(token);
   if (!user) {
     throw errors.UNAUTHORIZED("Invalid token");

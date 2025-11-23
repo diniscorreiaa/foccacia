@@ -1,7 +1,7 @@
 @api = http://localhost:1904
 @token = Bearer 123
 ### TODO Make invalid but existing user token to test 403 status code
-@invalidToken = <TODO> 
+@invalidToken = <TODO>
 @accept-content = application/json
 @season = 2025
 @compPPL = PPL
