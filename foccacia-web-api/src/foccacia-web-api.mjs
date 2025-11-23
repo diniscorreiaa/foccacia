@@ -76,9 +76,13 @@ export const getGroups = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.getGroups)
 );
 
-export const createGroup = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.createGroup)
-);
+export const createGroup = wrapAsync((req, res) => {
+  const { name, description, competition, year } = req.body;
+  const { userId } = req.userId;
+  genericApiRoute(req, res, services.createGroup, {
+    servicesFuncArgs: [userId, name, description, competition, year],
+  });
+});
 
 export const getGroup = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.getGroup, {

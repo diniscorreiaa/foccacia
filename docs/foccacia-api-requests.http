@@ -49,14 +49,14 @@ Content-Type: {{accept-content}}
 }
 
 ### GET - Grupos do Utilizador
-GET {api}/groups
-Authorization: {token}
-Accept: {accept-content}
+GET {{api}}/groups
+Authorization: {{token}}
+Accept: {{accept-content}}
 
 ### POST - Cria um Novo Grupo
-POST {api}/groups
-Authorization: {token}
-Content-Type: {accept-content}
+POST {{api}}/groups
+Authorization: {{token}}
+Content-Type: {{accept-content}}
 
 {
         "name": "Melhores da Champions",
@@ -76,9 +76,9 @@ Authorization: {token}
 Accept: {accept-content}
 
 ### PUT - Edita Nome e Descrição de um Grupo
-PUT {api}/groups/{groupId}
-Authorization: {token}
-Content-Type: {accept-content}
+PUT {{api}}/groups/{{groupId}}
+Authorization: {{token}}
+Content-Type: {{accept-content}}
 
 {
         "name": "Atualizado",
