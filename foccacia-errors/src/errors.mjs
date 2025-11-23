@@ -31,7 +31,6 @@ export default {
   UNPROCESSABLE: (message) =>
     new ApplicationError(ERROR_CODES.Unprocessable, message),
 
-  BAD_GATEWAY: (
-    message // No caso de ser impossivel obter informação por culpa da footbal api
-  ) => new ApplicationError(ERROR_CODES.BadGateway, message),
+  BAD_GATEWAY: (message) =>
+    new ApplicationError(ERROR_CODES.BadGateway, message),
 };

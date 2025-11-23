@@ -28,16 +28,21 @@ async function loadAuthHeaders() {
   return { "X-Auth-Token": token };
 }
 
-// TODO : Msg em ingles e adicionar todos erros possiveis usando um when
 function buildFootballApiError(url, status) {
-  if (status == 429) {
-    return errors.RATE_LIMIT(
-      "Atingido o limite de pedidos à Football Data API. Tente novamente dentro de um minuto."
-    );
+  switch (status) {
+    case 401:
+      return errors.UNAUTHORIZED("Invalid external service Football API token");
+    case 403:
+      return errors.FORBIDDEN("Access denied to external service Football API");
+    case 429:
+      return errors.RATE_LIMIT(
+        "Reached limit of requests to external service Football API, try again in a few moments"
+      );
+    default:
+      return errors.BAD_GATEWAY(
+        `Error ${status} while fetching external service ${url} from Football API`
+      );
   }
-  const err = new Error(`Football API error ${status} for ${url}`);
-  err.status = status;
-  return err;
 }
 
 // Competitions
