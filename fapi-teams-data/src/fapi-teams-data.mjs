@@ -18,13 +18,11 @@ export function hello(name = "world") {
 
 const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 
-// TODO : Mapping do erro para erros possiveis da API
 async function loadAuthHeaders() {
   const headersJson = await readJson(getHeadersFilePath());
   const token = headersJson["X-Auth-Token"];
   if (!token) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
-    throw new Error("Missing X-Auth-Token in headers.json");
+    throw errors.UNAUTHORIZED("You must have a valid token for this operation");
   }
   return { "X-Auth-Token": token };
 }
@@ -60,7 +58,8 @@ export async function fetchCompetitions() {
 
   const competitions_url = `${FOOTBALL_API_URI}/competitions`;
   if (!competitions_url) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
+    logError("Error getting URL for competitions");
+    throw errors.UNEXPECTED("Unexpected internal error");
   }
   const response = await fetch(competitions_url, { headers: headers });
 
@@ -77,6 +76,11 @@ export async function fetchCompetitions() {
     name: competition.name,
   }));
 
+  if (!competitions) {
+    logError("Error building competitions object");
+    throw errors.UNEXPECTED("Unexpected internal error");
+  }
+
   await writeJson(competitions, cachePath);
   logSuccess(`Saved competitions cache to ${cachePath}`, "");
 
@@ -85,16 +89,15 @@ export async function fetchCompetitions() {
 
 // Teams
 export async function fetchCompetitionTeams(code, season) {
-  if (!code) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
-  }
-  if (!season) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  if (!code || !season) {
+    throw errors.INVALID_DATA(
+      "Make sure you provide both competition code and season"
+    );
   }
   const cachePath = getCompetitionTeamsFilePath(code, season);
 
   if (!cachePath) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
+    throw errors.UNEXPECTED("Unexpected internal error");
   }
   if (fileExists(cachePath)) {
     logInfo(`Using teams cache for competition ${code} season ${season}`, "");
@@ -110,7 +113,8 @@ export async function fetchCompetitionTeams(code, season) {
   const headers = await loadAuthHeaders();
   const url_teams = `${FOOTBALL_API_URI}/competitions/${code}/teams?season=${season}`;
   if (!url_teams) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
+    logError("Error getting URL for teams");
+    throw errors.UNEXPECTED("Unexpected internal error");
   }
   const response = await fetch(url_teams, { headers });
 
@@ -129,11 +133,12 @@ export async function fetchCompetitionTeams(code, season) {
 // Team with Squad
 export async function fetchTeamWithSquad(teamId) {
   if (!teamId) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
+    throw errors.INVALID_DATA("Make sure you provide a team id");
   }
   const cachePath = getTeamPlayersFilePath(teamId);
   if (!cachePath) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
+    logError("Error getting cache path for team with squad");
+    throw errors.UNEXPECTED("Unexpected internal error");
   }
   if (fileExists(cachePath)) {
     logInfo(`Using team cache for id ${teamId}`, "");
@@ -144,7 +149,8 @@ export async function fetchTeamWithSquad(teamId) {
   const headers = await loadAuthHeaders();
   const url_team = `${FOOTBALL_API_URI}/teams/${teamId}`;
   if (!url_team) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
+    logError("Error getting team url");
+    throw errors.UNEXPECTED("Unexpected internal error");
   }
   const response = await fetch(url_team, { headers: headers });
 

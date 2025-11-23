@@ -29,11 +29,10 @@ export async function getCompetitions() {
 
 // Teams
 export async function getTeams(code, season) {
-  if (!code) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
-  }
-  if (!season) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  if (!code || !season) {
+    throw errors.INVALID_DATA(
+      "Make sure you specify a correct competition code and season"
+    );
   }
   const teams = await fetchCompetitionTeams(code, season);
   logInfo(
@@ -69,18 +68,17 @@ export async function getTeams(code, season) {
 
 export async function convertTokenToUserId(token) {
   if (!token) {
-    // TODO : Usar erros personalizados da nossa biblioteca de erros
+    throw errors.UNAUTHORIZED("Invalid token");
   }
   const user = findUserByToken(token);
   if (!user) {
-    throw errors.UNAUTHORIZED("Invalid token");
+    throw errors.NOT_FOUND("User not found");
   }
   return user.id;
 }
 
 export async function createUser(username) {
   if (!username || !username.trim()) {
-    // TODO : Dinis confirma se e o erro correto
     throw errors.INVALID_DATA("Username is required");
   }
 
@@ -122,7 +120,7 @@ export function replaceGroup(groupId, changes) {
 }
 export function deleteGroup(groupId) {}
 
-export function addPlayerToGroup() {}
+export function addPlayerToGroup() {} // Quem implementar isto, regra +11 players throw errors.UNPROCESSABLE
 export function deletePlayerFromGroup() {}
 
 // TODO : criar regras como max 11 jogadores
