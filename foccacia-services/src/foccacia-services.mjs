@@ -40,15 +40,22 @@ export async function getTeams(code, season) {
     ""
   );
 
-  // TODO : squads to teams
   const squads = await Promise.all(
     teams.map((team) => fetchTeamWithSquad(team.id))
   );
 
-  // TODO : players acrescentar o resto das propriedades do player e o seu dto
   const result = squads.map((teamJson) => {
     const players = (teamJson.squad ?? []).map(
-      (player) => new Player(player.id, player.name, player.position)
+      (player) =>
+        new Player(
+          player.id,
+          player.name,
+          teamJson.id,
+          teamJson.name,
+          player.position,
+          player.nationality,
+          player.dateOfBirth
+        ) // calculateAge(player.dateOfBirth)
     );
 
     return new Team(
