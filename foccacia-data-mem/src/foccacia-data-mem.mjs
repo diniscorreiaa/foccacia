@@ -53,7 +53,7 @@ export function createGroup(userId, name, description, competition, year) {
 }
 
 export function listGroups(userId) {
-  return GROUPS.find((g) => g.ownerId === userId);
+  return GROUPS.filter((g) => g.ownerId === userId);
 }
 
 export function updateGroup(groupId, changes) {
