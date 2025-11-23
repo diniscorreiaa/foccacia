@@ -1,5 +1,5 @@
 @api = http://localhost:1904
-@token = Bearer e740ec18-9190-48ad-8bb0-b2d5d8a2a669
+@token = Bearer 3dcebbef-03b2-42c3-b7bf-844f2bb5ecf1
 ### TODO Make invalid but existing user token to test 403 status code
 @invalidToken = <TODO>
 @accept-content = application/json

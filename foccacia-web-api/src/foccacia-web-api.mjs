@@ -1,5 +1,5 @@
 import * as services from "foccacia-services";
-import {groupToDto, teamToDto} from "./foccacia-dtos.mjs";
+import { groupToDto, teamToDto } from "./foccacia-dtos.mjs";
 import errors from "foccacia-errors";
 import { logInfo } from "foccacia-utils";
 
@@ -73,7 +73,9 @@ export const createUser = wrapAsync((req, res) =>
 
 // Groups
 export const getGroups = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.getGroups, {servicesFuncArgs: [req.userId]})
+  genericApiRoute(req, res, services.getGroups, {
+    servicesFuncArgs: [req.userId],
+  })
 );
 
 export const createGroup = wrapAsync((req, res) => {
@@ -85,7 +87,7 @@ export const createGroup = wrapAsync((req, res) => {
 
 export const getGroup = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.getGroup, {
-    servicesFuncArgs: [req.params.groupId],
+    servicesFuncArgs: [parseInt(req.params.groupId)],
   })
 );
 
@@ -96,7 +98,7 @@ export const replaceGroup = wrapAsync((req, res) => {
       req.params.groupId,
       { name: name, description: description },
     ],
-      transformObj: group => groupToDto(group)
+    transformObj: (group) => groupToDto(group),
   });
 });
 
