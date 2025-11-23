@@ -84,6 +84,10 @@ paths:
                     name:
                       type: string
                       example: "Primeira Liga"
+        "401":
+          description: Token inválida
+        "403":
+          description: Acesso ao recurso recusado
         "429":
           description: Limite de pedidos à Football Api esgotado
         "502":
@@ -126,6 +130,10 @@ paths:
                           position:
                             type: string
                             example: "Midfielder"
+        "401":
+          description: Token inválida
+        "403":
+          description: Acesso ao recurso recusado
         "404":
           description: Competição não encontrada
         "429":
