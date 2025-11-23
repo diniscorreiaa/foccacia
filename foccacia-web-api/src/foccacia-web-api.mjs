@@ -67,6 +67,7 @@ export const getTeams = wrapAsync((req, res) =>
 export const createUser = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.createUser, {
     transformObj: (createdToken) => ({ token: createdToken }),
+    servicesFuncArgs: [req.body?.username],
   })
 );
 
