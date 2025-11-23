@@ -1,5 +1,5 @@
 @api = http://localhost:1904
-@token = Bearer 123
+@token = Bearer 3dcebbef-03b2-42c3-b7bf-844f2bb5ecf1
 ### TODO Make invalid but existing user token to test 403 status code
 @invalidToken = <TODO>
 @accept-content = application/json
@@ -64,12 +64,14 @@ Content-Type: {{accept-content}}
 }
 
 ### GET - Grupo {{groupId}} do Utilizador
-GET {api}/groups/{groupId}
+
+GET {{api}}/groups/{{groupId}}
 Authorization: {{token}}
 Accept: {{accept-content}}
 
 ### NEGATIVO - 404 (Grupo não encontrado)
-GET {api}/groups/99999
+
+GET {{api}}/groups/99999
 Authorization: {{token}}
 Accept: {{accept-content}}
 
@@ -86,7 +88,8 @@ Content-Type: {{accept-content}}
 }
 
 ### NEGATIVO - 400 (Dados Inválidos)
-PUT {api}/groups/{groupId}
+
+PUT {{api}}/groups/{{groupId}}
 Authorization: {{token}}
 Content-Type: {{accept-content}}
 
@@ -96,17 +99,19 @@ Content-Type: {{accept-content}}
 }
 
 ### DELETE - Remove um Grupo {{groupId}}
-DELETE  {api}/groups/{groupId}
+
+DELETE  {{api}}/groups/{{groupId}}
 Authorization: {{token}}
 Accept: {{accept-content}}
 
 ### NEGATIVO - 403 (Pedido vindo de utilizador sem permissões)
-DELETE  {api}/groups/{groupId}
+
+DELETE  {{api}}/groups/{{groupId}}
 Authorization: {{invalidToken}}
 Accept: {{accept-content}}
 
 ### POST - Adiciona Jogador a Grupo
-POST {api}/groups/{groupId}/players
+POST {{api}}/groups/{{groupId}}/players
 Authorization: {{token}}
 Content-Type: {{accept-content}}
 
@@ -118,7 +123,8 @@ Content-Type: {{accept-content}}
 }
 
 ### NEGATIVO - 422 (Violação de regra: Each group may have 11 players at maximum, and each player must belong to the year and competition of the group.)
-POST {api}/groups/{groupId}/players
+
+POST {{api}}/groups/{{groupId}}/players
 Authorization: {{token}}
 Content-Type: {{accept-content}}
 
@@ -127,6 +133,7 @@ Content-Type: {{accept-content}}
 }
 
 ### DELETE - Remove Jogador de um Grupo
-DELETE {api}/groups/{groupId}/players/{playerId}
+
+DELETE {{api}}/groups/{{groupId}}/players/{{playerId}}
 Authorization: {{token}}
 Accept: {{accept-content}}
