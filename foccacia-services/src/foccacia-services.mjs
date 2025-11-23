@@ -1,4 +1,4 @@
-import { Competition, findUserByToken, Player, Team } from "foccacia-data-mem";
+import { Competition, findUserByToken, Player, Team, createUser } from "foccacia-data-mem";
 import {
   fetchCompetitions,
   fetchCompetitionTeams,
@@ -21,7 +21,6 @@ export async function getCompetitions() {
     logInfo(`Service: loaded ${competitions.length} competitions`, "");
     return competitions;
   } catch (err) {
-    logError("Unexpected error fetching for all competitions", err);
     throw err;
   }
 }
@@ -59,10 +58,6 @@ export async function getTeams(code, season) {
     );
     return result;
   } catch (err) {
-    logError(
-      `Unexpected error fetching for teams of competition ${code} season ${season}`,
-      err
-    );
     throw err;
   }
 }
