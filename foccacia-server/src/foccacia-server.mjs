@@ -47,6 +47,14 @@ app.delete(ROUTES.GROUP, deleteGroup);
 app.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
 app.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
 
+// TODO : Caso especial quando a rota não é encontrada, todos outros throws errors.ERROR passam por wrapAsync e vao para sendApplicationError
+app.use((req, res, next) => {
+  res.status(404).json({
+    uri: req.path,
+    description: "Route not found",
+  });
+});
+
 // Error Handling Middleware
 app.use(sendApplicationError);
 
