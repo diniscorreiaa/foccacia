@@ -14,7 +14,6 @@
 
 ### GET - Todas as Competições Disponíveis
 GET {{api}}/competitions
-Authorization: {{token}}
 Accept: {{accept-content}}
 
 ### GET - Equipas da Primeira Liga da Época 2025 ({{season}})
@@ -33,8 +32,9 @@ Authorization: invalid-token
 Accept: {{accept-content}}
 
 ### POST - Cria um novo Utilizador
-POST {api}/users
-Content-Type: {accept-content}
+POST {{api}}/users
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
 
 {
         "username": "grupo1"

@@ -1,4 +1,10 @@
-import { Competition, findUserByToken, Player, Team } from "foccacia-data-mem";
+import {
+  Competition,
+  createUserMem,
+  findUserByToken,
+  Player,
+  Team,
+} from "foccacia-data-mem";
 import {
   fetchCompetitions,
   fetchCompetitionTeams,
@@ -6,10 +12,6 @@ import {
 } from "fapi-teams-data";
 import { logInfo } from "foccacia-utils";
 import errors from "foccacia-errors";
-// import {
-//   createUser as createUserMem,
-//   // ... listGroups, createGroup, etc...
-// } from "foccacia-data-mem";
 
 // Competitions
 export async function getCompetitions() {
@@ -72,7 +74,21 @@ export async function convertTokenToUserId(token) {
   return user.id;
 }
 
-export function createUser() {}
+export async function createUser(username) {
+  if (!username || !username.trim()) {
+    // TODO : Dinis confirma se e o erro correto
+    throw errors.INVALID_DATA("Username is required");
+  }
+
+  const user = createUserMem(username.trim());
+  logInfo(
+    `Service: created user ${user.id} with username '${user.username}'`,
+    ""
+  );
+
+  return user.token;
+}
+
 export function getGroups() {}
 export function createGroup() {}
 export function getGroup() {}
@@ -81,45 +97,7 @@ export function deleteGroup() {}
 export function addPlayerToGroup() {}
 export function deletePlayerFromGroup() {}
 
-// TODO : diferente estrutura em baixo
-
-// export async function getCompetitions() {
-//   // 1) tentar usar cache
-//   const cached = dataMem.getCompetitionCache();
-//   if (cached.length > 0) return cached;
-//   // 2) fetch Football Data API
-//   const competitions = await teamsApi.fetchCompetitions();
-//   // aqui transforma resultado raw da FAPI em objetos Competition, save em cache
-//   dataMem.setCompetitionCache(competitions);
-//   return competitions;
-// }
-
-// Users
-
-// export async function createUser(username) {
-//   const existing = dataMem.findUserByUsername(username);
-//   if (existing) {
-//     throw errors.INVALID_DATA(`Username ${username} already exists`);
-//   }
-//   const token = randomUUID();
-//   const user = dataMem.createUser(username, token);
-//   return user;
-// }
-//
-// // usado pelo middleware para validar token
-// export async function convertTokenToUserId(token) {
-//   const user = dataMem.findUserByToken(token);
-//   if (!user) {
-//     throw errors.NOT_AUTHORIZED("Invalid token");
-//   }
-//   return user.id;
-// }
-
-// Groups
 // TODO : criar regras como max 11 jogadores
-// export async function getGroupsByUser(userId) {
-//   return dataMem.getGroupsByUser(userId);
-// }
 
 // TODO : Adaptar as funcionalidades do nosso projecto
 

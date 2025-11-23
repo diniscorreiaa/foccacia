@@ -1,4 +1,4 @@
-import { Group, User, Player } from "./domain-model.mjs";
+import { Group, Player, User } from "./domain-model.mjs";
 
 export function hello(name = "world") {
   return `hello ${name}`;
@@ -15,7 +15,7 @@ const USERS = [],
 
 // USERS
 // TODO: Discuss the possibility of a MAP with user token as key and User object as value
-export function createUser(username) {
+export function createUserMem(username) {
   const user = new User(nextUserId++, username);
   USERS.push(user);
   return user;
@@ -49,6 +49,7 @@ export function listGroups(userId) {
 
 export function updateGroup(groupId, changes) {
   // changes is going to be obtained by filtering relevant properties from the group object received in the body
+  // TODO : usar find em vez de filter
   const group = GROUPS.filter((g) => g.id === groupId);
   if (changes.name) group.name = changes.name;
   if (changes.description) group.description = changes.description;
