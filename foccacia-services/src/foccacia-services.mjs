@@ -23,6 +23,12 @@ export async function getCompetitions() {
 
 // Teams
 export async function getTeams(code, season) {
+  if (!code) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
+  if (!season) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
   const teams = await fetchCompetitionTeams(code, season);
   logInfo(
     `Service: fetched ${teams.length} teams for competition ${code} season ${season}`,
@@ -56,6 +62,9 @@ export async function getTeams(code, season) {
 }
 
 export async function convertTokenToUserId(token) {
+  if (!token) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
   const user = findUserByToken(token);
   if (!user) {
     throw errors.UNAUTHORIZED("Invalid token");
