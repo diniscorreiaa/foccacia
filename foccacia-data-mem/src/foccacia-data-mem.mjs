@@ -1,4 +1,5 @@
 import { Group, Player, User } from "./domain-model.mjs";
+import { getUsersFilePath, logError, writeJson } from "foccacia-utils";
 
 export function hello(name = "world") {
   return `hello ${name}`;
@@ -11,13 +12,21 @@ let nextUserId = 1,
 
 // TODO: Micro-optimizations: Discuss an array is the best data structure here
 const USERS = [],
-  GROUPS = [];
+  GROUPS = [],
+  USERS_CACHE_PATH = getUsersFilePath();
 
 // USERS
 // TODO: Discuss the possibility of a MAP with user token as key and User object as value
+function persistUsers() {
+  writeJson(USERS, USERS_CACHE_PATH).catch((err) => {
+    logError("Error writing users cache", err);
+  });
+}
+
 export function createUserMem(username) {
   const user = new User(nextUserId++, username);
   USERS.push(user);
+  persistUsers();
   return user;
 }
 

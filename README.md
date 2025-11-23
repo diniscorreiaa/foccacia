@@ -350,8 +350,6 @@ ___
     - Corrigir `verifyToken` para usar `errors.UNAUTHORIZED(...)`.
     - Em todos os handlers:
         - passar `req.userId`, `req.params` e `req.body` explicitamente para os services.
-    - `createUser`:
-        - ler `req.body.username` e passar ao service.
 
 6. **Done**
 
@@ -362,17 +360,7 @@ ___
 ### 3.2. Novas features para cumprir o enunciado
 
 1. **Autenticação completa (Bearer token)**
-    - Implementar `createUser(username)` em `foccacia-services`:
-        - validar `username`.
-        - criar User em memória.
-        - devolver `{ id, username, token }`.
-    - Implementar `convertTokenToUserId(token)` em `foccacia-services`:
-        - usar `findUserByToken`.
-        - se não existir → `throw errors.UNAUTHORIZED("Invalid token")`.
-    - Atualizar `verifyToken` em `foccacia-web-api` para:
-        - extrair token do header.
-        - chamar `services.convertTokenToUserId(token)`.
-        - preencher `req.userId` e `req.token`.
+**Done**
 
 2. **Gestão de grupos “Best XI”**
     - `getGroups(userId)`:
@@ -451,10 +439,8 @@ ___
 3. Ajustar `sendApplicationError`:
     - garantir mapeamento 1–1 de `ERROR_CODES` → HTTP status.
     - logs consistentes via `logError`.
-4. Implementar `convertTokenToUserId(token)` em `foccacia-services`.
+4. **Done**
 5. Atualizar `verifyToken` em `foccacia-web-api` para:
-    - usar `convertTokenToUserId`.
-    - preencher `req.userId`.
     - devolver erros `UNAUTHORIZED` e `FORBIDDEN` conforme o caso.
 
 ---

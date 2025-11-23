@@ -10,5 +10,3 @@ describe("hello()", () => {
     assert.strictEqual(hello("Tiago"), "hello Tiago");
   });
 });
-
-// TODO: implement fapi-teams-data tests

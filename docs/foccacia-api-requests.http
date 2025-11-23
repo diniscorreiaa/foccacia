@@ -1,5 +1,5 @@
 @api = http://localhost:1904
-@token = Bearer 123
+@token = Bearer 5fec86d8-1fe7-40b2-9ce5-c4d263fa08f8
 ### TODO Make invalid but existing user token to test 403 status code
 @invalidToken = <TODO>
 @accept-content = application/json
@@ -18,12 +18,10 @@ Accept: {{accept-content}}
 
 ### GET - Equipas da Primeira Liga da Época 2025 ({{season}})
 GET {{api}}/competitions/{{compPPL}}/seasons/{{season}}/teams
-Authorization: {{token}}
 Accept: {{accept-content}}
 
 ### GET - Equipas da Champions League da Época 2025 ({{season}})
 GET {{api}}/competitions/{{compCL}}/seasons/{{season}}/teams
-Authorization: {{token}}
 Accept: {{accept-content}}
 
 ### NEGATIVO – 401 (token inválido)

@@ -6,6 +6,7 @@ export {
   getCompetitionTeamsFilePath,
   getHeadersFilePath,
   getTeamPlayersFilePath,
+  getUsersFilePath,
 } from "./io-utils.mjs";
 
 export function hello(name = "world") {

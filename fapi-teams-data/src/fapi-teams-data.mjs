@@ -44,47 +44,70 @@ function buildFootballApiError(url, status) {
   }
 }
 
+async function fetchJsonFromFootballApi(url, logContext) {
+  const headers = await loadAuthHeaders();
+  const response = await fetch(url, { headers });
+
+  if (!response.ok) {
+    const err = buildFootballApiError(url, response.status);
+    logError(`Error fetching ${logContext} from Football API`, err);
+    throw err;
+  }
+
+  return response.json();
+}
+
+async function fetchWithCache({
+  cachePath,
+  url,
+  logContext,
+  fromCache,
+  buildResult,
+  buildCacheData,
+}) {
+  if (fileExists(cachePath)) {
+    logInfo(`Using cache for ${logContext} at ${cachePath}`, "");
+    const cached = await readJson(cachePath);
+    return fromCache(cached);
+  }
+
+  logInfo(`Fetching ${logContext} from Football Data API`, "");
+  const body = await fetchJsonFromFootballApi(url, logContext);
+
+  const result = buildResult(body);
+  const toCache = buildCacheData(result, body);
+
+  await writeJson(toCache, cachePath);
+  logSuccess(`Saved ${logContext} cache to ${cachePath}`, "");
+
+  return result;
+}
+
 // Competitions
 export async function fetchCompetitions() {
   const cachePath = getCompetitionsFilePath();
-
   if (fileExists(cachePath)) {
     logInfo(`Using competitions cache at ${cachePath}`, "");
     return readJson(cachePath);
   }
-
-  logInfo("Fetching competitions from Football Data API", "");
-  const headers = await loadAuthHeaders();
-
-  const competitions_url = `${FOOTBALL_API_URI}/competitions`;
-  if (!competitions_url) {
-    logError("Error getting URL for competitions");
-    throw errors.UNEXPECTED("Unexpected internal error");
-  }
-  const response = await fetch(competitions_url, { headers: headers });
-
-  if (!response.ok) {
-    const err = buildFootballApiError(competitions_url, response.status);
-    logError("Error fetching competitions", err);
-    throw err;
-  }
-
-  const body = await response.json();
-
-  const competitions = body.competitions.map((competition) => ({
-    code: competition.code,
-    name: competition.name,
-  }));
-
-  if (!competitions) {
-    logError("Error building competitions object");
+  const url = `${FOOTBALL_API_URI}/competitions`;
+  if (!url) {
+    logError("Error getting URL for competitions", "");
     throw errors.UNEXPECTED("Unexpected internal error");
   }
 
-  await writeJson(competitions, cachePath);
-  logSuccess(`Saved competitions cache to ${cachePath}`, "");
-
-  return competitions;
+  return fetchWithCache({
+    cachePath,
+    url,
+    logContext: "competitions",
+    fromCache: (cached) => cached, // já guardamos a lista pronta
+    buildResult: (body) =>
+      (body.competitions ?? []).map((competition) => ({
+        code: competition.code,
+        name: competition.name,
+      })),
+    buildCacheData: (result) => result, // guardamos diretamente a lista
+  });
 }
 
 // Teams
@@ -95,40 +118,24 @@ export async function fetchCompetitionTeams(code, season) {
     );
   }
   const cachePath = getCompetitionTeamsFilePath(code, season);
-
   if (!cachePath) {
-    logError("Error getting cache path for competition teams")
+    logError("Error getting cache path for competition teams", "");
     throw errors.UNEXPECTED("Unexpected internal error");
   }
-  if (fileExists(cachePath)) {
-    logInfo(`Using teams cache for competition ${code} season ${season}`, "");
-    const cached = await readJson(cachePath);
-    return cached.teams;
-  }
-
-  logInfo(
-    `Fetching teams for ${code} season ${season} from Football Data API`,
-    ""
-  );
-
-  const headers = await loadAuthHeaders();
-  const url_teams = `${FOOTBALL_API_URI}/competitions/${code}/teams?season=${season}`;
-  if (!url_teams) {
-    logError("Error getting URL for teams");
+  const url = `${FOOTBALL_API_URI}/competitions/${code}/teams?season=${season}`;
+  if (!url) {
+    logError("Error getting URL for teams", "");
     throw errors.UNEXPECTED("Unexpected internal error");
   }
-  const response = await fetch(url_teams, { headers });
 
-  if (!response.ok) {
-    const err = buildFootballApiError(url_teams, response.status);
-    logError("Error fetching competition teams", err);
-    throw err;
-  }
-
-  const body = await response.json();
-  await writeJson({ teams: body.teams }, cachePath);
-  logSuccess(`Saved teams cache for ${code} ${season} to ${cachePath}`, "");
-  return body.teams;
+  return fetchWithCache({
+    cachePath,
+    url,
+    logContext: `teams for competition ${code} season ${season}`,
+    fromCache: (cached) => cached.teams ?? [],
+    buildResult: (body) => body.teams ?? [],
+    buildCacheData: (result) => ({ teams: result }),
+  });
 }
 
 // Team with Squad
@@ -138,59 +145,21 @@ export async function fetchTeamWithSquad(teamId) {
   }
   const cachePath = getTeamPlayersFilePath(teamId);
   if (!cachePath) {
-    logError("Error getting cache path for team with squad");
+    logError("Error getting cache path for team with squad", "");
     throw errors.UNEXPECTED("Unexpected internal error");
   }
-  if (fileExists(cachePath)) {
-    logInfo(`Using team cache for id ${teamId}`, "");
-    return readJson(cachePath);
-  }
-
-  logInfo(`Fetching team with squad for id ${teamId}`, "");
-  const headers = await loadAuthHeaders();
-  const url_team = `${FOOTBALL_API_URI}/teams/${teamId}`;
-  if (!url_team) {
-    logError("Error getting team url");
+  const url = `${FOOTBALL_API_URI}/teams/${teamId}`;
+  if (!url) {
+    logError("Error getting team url", "");
     throw errors.UNEXPECTED("Unexpected internal error");
   }
-  const response = await fetch(url_team, { headers: headers });
 
-  if (!response.ok) {
-    const err = buildFootballApiError(url_team, response.status);
-    logError(`Error fetching team ${teamId}`, err);
-    throw err;
-  }
-
-  const body = await response.json();
-  await writeJson(body, cachePath);
-  logSuccess(`Saved team cache for id ${teamId} to ${cachePath}`, "");
-  return body;
+  return fetchWithCache({
+    cachePath,
+    url,
+    logContext: `team ${teamId}`,
+    fromCache: (cached) => cached,
+    buildResult: (body) => body,
+    buildCacheData: (result) => result,
+  });
 }
-
-// TODO : Modular e eliminar duplicacao de codigo, pequeno exemplo abaixo
-
-// async function fetchWithCache(url, cachePath) {
-//   if (fileExists(cachePath)) {
-//     return readJson(cachePath);
-//   }
-//
-//   const headers = await getAuthHeaders();
-//   const resp = await fetch(url, { headers });
-//   if (!resp.ok) {
-//     throw new Error(`Football API error ${resp.status} for ${url}`);
-//   }
-//   const data = await resp.json();
-//   await writeJson(data, cachePath);
-//   return data;
-// }
-//
-// export async function getCompetitionsFromApi(cachePath) {
-//   const url = `${FOOTBALL_API}/competitions`;
-//   return fetchWithCache(url, cachePath);
-// }
-//
-// export async function getTeamPlayersFromApi(teamId) {
-//   const cachePath = getTeamPlayersFilePath(teamId);
-//   const url = `${FOOTBALL_API}/teams/${teamId}`;
-//   return fetchWithCache(url, cachePath);
-// }

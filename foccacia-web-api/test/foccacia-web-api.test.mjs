@@ -10,5 +10,3 @@ describe("hello()", () => {
     assert.strictEqual(hello("Tiago"), "hello Tiago");
   });
 });
-
-// TODO: implement foccacia-web-api tests

@@ -15,6 +15,10 @@ function getOutputFootballApiFilePath(fileName = "") {
   return path.join(ROOT_DIR, "docs", "output", "football-api-cache", fileName);
 }
 
+function getOutputFoccaciaApiFilePath(fileName = "") {
+  return path.join(ROOT_DIR, "docs", "output", "foccacia-api-cache", fileName);
+}
+
 function getOutputFilePath(fileName = "") {
   return path.join(ROOT_DIR, "docs", "output", fileName);
 }
@@ -52,4 +56,9 @@ export function getCompetitionTeamsFilePath(code, season) {
   // Não é preciso erro pois é verificado antes em fapi
   const fileName = `competition-${code}-${season}-teams.json`;
   return getOutputFootballApiFilePath(fileName);
+}
+
+export function getUsersFilePath() {
+  const fileName = "usersToken.json";
+  return getOutputFoccaciaApiFilePath(fileName);
 }

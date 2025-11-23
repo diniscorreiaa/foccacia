@@ -1,13 +1,13 @@
 import {
-    Competition,
-    findUserByToken,
-    listGroups,
-    Player,
-    Team,
-    createGroup as createGroupData,
-    getGroup as getGroupData,
-    updateGroup,
-    createUserMem
+  Competition,
+  findUserByToken,
+  listGroups,
+  Player,
+  Team,
+  createGroup as createGroupData,
+  getGroup as getGroupData,
+  updateGroup,
+  createUserMem,
 } from "foccacia-data-mem";
 import {
   fetchCompetitions,
@@ -92,31 +92,31 @@ export async function createUser(username) {
 }
 
 export function getGroups() {
-    return { groups: listGroups() };
+  return { groups: listGroups() };
 }
 
 export function createGroup(userId, name, description, competition, year) {
-    if (!name) {
-    }
-    if (!description) {
-    }
-    if (!competition) {
-    }
-    if (!year) {
-    }
-    return createGroupData(userId, name, description, competition, year);
+  if (!name) {
+  }
+  if (!description) {
+  }
+  if (!competition) {
+  }
+  if (!year) {
+  }
+  return createGroupData(userId, name, description, competition, year);
 }
 
 export function getGroup(groupId) {
-    if (!groupId) {
-    }
-    return getGroupData(groupId);
+  if (!groupId) {
+  }
+  return getGroupData(groupId);
 }
 
 export function replaceGroup(groupId, changes) {
-    if (!groupId) {
-    }
-    return updateGroup(groupId, changes);
+  if (!groupId) {
+  }
+  return updateGroup(groupId, changes);
 }
 export function deleteGroup(groupId) {}
 
