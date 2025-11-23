@@ -1,5 +1,5 @@
 import * as services from "foccacia-services";
-import { teamToDto } from "./foccacia-dtos.mjs";
+import {groupToDto, teamToDto} from "./foccacia-dtos.mjs";
 import errors from "foccacia-errors";
 import { logInfo } from "foccacia-utils";
 
@@ -73,14 +73,13 @@ export const createUser = wrapAsync((req, res) =>
 
 // Groups
 export const getGroups = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.getGroups)
+  genericApiRoute(req, res, services.getGroups, {servicesFuncArgs: [req.userId]})
 );
 
 export const createGroup = wrapAsync((req, res) => {
   const { name, description, competition, year } = req.body;
-  const { userId } = req.userId;
   genericApiRoute(req, res, services.createGroup, {
-    servicesFuncArgs: [userId, name, description, competition, year],
+    servicesFuncArgs: [req.userId, name, description, competition, year],
   });
 });
 
@@ -90,11 +89,16 @@ export const getGroup = wrapAsync((req, res) =>
   })
 );
 
-export const replaceGroup = wrapAsync((req, res) =>
+export const replaceGroup = wrapAsync((req, res) => {
+  const { name, description } = req.body;
   genericApiRoute(req, res, services.replaceGroup, {
-    servicesFuncArgs: [req.params.groupId, req.body],
-  })
-);
+    servicesFuncArgs: [
+      req.params.groupId,
+      { name: name, description: description },
+    ],
+      transformObj: group => groupToDto(group)
+  });
+});
 
 export const deleteGroup = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.deleteGroup, {

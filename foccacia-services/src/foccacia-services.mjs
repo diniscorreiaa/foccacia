@@ -1,13 +1,13 @@
 import {
-  Competition,
-  findUserByToken,
-  listGroups,
-  Player,
-  Team,
-  createGroup as createGroupData,
-  getGroup as getGroupData,
-  updateGroup,
-  createUserMem,
+    Competition,
+    findUserByToken,
+    listGroups,
+    Player,
+    Team,
+    createGroup as createGroupData,
+    getGroup as getGroupData,
+    updateGroup,
+    createUserMem
 } from "foccacia-data-mem";
 import {
   fetchCompetitions,
@@ -44,6 +44,7 @@ export async function getTeams(code, season) {
     teams.map((team) => fetchTeamWithSquad(team.id))
   );
 
+  // TODO : players acrescentar o resto das propriedades do player e o seu dto
   const result = squads.map((teamJson) => {
     const players = (teamJson.squad ?? []).map(
       (player) =>
@@ -98,36 +99,37 @@ export async function createUser(username) {
   return user.token;
 }
 
-export function getGroups() {
-  return { groups: listGroups() };
+export function getGroups(userId) {
+    return { groups: listGroups(userId) };
 }
 
 export function createGroup(userId, name, description, competition, year) {
-  if (!name) {
-  }
-  if (!description) {
-  }
-  if (!competition) {
-  }
-  if (!year) {
-  }
-  return createGroupData(userId, name, description, competition, year);
+    if (!name) {
+    }
+    if (!description) {
+    }
+    if (!competition) {
+    }
+    if (!year) {
+    }
+    return createGroupData(userId, name, description, competition, year);
 }
 
 export function getGroup(groupId) {
-  if (!groupId) {
-  }
-  return getGroupData(groupId);
+    if (!groupId) {
+    }
+    return getGroupData(groupId);
 }
 
 export function replaceGroup(groupId, changes) {
-  if (!groupId) {
-  }
-  return updateGroup(groupId, changes);
+    if (!groupId) {
+    }
+    if (!changes){}
+    return updateGroup(parseInt(groupId), changes);
 }
 export function deleteGroup(groupId) {}
 
-export function addPlayerToGroup() {} // Quem implementar isto, regra +11 players throw errors.UNPROCESSABLE
+export function addPlayerToGroup() {}
 export function deletePlayerFromGroup() {}
 
 // TODO : criar regras como max 11 jogadores

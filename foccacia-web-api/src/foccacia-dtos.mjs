@@ -6,6 +6,16 @@ export function teamToDto(team) {
   };
 }
 
+export function groupToDto(group){
+    return {
+        name: group.name,
+        description: group.description,
+        competitionCode: group.competitionCode,
+        year: group.year,
+        players: group.players
+    }
+}
+
 function playerToTeamDto(player) {
   return {
     playerName: player.playerName,

@@ -1,5 +1,5 @@
 @api = http://localhost:1904
-@token = Bearer 5fec86d8-1fe7-40b2-9ce5-c4d263fa08f8
+@token = Bearer 123
 ### TODO Make invalid but existing user token to test 403 status code
 @invalidToken = <TODO>
 @accept-content = application/json
@@ -79,8 +79,10 @@ Authorization: {{token}}
 Content-Type: {{accept-content}}
 
 {
-        "name": "Atualizado",
-        "description": "Descrição alterada"
+        "name": "alterado",
+        "description": "descriçao alterada",
+        "competition": "CL",
+        "year": 2025
 }
 
 ### NEGATIVO - 400 (Dados Inválidos)
