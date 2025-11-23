@@ -80,23 +80,33 @@ export const createGroup = wrapAsync((req, res) =>
 );
 
 export const getGroup = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.getGroup)
+  genericApiRoute(req, res, services.getGroup, {
+    servicesFuncArgs: [req.params.groupId],
+  })
 );
 
 export const replaceGroup = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.replaceGroup)
+  genericApiRoute(req, res, services.replaceGroup, {
+    servicesFuncArgs: [req.params.groupId, req.body],
+  })
 );
 
 export const deleteGroup = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.deleteGroup)
+  genericApiRoute(req, res, services.deleteGroup, {
+    servicesFuncArgs: [req.params.groupId],
+  })
 );
 
 export const addPlayerToGroup = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.addPlayerToGroup)
+  genericApiRoute(req, res, services.addPlayerToGroup, {
+    servicesFuncArgs: [req.params.groupId],
+  })
 );
 
 export const deletePlayerFromGroup = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.deletePlayerFromGroup)
+  genericApiRoute(req, res, services.deletePlayerFromGroup, {
+    servicesFuncArgs: [req.params.groupId, req.params.playerId],
+  })
 );
 
 export function hello(name = "world") {

@@ -1,4 +1,4 @@
-import { Group, User } from "./domain-model.mjs";
+import { Group, User, Player } from "./domain-model.mjs";
 
 export function hello(name = "world") {
   return `hello ${name}`;
@@ -6,13 +6,15 @@ export function hello(name = "world") {
 
 export { Competition, Team, Player, User, Group } from "./domain-model.mjs";
 
-let nextUserId = 1;
-let nextGroupId = 1;
+let nextUserId = 1,
+  nextGroupId = 1;
 
-const USERS = [];
-const GROUPS = [];
+// TODO: Micro-optimizations: Discuss an array is the best data structure here
+const USERS = [],
+  GROUPS = [];
 
 // USERS
+// TODO: Discuss the possibility of a MAP with user token as key and User object as value
 export function createUser(username) {
   const user = new User(nextUserId++, username);
   USERS.push(user);
@@ -28,21 +30,25 @@ export function getAllUsers() {
 }
 
 // GROUPS
-export function createGroup(userId, name, description, competition, year) {
+export function createGroup(
+  userId,
+  name,
+  description,
+  competition,
+  year,
+  players
+) {
   const group = new Group(
     userId,
     nextGroupId++,
     name,
     description,
     competition,
-    year
+    year,
+    players
   );
   GROUPS.push(group);
   return group;
-}
-
-export function getGroupById(id) {
-  return GROUPS.find((g) => g.id === id) || null;
 }
 
 export function listGroups(userId) {
@@ -50,16 +56,16 @@ export function listGroups(userId) {
 }
 
 export function updateGroup(groupId, changes) {
-  // changes vai ser o objeto obtido a partir do body enviado no request com os campos name e description a atualizar
+  // changes is going to be obtained by filtering relevant properties from the group object received in the body
   const group = GROUPS.filter((g) => g.id === groupId);
-  if (changes.name != undefined) group.name = changes.name;
-  if (changes.description != undefined) group.description = changes.description;
+  if (changes.name) group.name = changes.name;
+  if (changes.description) group.description = changes.description;
   return group;
 }
 
 export function deleteGroup(groupId) {
-  const idx = GROUPS.findIndex(g.id === groupId);
-  if (idx == -1) return false;
+  const idx = findGroupInternalIndex(groupId);
+  if (idx === -1) return false;
   GROUPS.splice(idx, 1);
   return true;
 }
@@ -71,8 +77,9 @@ export function getGroup(groupId) {
 // GROUP PLAYERS
 export function addPlayerToGroup(groupId, playerData) {
   // A mesma coisa da função update se aplica aqui para playerData
-  const group = GROUPS.find((g) => g.id === groupId);
+  const group = getGroup(groupId);
   if (!group) return null;
+
   const player = new Player(
     playerData.id,
     playerData.name,
@@ -82,11 +89,18 @@ export function addPlayerToGroup(groupId, playerData) {
   group.players.push(player);
   return player;
 }
+
 export function removePlayerFromGroup(groupId, playerId) {
-  const group = GROUPS.find((g) => g.id == groupId);
+  const group = getGroup(groupId);
   if (!group) return null;
-  const idx = group.players.findIndex((p) => p.id == playerId);
-  if (idx == -1) return null;
+
+  const idx = group.players.findIndex((p) => p.id === playerId);
+  if (idx === -1) return null;
   group.players.splice(idx, 1);
   return playerId;
+}
+
+// Helpers
+function findGroupInternalIndex(groupId) {
+  return GROUPS.findIndex((g) => g.id === groupId);
 }
