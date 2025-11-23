@@ -23,6 +23,9 @@ export function fileExists(filePath) {
 }
 
 export function getTeamPlayersFilePath(id) {
+  if (!id) {
+    // TODO : Usar erros personalizados da nossa biblioteca de erros
+  }
   const fileName = `team-${id}-players.json`;
   return getOutputFootballApiFilePath(fileName);
 }
