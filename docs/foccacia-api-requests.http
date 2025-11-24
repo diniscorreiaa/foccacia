@@ -13,8 +13,8 @@
 # Tokens:
 # 1) Cria primeiro 1 utilizador e copia o token devolvido para @token
 # 2) Cria um 2º utilizador e copia o token para @otherToken (para testar 403)
-@token = Bearer 6fc57a04-1487-4129-bf3a-0ee334a51e3d
-@otherToken = Bearer 718497f8-663c-42f0-af4c-1ca16ab96497
+@token = Bearer 1117e59b-3151-4cef-acdc-d46fa17b359b
+@otherToken = Bearer 471f3932-5836-4060-ae4b-e530aa2f8b3e
 @invalidToken = Bearer invalid-token
 
 ### GET - Todas as Competições Disponíveis (200)

@@ -242,38 +242,44 @@ export async function addPlayerToGroup(userId, groupId, playerData) {
 
   const { competition, year } = group;
 
-  const teamsResponse = await fetchCompetitionTeams(competition, year);
-
-  const teams = teamsResponse?.teams;
-  if (!Array.isArray(teams)) {
+  const teams = await fetchCompetitionTeams(competition, year);
+  if (!Array.isArray(teams) || teams.length === 0) {
     throw errors.UNEXPECTED(
       "Could not load teams for the competition and year of this group"
     );
   }
 
-  const team = teams.find(
+  const teamHeader = teams.find(
     (t) =>
-      (t.tla === teamCode && t.shortName === teamName) || t.name === teamName
+      t.tla === teamCode && (t.shortName === teamName || t.name === teamName)
   );
-
-  if (!team) {
+  if (!teamHeader) {
     throw errors.UNPROCESSABLE(
       "Player does not belong to this competition/year"
     );
   }
 
-  const squadPlayer = team.squad.find((p) => p.id === playerId);
+  const teamDetails = await fetchTeamWithSquad(teamHeader.id);
+  const squad = teamDetails?.squad;
+  if (!Array.isArray(squad)) {
+    throw errors.UNEXPECTED("Could not load squad for this team");
+  }
+
+  const squadPlayer = squad.find(
+    (p) => p.id === playerId && p.name === playerName
+  );
   if (!squadPlayer) {
     throw errors.UNPROCESSABLE(
       "Player does not belong to this competition/year"
     );
   }
+
   const player = addPlayerToGroupMem(id, {
     id: playerId,
     playerName: squadPlayer.name,
-    teamId: team.id,
-    teamCode: team.tla,
-    teamName: team.shortName ?? team.name,
+    teamId: teamDetails.id,
+    teamCode: teamDetails.tla,
+    teamName: teamDetails.shortName ?? teamDetails.name,
     position: squadPlayer.position,
     nationality: squadPlayer.nationality,
     age: calculateAge(squadPlayer.dateOfBirth),
