@@ -124,7 +124,7 @@ export function getGroup(groupId) {
 export function replaceGroup(groupId, changes) {
   if (!groupId || !changes) {
     throw errors.INVALID_DATA(
-      "Make sure you provide the group id for this operation"
+      "Make sure you provide the group id and changes for this operation"
     );
   }
   return updateGroup(groupId, changes);
