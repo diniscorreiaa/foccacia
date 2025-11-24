@@ -168,13 +168,9 @@ paths:
               schema:
                 type: object
                 properties:
-                  username:
-                    type: string
-                    example: "grupo1"
                   token:
                     type: string
                     format: uuid
-                    example: "123e4567-e89b-12d3-a456-426614174000"
         "400":
           description: Pedido inválido (falta username)
 
