@@ -402,3 +402,11 @@ Accept: {{accept-content}}
 DELETE {{api}}/groups/{{groupId}}
 Authorization: {{token}}
 Accept: {{accept-content}}
+
+####
+// Usar Swagger UI para documentação da API e no nosso localhost
+// import swaggerUi from "swagger-ui-express";
+// import yaml from "yamljs";
+// const swaggerDoc = yaml.load("docs/foccacia-api-spec.yaml");
+// app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+####

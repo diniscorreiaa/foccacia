@@ -22,9 +22,9 @@ tags:
   - name: Teams
     description: Equipas e jogadores por competição e época.
   - name: Users
-    description: Criação e autenticação de utilizadores.
+    description: Criação de utilizadores e emissão de tokens.
   - name: Groups
-    description: Gestão dos grupos “Best XI”.
+    description: Gestão dos grupos por utilizador autenticado.
 
 components:
   securitySchemes:
@@ -32,6 +32,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: UUID
+
   parameters:
     competitionCodePath:
       name: competitionCode
@@ -41,176 +42,411 @@ components:
         type: string
       description: Código da competição
       example: PPL
+
     seasonYearPath:
       name: seasonYear
       in: path
       required: true
       schema:
         type: integer
-      description: Ano da época desportiva
+        minimum: 2000
+      description: Ano da época desportiva.
       example: 2025
+
     groupIdPath:
       name: groupId
       in: path
       required: true
       schema:
         type: integer
+        minimum: 1
+      description: Identificador interno do grupo.
+      example: 1
+
     playerIdPath:
       name: playerId
       in: path
       required: true
       schema:
         type: integer
+        minimum: 1
+      description: Identificador do jogador (id do Football Data API).
+      example: 67299
+
+  schemas:
+    Competition:
+      type: object
+      properties:
+        code:
+          type: string
+          example: PPL
+        name:
+          type: string
+          example: Primeira Liga
+
+    Player:
+      type: object
+      description: Jogador associado a uma equipa (competitions/teams) ou a um grupo.
+      properties:
+        id:
+          type: integer
+          description: Identificador do jogador (Football Data).
+          example: 67299
+        playerName:
+          type: string
+          example: Vangelis Pavlidis
+        teamId:
+          type: integer
+          description: Identificador da equipa (Football Data).
+          example: 1903
+        teamCode:
+          type: string
+          description: Código curto (tla) da equipa.
+          example: BEN
+        teamName:
+          type: string
+          example: SL Benfica
+        position:
+          type: string
+          example: Offence
+        nationality:
+          type: string
+          example: Greece
+        age:
+          type: integer
+          example: 27
+
+    Team:
+      type: object
+      description: Equipa com o respetivo plantel para uma competição/época.
+      properties:
+        id:
+          type: integer
+          description: Identificador da equipa (Football Data).
+          example: 1903
+        teamName:
+          type: string
+          example: Sport Lisboa e Benfica
+        country:
+          type: string
+          nullable: true
+          example: Portugal
+        players:
+          type: array
+          items:
+            $ref: "#/components/schemas/Player"
+
+    Group:
+      type: object
+      description: Grupo pertencente a um utilizador.
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Melhores da Champions
+        description:
+          type: string
+          example: Onze ideal da Champions 2025
+        competition:
+          type: string
+          description: Código da competição associada ao grupo.
+          example: CL
+        year:
+          type: integer
+          example: 2025
+        players:
+          type: array
+          description: Lista de jogadores atualmente no grupo (máx. 11).
+          items:
+            $ref: "#/components/schemas/Player"
+
+    GroupSummary:
+      type: object
+      description: Versão resumida de um grupo (sem lista de jogadores).
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Melhores da Liga 2025
+        description:
+          type: string
+          example: Onze ideal da Primeira Liga
+        competition:
+          type: string
+          example: PPL
+        year:
+          type: integer
+          example: 2025
+
+    User:
+      type: object
+      description: Utilizador registado na FOCCACIA API.
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: grupo1
+        token:
+          type: string
+          format: uuid
+          description: Token de autenticação a enviar no cabeçalho Authorization.
+
+    CreateUserRequest:
+      type: object
+      required:
+        - username
+      properties:
+        username:
+          type: string
+          example: grupo1
+
+    AddPlayerToGroupRequest:
+      type: object
+      required:
+        - playerId
+        - playerName
+        - teamCode
+        - teamName
+      properties:
+        playerId:
+          type: integer
+          description: Identificador do jogador (Football Data).
+          example: 67299
+        playerName:
+          type: string
+          description: Nome do jogador.
+          example: Vangelis Pavlidis
+        teamCode:
+          type: string
+          description: Código curto (tla) da equipa.
+          example: BEN
+        teamName:
+          type: string
+          description: Nome curto da equipa.
+          example: SL Benfica
+
+    UpdateGroupRequest:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          example: Melhores da Champions (Atualizado)
+        description:
+          type: string
+          example: Onze ideal da Champions 2025 (atualizado)
+
+    CreateGroupRequest:
+      type: object
+      required:
+        - name
+        - description
+        - competition
+        - year
+      properties:
+        name:
+          type: string
+          example: Melhores da Champions
+        description:
+          type: string
+          example: Onze ideal da Champions 2025
+        competition:
+          type: string
+          example: CL
+        year:
+          type: integer
+          example: 2025
+
+    RemovePlayerResult:
+      type: object
+      properties:
+        removed:
+          type: boolean
+          example: true
+
+    Error:
+      type: object
+      description: Estrutura de erro comum a toda a API.
+      properties:
+        uri:
+          type: string
+          description: Caminho do recurso em que ocorreu o erro.
+          example: /groups/1/players
+        description:
+          type: string
+          description: Descrição legível do erro.
+          example: Make sure you provide playerId, playerName, teamCode and teamName
+
+  responses:
+    ErrorBadRequest:
+      description: Pedido inválido (dados em falta ou mal formatados).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    ErrorUnauthorized:
+      description: Token de autenticação ausente ou inválida.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    ErrorForbidden:
+      description: Acesso a recurso pertencente a outro utilizador.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    ErrorNotFound:
+      description: Recurso não encontrado.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    ErrorUnprocessableEntity:
+      description: Violação de regras de negócio (por exemplo, jogador já existe no grupo, grupo cheio ou jogador/equipa não pertencem à competição/ano do grupo).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    ErrorTooManyRequestsExternal:
+      description: Limite de pedidos ao serviço externo de futebol atingido (rate limit).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    ErrorBadGatewayExternal:
+      description: Erro ao comunicar com o serviço externo de futebol.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    ErrorInternal:
+      description: Erro interno do servidor.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
 
 paths:
   /competitions:
     get:
-      tags: [Competitions]
-      summary: Lista todas as competições disponíveis
-      description: Retorna o código e o nome de cada competição.
+      tags:
+        - Competitions
+      summary: Lista todas as competições disponíveis.
+      description: >
+        Retorna o código e o nome de cada competição suportada pela FOCCACIA API,
+        obtidas a partir do serviço externo de futebol.
       responses:
         "200":
-          description: Lista de competições obtida com sucesso
+          description: Lista de competições obtida com sucesso.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    code:
-                      type: string
-                      example: "PPL"
-                    name:
-                      type: string
-                      example: "Primeira Liga"
-        "401":
-          description: Token inválida
-        "403":
-          description: Acesso ao recurso recusado
+                  $ref: "#/components/schemas/Competition"
         "429":
-          description: Limite de pedidos à Football Api esgotado
+          $ref: "#/components/responses/ErrorTooManyRequestsExternal"
         "502":
-          description: Erro do serviço externo Football Api
+          $ref: "#/components/responses/ErrorBadGatewayExternal"
         "500":
-          description: Erro interno do servidor
+          $ref: "#/components/responses/ErrorInternal"
 
   /competitions/{competitionCode}/seasons/{seasonYear}/teams:
     get:
-      tags: [Teams]
-      summary: Lista as equipas e jogadores de uma competição e época
-      description: Retorna as equipas da competição especificada e respetivos jogadores.
+      tags:
+        - Teams
+      summary: Lista as equipas e jogadores de uma competição e época.
+      description: >
+        Retorna a lista de equipas de uma determinada competição e época,
+        incluindo o respetivo plantel (jogadores).
       parameters:
         - $ref: "#/components/parameters/competitionCodePath"
         - $ref: "#/components/parameters/seasonYearPath"
       responses:
         "200":
-          description: Equipas da competição obtidas com sucesso
+          description: Equipas da competição obtidas com sucesso.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    teamName:
-                      type: string
-                      example: "SL Benfica"
-                    country:
-                      type: string
-                      example: "Portugal"
-                    players:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          playerName:
-                            type: string
-                            example: "João Neves"
-                          position:
-                            type: string
-                            example: "Midfielder"
-        "401":
-          description: Token inválida
-        "403":
-          description: Acesso ao recurso recusado
+                  $ref: "#/components/schemas/Team"
         "404":
-          description: Competição não encontrada
+          $ref: "#/components/responses/ErrorNotFound"
         "429":
-          description: Limite de pedidos à Football Api esgotado
+          $ref: "#/components/responses/ErrorTooManyRequestsExternal"
         "502":
-          description: Erro do serviço externo Football Api
+          $ref: "#/components/responses/ErrorBadGatewayExternal"
         "500":
-          description: Erro interno do servidor
+          $ref: "#/components/responses/ErrorInternal"
 
   /users:
     post:
-      tags: [Users]
-      summary: Cria um novo utilizador
-      description: Cria um utilizador e gera um token UUID para autenticação nas operações de grupos.
+      tags:
+        - Users
+      summary: Cria um novo utilizador.
+      description: >
+        Cria um utilizador na FOCCACIA API e gera um token UUID que deve ser
+        usado no cabeçalho `Authorization: Bearer <token>` nas operações sobre grupos.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              # ADICIONADO required
-              type: object
-              required: [username] # <— adicionado
-              properties:
-                username:
-                  type: string
-                  example: "grupo1"
+              $ref: "#/components/schemas/CreateUserRequest"
       responses:
         "201":
-          description: Utilizador criado com sucesso
+          description: Utilizador criado com sucesso.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    format: uuid
+                $ref: "#/components/schemas/User"
         "400":
-          description: Pedido inválido (falta username)
+          $ref: "#/components/responses/ErrorBadRequest"
+        "500":
+          $ref: "#/components/responses/ErrorInternal"
 
   /groups:
     get:
-      tags: [Groups]
-      summary: Lista todos os grupos do utilizador
+      tags:
+        - Groups
+      summary: Lista todos os grupos do utilizador autenticado.
       security:
-        - bearerAuth: [] # Add security Bearer Tokens
+        - bearerAuth: []
       responses:
         "200":
-          description: Lista de grupos obtida com sucesso
+          description: Lista de grupos obtida com sucesso.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    name:
-                      type: string
-                      example: "Melhores da Liga 2025"
-                    description:
-                      type: string
-                      example: "Onze ideal da Primeira Liga"
-                    competition:
-                      type: string
-                      example: "PPL"
-                    year:
-                      type: integer
-                      example: 2025
+                  $ref: "#/components/schemas/GroupSummary"
         "401":
-          description: Token inválido ou ausente
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrorInternal"
 
     post:
-      tags: [Groups]
-      summary: Cria um novo grupo “Best XI”
+      tags:
+        - Groups
+      summary: Cria um novo grupo “Best XI”.
       security:
         - bearerAuth: []
       requestBody:
@@ -218,116 +454,53 @@ paths:
         content:
           application/json:
             schema:
-              # ADICIONADO required
-              type: object
-              required: [name, competition, year] # <— adicionado
-              properties:
-                name:
-                  type: string
-                  example: "Melhores da Champions"
-                description:
-                  type: string
-                  example: "Onze ideal da Champions 2025"
-                competition:
-                  type: string
-                  example: "CL"
-                year:
-                  type: integer
-                  example: 2025
+              $ref: "#/components/schemas/CreateGroupRequest"
       responses:
         "201":
-          description: Grupo criado com sucesso
+          description: Grupo criado com sucesso.
           content:
             application/json:
               schema:
-                # ADICIONADO body da response
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    example: 1
-                  name:
-                    type: string
-                    example: "Melhores da Champions"
-                  description:
-                    type: string
-                    example: "Onze ideal da Champions 2025"
-                  competition:
-                    type: string
-                    example: "CL"
-                  year:
-                    type: integer
-                    example: 2025
+                $ref: "#/components/schemas/Group"
         "400":
-          description: Dados inválidos
+          $ref: "#/components/responses/ErrorBadRequest"
         "401":
-          description: Token inválido ou ausente
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "500":
+          $ref: "#/components/responses/ErrorInternal"
 
   /groups/{groupId}:
     parameters:
       - $ref: "#/components/parameters/groupIdPath"
     get:
-      tags: [Groups]
-      summary: Obtém os detalhes de um grupo
+      tags:
+        - Groups
+      summary: Obtém os detalhes de um grupo do utilizador autenticado.
       security:
         - bearerAuth: []
       responses:
         "200":
-          description: Detalhes do grupo
+          description: Detalhes do grupo obtidos com sucesso.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    example: 1
-                  name:
-                    type: string
-                    example: "Melhores da Liga"
-                  description:
-                    type: string
-                    example: "Onze ideal 2025"
-                  competition:
-                    type: string
-                    example: "PPL"
-                  year:
-                    type: integer
-                    example: 2025
-                  players:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        playerId:
-                          type: integer
-                          example: 1903
-                        playerName:
-                          type: string
-                          example: "Vangelis Pavlidis"
-                        teamId:
-                          type: integer
-                          example: 67299
-                        teamName:
-                          type: string
-                          example: "SL Benfica"
-                        position:
-                          type: string
-                          example: "Offence"
-                        nationality:
-                          type: string
-                          example: "Greece"
-                        age:
-                          type: integer
-                          example: 27
+                $ref: "#/components/schemas/Group"
         "401":
-          description: Token inválido ou ausente
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrorForbidden"
         "404":
-          description: Grupo não encontrado
+          $ref: "#/components/responses/ErrorNotFound"
+        "500":
+          $ref: "#/components/responses/ErrorInternal"
 
     put:
-      tags: [Groups]
-      summary: Edita nome e descrição de um grupo
+      tags:
+        - Groups
+      summary: Edita o nome e a descrição de um grupo.
+      description: >
+        Atualiza apenas o nome e a descrição do grupo. A competição e o ano
+        permanecem inalterados.
       security:
         - bearerAuth: []
       requestBody:
@@ -335,45 +508,56 @@ paths:
         content:
           application/json:
             schema:
-              # ADICIONADO required
-              type: object
-              required: [name, description] # <— adicionado
-              properties:
-                name:
-                  type: string
-                  example: "Atualizado"
-                description:
-                  type: string
-                  example: "Descrição alterada"
+              $ref: "#/components/schemas/UpdateGroupRequest"
       responses:
         "200":
-          description: Grupo atualizado com sucesso
+          description: Grupo atualizado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
         "400":
-          description: Dados inválidos
+          $ref: "#/components/responses/ErrorBadRequest"
         "401":
-          description: Token inválido ou ausente
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrorForbidden"
         "404":
-          description: Grupo não encontrado
+          $ref: "#/components/responses/ErrorNotFound"
+        "500":
+          $ref: "#/components/responses/ErrorInternal"
 
     delete:
-      tags: [Groups]
-      summary: Remove um grupo
+      tags:
+        - Groups
+      summary: Remove um grupo.
       security:
         - bearerAuth: []
       responses:
         "204":
-          description: Grupo removido com sucesso
+          description: Grupo removido com sucesso (sem conteúdo de resposta).
         "401":
-          description: Token inválido ou ausente
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrorForbidden"
         "404":
-          description: Grupo não encontrado
+          $ref: "#/components/responses/ErrorNotFound"
+        "500":
+          $ref: "#/components/responses/ErrorInternal"
 
   /groups/{groupId}/players:
     parameters:
       - $ref: "#/components/parameters/groupIdPath"
     post:
-      tags: [Groups]
-      summary: Adiciona jogador a um grupo “Best XI”
+      tags:
+        - Groups
+      summary: Adiciona um jogador a um grupo “Best XI”.
+      description: >
+        Adiciona um jogador ao grupo, garantindo que:
+        - o jogador pertence à equipa (`teamCode`, `teamName`) indicada;
+        - a equipa/jogador pertencem à mesma competição/ano do grupo;
+        - o jogador ainda não existe no grupo;
+        - o grupo não excede 11 jogadores.
       security:
         - bearerAuth: []
       requestBody:
@@ -381,47 +565,51 @@ paths:
         content:
           application/json:
             schema:
-              # ADICIONADO required
-              type: object
-              required: [playerId, playerName, teamCode, teamName] # <— adicionado
-              properties:
-                playerId:
-                  type: integer
-                  example: 1903
-                playerName:
-                  type: string
-                  example: "João Neves"
-                teamCode:
-                  type: string
-                  example: "SLB"
-                teamName:
-                  type: string
-                  example: "SL Benfica"
+              $ref: "#/components/schemas/AddPlayerToGroupRequest"
       responses:
         "200":
-          description: Jogador adicionado com sucesso
+          description: Jogador adicionado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Player"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
         "401":
-          description: Token inválido ou ausente
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrorForbidden"
         "404":
-          description: Grupo não encontrado
+          $ref: "#/components/responses/ErrorNotFound"
         "422":
-          # - Máx. 11 jogadores
-          # - Jogador tem de pertencer à mesma competição/ano do grupo
-          description: Violação de regra (grupo cheio ou competição/ano incompatíveis)
+          $ref: "#/components/responses/ErrorUnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/ErrorInternal"
 
   /groups/{groupId}/players/{playerId}:
     parameters:
       - $ref: "#/components/parameters/groupIdPath"
       - $ref: "#/components/parameters/playerIdPath"
     delete:
-      tags: [Groups]
-      summary: Remove jogador de um grupo
+      tags:
+        - Groups
+      summary: Remove um jogador de um grupo.
       security:
         - bearerAuth: []
       responses:
         "200":
-          description: Jogador removido com sucesso
+          description: Jogador removido com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemovePlayerResult"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
         "401":
-          description: Token inválido ou ausente
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "403":
+          $ref: "#/components/responses/ErrorForbidden"
         "404":
-          description: Grupo ou jogador não encontrado
+          $ref: "#/components/responses/ErrorNotFound"
+        "500":
+          $ref: "#/components/responses/ErrorInternal"
