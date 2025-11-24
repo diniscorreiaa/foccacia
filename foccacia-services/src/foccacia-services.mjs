@@ -131,7 +131,35 @@ export function replaceGroup(groupId, changes) {
 }
 
 export function deleteGroup(groupId) {}
-export function addPlayerToGroup() {}
+
+export function addPlayerToGroup(groupId, playerData) {
+  if (!groupId || !playerId) {
+    throw errors.INVALID_DATA(
+      "Make sure you provide both group id and player id for this operation"
+    );
+  }
+  const group = getGroupData(groupId);
+  if (!group) {
+    throw errors.NOT_FOUND("Group not found");
+  }
+
+  if (group.players.length === 11) {
+    throw errors.UNPROCESSABLE("Reached group limit of players");
+  }
+
+  const player = fetchTeamWithSquad(playerData.teamCode);
+  if (!player) {
+    throw { code: ERROR_CODES.NotFound, message: "Player not found" };
+  }
+
+  if (group.players.find((p) => p.id === player.id)) {
+    throw errors.UNPROCESSABLE("Player already in group");
+  }
+
+  group.players.push(playerId);
+
+  return group;
+}
 export function deletePlayerFromGroup() {}
 
 // TODO : criar regras como max 11 jogadores
