@@ -88,7 +88,7 @@ export const createGroup = wrapAsync((req, res) => {
 export const getGroup = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.getGroup, {
     servicesFuncArgs: [parseInt(req.params.groupId)],
-      transformObj: group => groupToDto(group)
+    transformObj: (group) => groupToDto(group),
   })
 );
 
