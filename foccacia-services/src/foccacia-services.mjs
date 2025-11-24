@@ -1,13 +1,13 @@
 import {
   Competition,
+  createGroup as createGroupData,
+  createUserMem,
   findUserByToken,
+  getGroup as getGroupData,
   listGroups,
   Player,
   Team,
-  createGroup as createGroupData,
-  getGroup as getGroupData,
   updateGroup,
-  createUserMem,
 } from "foccacia-data-mem";
 import {
   fetchCompetitions,
@@ -105,25 +105,27 @@ export function getGroups(userId) {
 
 export function createGroup(userId, name, description, competition, year) {
   if (!name || !description || !competition || !year) {
-    throw errors.INVALID_DATA("Make sure you provide userId, name, description, competition and year for this operation")
+    throw errors.INVALID_DATA(
+      "Make sure you provide userId, name, description, competition and year for this operation"
+    );
   }
   return createGroupData(userId, name, description, competition, year);
 }
 
 export function getGroup(groupId) {
   if (!groupId) {
-    throw errors.INVALID_DATA("Make sure you provide the group id for this operation")
+    throw errors.INVALID_DATA(
+      "Make sure you provide the group id for this operation"
+    );
   }
   return getGroupData(groupId);
 }
 
 export function replaceGroup(groupId, changes) {
-  if (!groupId) {
-    throw errors.INVALID_DATA("Make sure you provide the group id for this operation")
-  }
-  return updateGroup(groupId, changes);
-  }
-  if (!changes) {
+  if (!groupId || !changes) {
+    throw errors.INVALID_DATA(
+      "Make sure you provide the group id and changes for this operation"
+    );
   }
   return updateGroup(parseInt(groupId), changes);
 }
@@ -133,4 +135,3 @@ export function addPlayerToGroup() {}
 export function deletePlayerFromGroup() {}
 
 // TODO : criar regras como max 11 jogadores
-
