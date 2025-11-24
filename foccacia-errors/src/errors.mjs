@@ -11,7 +11,7 @@ export const ERROR_CODES = {
   TooManyRequests: 5,
   Unprocessable: 6,
   BadGateway: 7,
-  IO_Error: 8, // Input/output
+  IO_Error: 8,
   Unexpected: 9,
 };
 
