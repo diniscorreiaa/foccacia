@@ -80,7 +80,7 @@ export const getGroups = wrapAsync((req, res) =>
 
 export const createGroup = wrapAsync((req, res) => {
   const { name, description, competition, year } = req.body;
-  genericApiRoute(req, res, services.createGroup, {
+  return genericApiRoute(req, res, services.createGroup, {
     servicesFuncArgs: [req.userId, name, description, competition, year],
   });
 });
@@ -93,12 +93,9 @@ export const getGroup = wrapAsync((req, res) =>
 
 export const replaceGroup = wrapAsync((req, res) => {
   const { name, description } = req.body;
-  genericApiRoute(req, res, services.replaceGroup, {
-    servicesFuncArgs: [
-      req.params.groupId,
-      { name: name, description: description },
-    ],
-    transformObj: (group) => groupToDto(group),
+  return genericApiRoute(req, res, services.replaceGroup, {
+    servicesFuncArgs: [req.params.groupId, { name, description }],
+    transformObj: groupToDto,
   });
 });
 
