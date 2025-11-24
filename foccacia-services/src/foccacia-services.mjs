@@ -4,6 +4,7 @@ import {
   createUserMem,
   findUserByToken,
   getGroup as getGroupData,
+  deleteGroup as deleteGroupData,
   listGroups,
   Player,
   Team,
@@ -130,7 +131,15 @@ export function replaceGroup(groupId, changes) {
   return updateGroup(parseInt(groupId), changes);
 }
 
-export function deleteGroup(groupId) {}
+export function deleteGroup(groupId) {
+  if (!groupId) {
+    throw errors.INVALID_DATA(
+      "Make sure you provide the group id for this operation"
+    );
+  }
+  return { deleted: deleteGroupData(parseInt(groupId)) };
+}
+export function addPlayerToGroup() {}
 
 export function addPlayerToGroup(groupId, playerData) {
   if (!groupId || !playerId) {
@@ -160,6 +169,7 @@ export function addPlayerToGroup(groupId, playerData) {
 
   return group;
 }
+
 export function deletePlayerFromGroup() {}
 
 // TODO : criar regras como max 11 jogadores
