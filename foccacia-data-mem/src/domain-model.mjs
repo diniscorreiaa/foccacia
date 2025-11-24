@@ -41,7 +41,7 @@ export function Group(
   groupId,
   name,
   description,
-  competitionCode,
+  competition,
   year,
   players = []
 ) {
@@ -49,7 +49,7 @@ export function Group(
   this.id = groupId;
   this.name = name;
   this.description = description;
-  this.competitionCode = competitionCode;
+  this.competition = competition;
   this.year = year;
   this.players = players;
 }
