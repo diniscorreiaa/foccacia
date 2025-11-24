@@ -99,7 +99,7 @@ export async function createUser(username) {
     ""
   );
 
-  return user.token;
+  return user;
 }
 
 export function getGroups(userId) {
@@ -198,6 +198,7 @@ export function deleteGroup(userId, groupId) {
   }
 }
 
+// TODO : Dinis => verificar porque nao faz throw 400 (Body(playerData) inválido ao adicionar jogador)
 export function addPlayerToGroup(userId, groupId, playerData) {
   if (!playerData) {
     throw errors.INVALID_DATA(
@@ -220,29 +221,39 @@ export function addPlayerToGroup(userId, groupId, playerData) {
     throw errors.FORBIDDEN("You do not have access to this group");
   }
 
+  const {
+    playerId,
+    playerName,
+    teamId,
+    teamName,
+    position,
+    nationality,
+    age,
+    competition,
+    year,
+  } = playerData;
+
   // TODO : Dinis => Testar este novo throw
-  const { competition, year } = playerData;
-  if (competition !== group.competition || year !== group.year) {
-    throw errors.UNPROCESSABLE(
-      "Player does not belong to the competition/year of this group"
-    );
-  }
-  // TODO : Dinis => Testar este novo throw
-  if (group.players.some((p) => p.id === playerId)) {
-    throw errors.UNPROCESSABLE("Player is already in this group");
-  }
-
-  if (group.players.length >= 11) {
-    throw errors.UNPROCESSABLE("Group already has 11 players");
-  }
-
-  const { playerId, playerName, teamId, teamName, position, nationality, age } =
-    playerData;
-
   if (playerId == null || !playerName || teamId == null || !teamName) {
     throw errors.INVALID_DATA(
       "Make sure you provide playerId, playerName, teamId and teamName"
     );
+  }
+
+  // TODO : Dinis => Testar este novo throw
+  if (!competition || year == null) {
+    throw errors.INVALID_DATA(
+      "Make sure you provide competition and year for this player"
+    );
+  }
+
+  // TODO : Dinis => Testar este novo throw
+  if (group.players.some((p) => p.id === playerId)) {
+    throw errors.UNPROCESSABLE("Player is already in this group");
+  }
+  // TODO : Dinis => Testar este novo throw
+  if (group.players.length >= 11) {
+    throw errors.UNPROCESSABLE("Group already has 11 players");
   }
 
   const player = addPlayerToGroupMem(id, {
