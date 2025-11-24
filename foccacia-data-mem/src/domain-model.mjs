@@ -16,6 +16,7 @@ export function Player(
   playerId,
   playerName,
   teamId,
+  teamCode,
   teamName,
   position,
   nationality,
@@ -24,6 +25,7 @@ export function Player(
   this.id = playerId;
   this.playerName = playerName;
   this.teamId = teamId;
+  this.teamCode = teamCode;
   this.teamName = teamName;
   this.position = position;
   this.nationality = nationality;

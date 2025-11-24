@@ -8,13 +8,13 @@
 # IDs usados nos exemplos
 @groupId = 1
 @otherGroupId = 2
-@playerId = 1903
+@playerId = 67299
 
 # Tokens:
 # 1) Cria primeiro 1 utilizador e copia o token devolvido para @token
 # 2) Cria um 2º utilizador e copia o token para @otherToken (para testar 403)
-@token = Bearer 4ae2ebd0-f89d-4a35-8806-4c0608a7e401
-@otherToken = Bearer aa13857f-6fb5-4800-bb9a-33312fa9ceb0
+@token = Bearer 6fc57a04-1487-4129-bf3a-0ee334a51e3d
+@otherToken = Bearer 718497f8-663c-42f0-af4c-1ca16ab96497
 @invalidToken = Bearer invalid-token
 
 ### GET - Todas as Competições Disponíveis (200)
@@ -76,9 +76,9 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "name": "Melhores da Champions",
-  "description": "Onze ideal da Champions {{season}}",
-  "competition": "{{compCL}}",
+  "name": "Melhores da Primeira Liga",
+  "description": "Onze ideal da Primeira Liga {{season}}",
+  "competition": "{{compPPL}}",
   "year": {{season}}
 }
 
@@ -128,7 +128,7 @@ Accept: {{accept-content}}
   "name": ""
 }
 
-### POST - Adiciona Jogador 1 ao Grupo (200 - válido competition/year)
+### POST - Adiciona Jogador 1 ao Grupo (200 - válido)
 POST {{api}}/groups/{{groupId}}/players
 Authorization: {{token}}
 Content-Type: {{accept-content}}
@@ -136,26 +136,19 @@ Accept: {{accept-content}}
 
 {
   "playerId": {{playerId}},
-  "playerName": "Jogador 1",
-  "teamId": 1001,
-  "teamName": "Equipa 1",
-  "position": "Midfielder",
-  "nationality": "Portugal",
-  "age": 20,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerName": "Vangelis Pavlidis",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
-### NEGATIVO - 400 (Body inválido ao adicionar jogador - faltam IDs obrigatórios)
+### NEGATIVO - 400 (Body inválido ao adicionar jogador - faltam campos obrigatórios)
 POST {{api}}/groups/{{groupId}}/players
 Authorization: {{token}}
 Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerName": "Sem IDs obrigatórios",
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerName": "Sem IDs obrigatórios"
 }
 
 ### NEGATIVO - 422 (Jogador não pertence à competição/ano do grupo)
@@ -165,15 +158,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 2000,
+  "playerId": 999999,
   "playerName": "Jogador Comp Errada",
-  "teamId": 1002,
-  "teamName": "Equipa 2",
-  "position": "Defender",
-  "nationality": "Portugal",
-  "age": 21,
-  "competition": "{{compPPL}}",
-  "year": {{season}}
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### POST - Adiciona Jogador 2 ao Grupo (200)
@@ -183,15 +171,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 2001,
-  "playerName": "Jogador 2",
-  "teamId": 1002,
-  "teamName": "Equipa 2",
-  "position": "Defender",
-  "nationality": "Portugal",
-  "age": 21,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerId": 111481,
+  "playerName": "Anatolii Trubin",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### POST - Adiciona Jogador 3 ao Grupo (200)
@@ -201,15 +184,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 2002,
-  "playerName": "Jogador 3",
-  "teamId": 1003,
-  "teamName": "Equipa 3",
-  "position": "Forward",
-  "nationality": "Brasil",
-  "age": 22,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerId": 81816,
+  "playerName": "Amar Dedić",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### POST - Adiciona Jogador 4 ao Grupo (200)
@@ -219,15 +197,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 2003,
-  "playerName": "Jogador 4",
-  "teamId": 1004,
-  "teamName": "Equipa 4",
-  "position": "Goalkeeper",
-  "nationality": "Espanha",
-  "age": 23,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerId": 185610,
+  "playerName": "Antonio Silva",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### POST - Adiciona Jogador 5 ao Grupo (200)
@@ -237,15 +210,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 2004,
-  "playerName": "Jogador 5",
-  "teamId": 1005,
-  "teamName": "Equipa 5",
-  "position": "Midfielder",
-  "nationality": "França",
-  "age": 24,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerId": 3205,
+  "playerName": "Nicolás Otamendi",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### POST - Adiciona Jogador 6 ao Grupo (200)
@@ -255,15 +223,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 2005,
-  "playerName": "Jogador 6",
-  "teamId": 1006,
-  "teamName": "Equipa 6",
-  "position": "Defender",
-  "nationality": "Alemanha",
-  "age": 25,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerId": 175753,
+  "playerName": "Samuel Dahl",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### POST - Adiciona Jogador 7 ao Grupo (200)
@@ -273,15 +236,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 2006,
-  "playerName": "Jogador 7",
-  "teamId": 1007,
-  "teamName": "Equipa 7",
-  "position": "Forward",
-  "nationality": "Itália",
-  "age": 26,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerId": 38088,
+  "playerName": "Fredrik Aursnes",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### POST - Adiciona Jogador 8 ao Grupo (200)
@@ -291,15 +249,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 2007,
-  "playerName": "Jogador 8",
-  "teamId": 1008,
-  "teamName": "Equipa 8",
-  "position": "Midfielder",
-  "nationality": "Portugal",
-  "age": 27,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerId": 82403,
+  "playerName": "Leandro Barreiro Martins",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### POST - Adiciona Jogador 9 ao Grupo (200)
@@ -309,15 +262,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 2008,
-  "playerName": "Jogador 9",
-  "teamId": 1009,
-  "teamName": "Equipa 9",
-  "position": "Defender",
-  "nationality": "Brasil",
-  "age": 28,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerId": 151558,
+  "playerName": "Heorhii Sudakov",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### POST - Adiciona Jogador 10 ao Grupo (200)
@@ -327,15 +275,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 2009,
-  "playerName": "Jogador 10",
-  "teamId": 1010,
-  "teamName": "Equipa 10",
-  "position": "Forward",
-  "nationality": "Argentina",
-  "age": 29,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerId": 9553,
+  "playerName": "Bruma",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### POST - Adiciona Jogador 11 ao Grupo (200)
@@ -345,15 +288,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 2010,
-  "playerName": "Jogador 11",
-  "teamId": 1011,
-  "teamName": "Equipa 11",
-  "position": "Midfielder",
-  "nationality": "Portugal",
-  "age": 30,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerId": 8128,
+  "playerName": "Dodi Lukebakio",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### NEGATIVO - 422 (Mais de 11 jogadores no mesmo grupo)
@@ -363,15 +301,10 @@ Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-  "playerId": 999999,
-  "playerName": "Jogador Extra",
-  "teamId": 1999,
-  "teamName": "Equipa Extra",
-  "position": "Forward",
-  "nationality": "Brasil",
-  "age": 22,
-  "competition": "{{compCL}}",
-  "year": {{season}}
+  "playerId": 70583,
+  "playerName": "Alexander Bah",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
 ### DELETE - Remove Jogador de um Grupo (200)

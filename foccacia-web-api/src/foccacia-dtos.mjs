@@ -35,3 +35,10 @@ export function playerToGroupDto(player) {
     age: player.age,
   };
 }
+
+export function userToDto(user) {
+  return {
+    username: user.username,
+    token: user.token,
+  };
+}

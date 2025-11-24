@@ -99,11 +99,13 @@ export function addPlayerToGroupMem(groupId, playerData) {
     playerData.id,
     playerData.playerName,
     playerData.teamId,
+    playerData.teamCode, // novo
     playerData.teamName,
     playerData.position,
     playerData.nationality,
     playerData.age
   );
+
   group.players.push(player);
   return player;
 }

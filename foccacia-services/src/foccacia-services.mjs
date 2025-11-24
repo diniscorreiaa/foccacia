@@ -199,7 +199,7 @@ export function deleteGroup(userId, groupId) {
 }
 
 // TODO : Dinis => verificar porque nao faz throw 400 (Body(playerData) inválido ao adicionar jogador)
-export function addPlayerToGroup(userId, groupId, playerData) {
+export async function addPlayerToGroup(userId, groupId, playerData) {
   if (!playerData) {
     throw errors.INVALID_DATA(
       "Make sure you provide player data for this operation"
@@ -221,41 +221,12 @@ export function addPlayerToGroup(userId, groupId, playerData) {
     throw errors.FORBIDDEN("You do not have access to this group");
   }
 
-  const {
-    playerId,
-    playerName,
-    teamId,
-    teamName,
-    position,
-    nationality,
-    age,
-    competition,
-    year,
-  } = playerData;
+  const { playerId, playerName, teamCode, teamName } = playerData;
 
   // TODO : Dinis => Testar este novo throw
-  if (playerId == null || !playerName || teamId == null || !teamName) {
+  if (playerId == null || !playerName || !teamCode || !teamName) {
     throw errors.INVALID_DATA(
       "Make sure you provide playerId, playerName, teamId and teamName"
-    );
-  }
-
-  // TODO : Dinis => Testar este novo throw
-  if (!competition || year == null) {
-    throw errors.INVALID_DATA(
-      "Make sure you provide competition and year for this player"
-    );
-  }
-
-  // TODO : Dinis => Testar este novo throw
-  const groupYear = Number(group.year);
-  const playerYear = Number(year);
-  if (!Number.isInteger(playerYear)) {
-    throw errors.INVALID_DATA("Year must be a valid integer");
-  }
-  if (competition !== group.competition || playerYear !== groupYear) {
-    throw errors.UNPROCESSABLE(
-      "Player does not belong to the competition/year of this group"
     );
   }
 
@@ -263,19 +234,49 @@ export function addPlayerToGroup(userId, groupId, playerData) {
   if (group.players.some((p) => p.id === playerId)) {
     throw errors.UNPROCESSABLE("Player is already in this group");
   }
+
   // TODO : Dinis => Testar este novo throw
   if (group.players.length >= 11) {
     throw errors.UNPROCESSABLE("Group already has 11 players");
   }
 
+  const { competition, year } = group;
+
+  const teamsResponse = await fetchCompetitionTeams(competition, year);
+
+  const teams = teamsResponse?.teams;
+  if (!Array.isArray(teams)) {
+    throw errors.UNEXPECTED(
+      "Could not load teams for the competition and year of this group"
+    );
+  }
+
+  const team = teams.find(
+    (t) =>
+      (t.tla === teamCode && t.shortName === teamName) || t.name === teamName
+  );
+
+  if (!team) {
+    throw errors.UNPROCESSABLE(
+      "Player does not belong to this competition/year"
+    );
+  }
+
+  const squadPlayer = team.squad.find((p) => p.id === playerId);
+  if (!squadPlayer) {
+    throw errors.UNPROCESSABLE(
+      "Player does not belong to this competition/year"
+    );
+  }
   const player = addPlayerToGroupMem(id, {
     id: playerId,
-    playerName,
-    teamId,
-    teamName,
-    position,
-    nationality,
-    age,
+    playerName: squadPlayer.name,
+    teamId: team.id,
+    teamCode: team.tla,
+    teamName: team.shortName ?? team.name,
+    position: squadPlayer.position,
+    nationality: squadPlayer.nationality,
+    age: calculateAge(squadPlayer.dateOfBirth),
   });
 
   if (!player) {

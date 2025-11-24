@@ -1,5 +1,10 @@
 import * as services from "foccacia-services";
-import { groupToDto, playerToGroupDto, teamToDto } from "./foccacia-dtos.mjs";
+import {
+  groupToDto,
+  playerToGroupDto,
+  teamToDto,
+  userToDto,
+} from "./foccacia-dtos.mjs";
 import errors from "foccacia-errors";
 import { logInfo } from "foccacia-utils";
 
@@ -63,8 +68,8 @@ export const getTeams = wrapAsync((req, res) =>
 // Users
 export const createUser = wrapAsync(async (req, res) => {
   const username = req.body?.username;
-  const { id, username: name, token } = await services.createUser(username);
-  return res.status(201).json({ id, username: name, token });
+  const user = await services.createUser(username);
+  return res.status(201).json(userToDto(user));
 });
 
 // Groups
