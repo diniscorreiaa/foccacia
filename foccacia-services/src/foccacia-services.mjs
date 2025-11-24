@@ -1,21 +1,23 @@
 import {
+  addPlayerToGroupMem,
   Competition,
-  createGroup as createGroupData,
+  createGroupMem,
   createUserMem,
+  deleteGroupMem,
   findUserByToken,
-  getGroup as getGroupData,
-  deleteGroup as deleteGroupData,
-  listGroups,
+  getGroupMem,
+  listGroupsMem,
   Player,
+  removePlayerFromGroup,
   Team,
-  updateGroup,
+  updateGroupMem,
 } from "foccacia-data-mem";
 import {
   fetchCompetitions,
   fetchCompetitionTeams,
   fetchTeamWithSquad,
 } from "fapi-teams-data";
-import { logInfo } from "foccacia-utils";
+import { calculateAge, isNonEmptyString, logInfo } from "foccacia-utils";
 import errors from "foccacia-errors";
 
 // Competitions
@@ -45,7 +47,6 @@ export async function getTeams(code, season) {
     teams.map((team) => fetchTeamWithSquad(team.id))
   );
 
-  // TODO : players acrescentar o resto das propriedades do player e o seu dto
   const result = squads.map((teamJson) => {
     const players = (teamJson.squad ?? []).map(
       (player) =>
@@ -56,8 +57,8 @@ export async function getTeams(code, season) {
           teamJson.name,
           player.position,
           player.nationality,
-          player.dateOfBirth
-        ) // calculateAge(player.dateOfBirth)
+          calculateAge(player.dateOfBirth)
+        )
     );
 
     return new Team(
@@ -68,6 +69,7 @@ export async function getTeams(code, season) {
     );
   });
 
+  // TODO : Tiago => persist teams and players
   logInfo(
     `Service: built ${result.length} Team objects for competition ${code} season ${season}`,
     ""
@@ -97,11 +99,11 @@ export async function createUser(username) {
     ""
   );
 
-  return user.token;
+  return user;
 }
 
 export function getGroups(userId) {
-  return { groups: listGroups(userId) };
+  return listGroupsMem(userId);
 }
 
 export function createGroup(userId, name, description, competition, year) {
@@ -110,78 +112,208 @@ export function createGroup(userId, name, description, competition, year) {
       "Make sure you provide userId, name, description, competition and year for this operation"
     );
   }
-  return createGroupData(userId, name, description, competition, year);
+  return createGroupMem(userId, name, description, competition, year);
 }
 
-export function getGroup(groupId) {
-  if (!groupId) {
+// TODO : Francisco => verificar se podemos fazer um wrapper para reduzir repetição de código
+
+export function getGroup(userId, groupId) {
+  const id = parseInt(groupId);
+  if (Number.isNaN(id)) {
     throw errors.INVALID_DATA(
       "Make sure you provide the group id for this operation"
     );
   }
 
-  const group = getGroupData(groupId);
+  const group = getGroupMem(id);
   if (!group) {
     throw errors.NOT_FOUND("Group not found");
+  }
+  if (group.ownerId !== userId) {
+    throw errors.FORBIDDEN("You do not have access to this group");
   }
 
   return group;
 }
 
-export function replaceGroup(groupId, changes) {
-  if (!groupId || !changes) {
+export function replaceGroup(userId, groupId, changes) {
+  if (!changes) {
     throw errors.INVALID_DATA(
       "Make sure you provide the group id and changes for this operation"
     );
   }
-  const group = updateGroup(groupId, changes);
+  const id = parseInt(groupId);
+  if (Number.isNaN(id)) {
+    throw errors.INVALID_DATA(
+      "Make sure you provide a valid numeric group id for this operation"
+    );
+  }
 
+  const { name, description } = changes;
+  if (!isNonEmptyString(name) || !isNonEmptyString(description)) {
+    throw errors.INVALID_DATA(
+      "Both name and description are required and must be non-empty strings"
+    );
+  }
+
+  const group = getGroupMem(id);
   if (!group) {
     throw errors.NOT_FOUND("Group not found");
   }
-
-  return group;
-}
-
-export function deleteGroup(groupId) {
-  if (!groupId) {
-    throw errors.INVALID_DATA(
-      "Make sure you provide the group id for this operation"
-    );
+  if (group.ownerId !== userId) {
+    throw errors.FORBIDDEN("You do not have access to this group");
   }
-  return { deleted: deleteGroupData(parseInt(groupId)) };
-}
-export function addPlayerToGroup() {}
 
-export function addPlayerToGroup(groupId, playerData) {
-  if (!groupId || !playerId) {
-    throw errors.INVALID_DATA(
-      "Make sure you provide both group id and player id for this operation"
-    );
-  }
-  const group = getGroupData(groupId);
-  if (!group) {
+  const updated = updateGroupMem(id, {
+    name: name.trim(),
+    description: description.trim(),
+  });
+
+  if (!updated) {
     throw errors.NOT_FOUND("Group not found");
   }
 
-  if (group.players.length === 11) {
-    throw errors.UNPROCESSABLE("Reached group limit of players");
+  return updated;
+}
+
+export function deleteGroup(userId, groupId) {
+  const id = parseInt(groupId);
+  if (Number.isNaN(id)) {
+    throw errors.INVALID_DATA(
+      "Make sure you provide a valid numeric group id for this operation"
+    );
   }
 
-  const player = fetchTeamWithSquad(playerData.teamCode);
+  const group = getGroupMem(id);
+  if (!group) {
+    throw errors.NOT_FOUND("Group not found");
+  }
+  if (group.ownerId !== userId) {
+    throw errors.FORBIDDEN("You do not have access to this group");
+  }
+
+  const deleted = deleteGroupMem(id);
+  if (!deleted) {
+    throw errors.NOT_FOUND("Group not found");
+  }
+}
+
+// TODO : Dinis => verificar porque nao faz throw 400 (Body(playerData) inválido ao adicionar jogador)
+export async function addPlayerToGroup(userId, groupId, playerData) {
+  if (!playerData) {
+    throw errors.INVALID_DATA(
+      "Make sure you provide player data for this operation"
+    );
+  }
+
+  const id = parseInt(groupId);
+  if (Number.isNaN(id)) {
+    throw errors.INVALID_DATA(
+      "Make sure you provide a valid numeric group id for this operation"
+    );
+  }
+
+  const group = getGroupMem(id);
+  if (!group) {
+    throw errors.NOT_FOUND("Group not found");
+  }
+  if (group.ownerId !== userId) {
+    throw errors.FORBIDDEN("You do not have access to this group");
+  }
+
+  const { playerId, playerName, teamCode, teamName } = playerData;
+
+  // TODO : Dinis => Testar este novo throw
+  if (playerId == null || !playerName || !teamCode || !teamName) {
+    throw errors.INVALID_DATA(
+      "Make sure you provide playerId, playerName, teamId and teamName"
+    );
+  }
+
+  // TODO : Dinis => Testar este novo throw
+  if (group.players.some((p) => p.id === playerId)) {
+    throw errors.UNPROCESSABLE("Player is already in this group");
+  }
+
+  // TODO : Dinis => Testar este novo throw
+  if (group.players.length >= 11) {
+    throw errors.UNPROCESSABLE("Group already has 11 players");
+  }
+
+  const { competition, year } = group;
+
+  const teams = await fetchCompetitionTeams(competition, year);
+  if (!Array.isArray(teams) || teams.length === 0) {
+    throw errors.UNEXPECTED(
+      "Could not load teams for the competition and year of this group"
+    );
+  }
+
+  const teamHeader = teams.find(
+    (t) =>
+      t.tla === teamCode && (t.shortName === teamName || t.name === teamName)
+  );
+  if (!teamHeader) {
+    throw errors.UNPROCESSABLE(
+      "Player does not belong to this competition/year"
+    );
+  }
+
+  const teamDetails = await fetchTeamWithSquad(teamHeader.id);
+  const squad = teamDetails?.squad;
+  if (!Array.isArray(squad)) {
+    throw errors.UNEXPECTED("Could not load squad for this team");
+  }
+
+  const squadPlayer = squad.find(
+    (p) => p.id === playerId && p.name === playerName
+  );
+  if (!squadPlayer) {
+    throw errors.UNPROCESSABLE(
+      "Player does not belong to this competition/year"
+    );
+  }
+
+  const player = addPlayerToGroupMem(id, {
+    id: playerId,
+    playerName: squadPlayer.name,
+    teamId: teamDetails.id,
+    teamCode: teamDetails.tla,
+    teamName: teamDetails.shortName ?? teamDetails.name,
+    position: squadPlayer.position,
+    nationality: squadPlayer.nationality,
+    age: calculateAge(squadPlayer.dateOfBirth),
+  });
+
   if (!player) {
-    throw { code: ERROR_CODES.NotFound, message: "Player not found" };
+    throw errors.UNEXPECTED("Could not add player to group");
   }
 
-  if (group.players.find((p) => p.id === player.id)) {
-    throw errors.UNPROCESSABLE("Player already in group");
-  }
-
-  group.players.push(playerId);
-
-  return group;
+  return player;
 }
 
-export function deletePlayerFromGroup() {}
+export function deletePlayerFromGroup(userId, groupId, playerId) {
+  const gId = parseInt(groupId);
+  const pId = parseInt(playerId);
 
-// TODO : criar regras como max 11 jogadores
+  if (Number.isNaN(gId) || Number.isNaN(pId)) {
+    throw errors.INVALID_DATA(
+      "Make sure you provide valid numeric ids for group and player"
+    );
+  }
+
+  const group = getGroupMem(gId);
+  if (!group) {
+    throw errors.NOT_FOUND("Group not found");
+  }
+  if (group.ownerId !== userId) {
+    throw errors.FORBIDDEN("You do not have access to this group");
+  }
+
+  const removed = removePlayerFromGroup(gId, pId);
+  if (removed === null) {
+    throw errors.NOT_FOUND("Player not found in group");
+  }
+
+  return { removed: true };
+}

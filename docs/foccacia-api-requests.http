@@ -1,139 +1,338 @@
 @api = http://localhost:1904
-@token = Bearer 3dcebbef-03b2-42c3-b7bf-844f2bb5ecf1
-### TODO Make invalid but existing user token to test 403 status code
-@invalidToken = <TODO>
 @accept-content = application/json
+
 @season = 2025
 @compPPL = PPL
 @compCL = CL
-@benficaId = 1903
+
+# IDs usados nos exemplos
 @groupId = 1
-@playerId = 1903
+@otherGroupId = 2
+@playerId = 67299
 
-// TODO : todas as variaveis globais entre {{VAR}}
+# Tokens:
+# 1) Cria primeiro 1 utilizador e copia o token devolvido para @token
+# 2) Cria um 2º utilizador e copia o token para @otherToken (para testar 403)
+@token = Bearer 1117e59b-3151-4cef-acdc-d46fa17b359b
+@otherToken = Bearer 471f3932-5836-4060-ae4b-e530aa2f8b3e
+@invalidToken = Bearer invalid-token
 
-### GET - Todas as Competições Disponíveis
+### GET - Todas as Competições Disponíveis (200)
 GET {{api}}/competitions
 Accept: {{accept-content}}
 
-### GET - Equipas da Primeira Liga da Época 2025 ({{season}})
+### GET - Equipas da Primeira Liga da Época {{season}} (200)
 GET {{api}}/competitions/{{compPPL}}/seasons/{{season}}/teams
 Accept: {{accept-content}}
 
-### GET - Equipas da Champions League da Época 2025 ({{season}})
+### GET - Equipas da Champions League da Época {{season}} (200)
 GET {{api}}/competitions/{{compCL}}/seasons/{{season}}/teams
 Accept: {{accept-content}}
 
-### NEGATIVO – 401 (token inválido)
-GET {{api}}/competitions/{{compPPL}}
-Authorization: invalid-token
-Accept: {{accept-content}}
-
-### POST - Cria um novo Utilizador
+### POST - Cria um novo Utilizador (201) -> usar resposta para @token
 POST {{api}}/users
 Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
 {
-        "username": "grupo1"
+  "username": "grupo1"
 }
 
 ### NEGATIVO - 400 (Falta username)
 POST {{api}}/users
 Content-Type: {{accept-content}}
+Accept: {{accept-content}}
 
 {
-
 }
 
-### GET - Grupos do Utilizador
+### POST - Cria 2º Utilizador (201) -> usar resposta para @otherToken
+POST {{api}}/users
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "username": "grupo2"
+}
+
+### GET - Grupos do Utilizador (200)
 GET {{api}}/groups
 Authorization: {{token}}
 Accept: {{accept-content}}
 
-### POST - Cria um Novo Grupo
+### NEGATIVO - 401 (Sem token)
+GET {{api}}/groups
+Accept: {{accept-content}}
+
+### NEGATIVO - 401 (Token inválido)
+GET {{api}}/groups
+Authorization: {{invalidToken}}
+Accept: {{accept-content}}
+
+### POST - Cria um Novo Grupo (201)
 POST {{api}}/groups
 Authorization: {{token}}
 Content-Type: {{accept-content}}
+Accept: {{accept-content}}
 
 {
-        "name": "Melhores da Champions",
-        "description": "Onze ideal da Champions 2025",
-        "competition": "CL",
-        "year": 2025
+  "name": "Melhores da Primeira Liga",
+  "description": "Onze ideal da Primeira Liga {{season}}",
+  "competition": "{{compPPL}}",
+  "year": {{season}}
 }
 
-### GET - Grupo {{groupId}} do Utilizador
+### NEGATIVO - 400 (Dados em falta na criação do grupo)
+POST {{api}}/groups
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
 
+{
+  "name": "Sem competition e year"
+}
+
+### GET - Grupo {{groupId}} do Utilizador (200)
 GET {{api}}/groups/{{groupId}}
 Authorization: {{token}}
 Accept: {{accept-content}}
 
 ### NEGATIVO - 404 (Grupo não encontrado)
-
 GET {{api}}/groups/99999
 Authorization: {{token}}
 Accept: {{accept-content}}
 
-### PUT - Edita Nome e Descrição de um Grupo
-PUT {{api}}/groups/{{groupId}}
-Authorization: {{token}}
-Content-Type: {{accept-content}}
-
-{
-        "name": "alterado",
-        "description": "descriçao alterada",
-        "competition": "CL",
-        "year": 2025
-}
-
-### NEGATIVO - 400 (Dados Inválidos)
-
-PUT {{api}}/groups/{{groupId}}
-Authorization: {{token}}
-Content-Type: {{accept-content}}
-
-{
-        "name": "I+*!nv?1aL-ªi`+Do",
-        "description": "Nome inválido"
-}
-
-### DELETE - Remove um Grupo {{groupId}}
-
-DELETE  {{api}}/groups/{{groupId}}
+### NEGATIVO - 400 (groupId não numérico)
+GET {{api}}/groups/abc
 Authorization: {{token}}
 Accept: {{accept-content}}
 
-### NEGATIVO - 403 (Pedido vindo de utilizador sem permissões)
-
-DELETE  {{api}}/groups/{{groupId}}
-Authorization: {{invalidToken}}
+### PUT - Edita Nome e Descrição de um Grupo (200)
+PUT {{api}}/groups/{{groupId}}
+Authorization: {{token}}
+Content-Type: {{accept-content}}
 Accept: {{accept-content}}
 
-### POST - Adiciona Jogador a Grupo
+{
+  "name": "Melhores da Champions (Atualizado)",
+  "description": "Onze ideal da Champions {{season}} (atualizado)"
+}
+
+### NEGATIVO - 400 (Body inválido no PUT - falta campos válidos)
+PUT {{api}}/groups/{{groupId}}
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "name": ""
+}
+
+### POST - Adiciona Jogador 1 ao Grupo (200 - válido)
 POST {{api}}/groups/{{groupId}}/players
 Authorization: {{token}}
 Content-Type: {{accept-content}}
+Accept: {{accept-content}}
 
 {
-        "playerId": 1903,
-        "playerName": "João Neves",
-        "teamCode": "SLB",
-        "teamName": "SL Benfica"
+  "playerId": {{playerId}},
+  "playerName": "Vangelis Pavlidis",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
 }
 
-### NEGATIVO - 422 (Violação de regra: Each group may have 11 players at maximum, and each player must belong to the year and competition of the group.)
-
+### NEGATIVO - 400 (Body inválido ao adicionar jogador - faltam campos obrigatórios)
 POST {{api}}/groups/{{groupId}}/players
 Authorization: {{token}}
 Content-Type: {{accept-content}}
+Accept: {{accept-content}}
 
 {
-        // TODO Test status code for this situation: Each group may have 11 players at maximum, and each player must belong to the year and competition of the group.
+  "playerName": "Sem IDs obrigatórios"
 }
 
-### DELETE - Remove Jogador de um Grupo
+### NEGATIVO - 422 (Jogador não pertence à competição/ano do grupo)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
 
+{
+  "playerId": 999999,
+  "playerName": "Jogador Comp Errada",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### POST - Adiciona Jogador 2 ao Grupo (200)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 111481,
+  "playerName": "Anatolii Trubin",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### POST - Adiciona Jogador 3 ao Grupo (200)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 81816,
+  "playerName": "Amar Dedić",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### POST - Adiciona Jogador 4 ao Grupo (200)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 185610,
+  "playerName": "Antonio Silva",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### POST - Adiciona Jogador 5 ao Grupo (200)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 3205,
+  "playerName": "Nicolás Otamendi",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### POST - Adiciona Jogador 6 ao Grupo (200)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 175753,
+  "playerName": "Samuel Dahl",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### POST - Adiciona Jogador 7 ao Grupo (200)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 38088,
+  "playerName": "Fredrik Aursnes",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### POST - Adiciona Jogador 8 ao Grupo (200)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 82403,
+  "playerName": "Leandro Barreiro Martins",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### POST - Adiciona Jogador 9 ao Grupo (200)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 151558,
+  "playerName": "Heorhii Sudakov",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### POST - Adiciona Jogador 10 ao Grupo (200)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 9553,
+  "playerName": "Bruma",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### POST - Adiciona Jogador 11 ao Grupo (200)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 8128,
+  "playerName": "Dodi Lukebakio",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### NEGATIVO - 422 (Mais de 11 jogadores no mesmo grupo)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 70583,
+  "playerName": "Alexander Bah",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### DELETE - Remove Jogador de um Grupo (200)
 DELETE {{api}}/groups/{{groupId}}/players/{{playerId}}
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 404 (Jogador não existe no grupo)
+DELETE {{api}}/groups/{{groupId}}/players/77777777777
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 403 (Remover jogador de grupo de outro utilizador)
+DELETE {{api}}/groups/{{groupId}}/players/{{playerId}}
+Authorization: {{otherToken}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 403 (Grupo de outro utilizador)
+DELETE {{api}}/groups/{{groupId}}
+Authorization: {{otherToken}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 404 (Remover grupo inexistente)
+DELETE {{api}}/groups/99999
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### DELETE - Remove Grupo {{groupId}} (204)
+DELETE {{api}}/groups/{{groupId}}
 Authorization: {{token}}
 Accept: {{accept-content}}

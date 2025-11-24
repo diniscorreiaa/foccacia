@@ -11,6 +11,8 @@ export const { logInfo, logSuccess, logError } = Object.fromEntries(
     name,
     (message, error) => {
       const prefix = `${now()} ${label}: ${message}`;
+
+      // TODO : Tiago => create property variable to control log level
       if (name === "logError")
         console.error(prefix, error && (error.stack ? error.stack : error));
       else console.log(prefix);

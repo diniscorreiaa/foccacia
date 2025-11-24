@@ -33,7 +33,7 @@ export function sendApplicationError(err, req, res, next) {
     case ERROR_CODES.BadGateway:
       status = 502;
       break;
-    default: // Abrange também IO_ERROR e UNEXPECTED
+    default:
       status = 500;
   }
 

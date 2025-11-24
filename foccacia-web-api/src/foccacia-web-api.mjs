@@ -1,5 +1,10 @@
 import * as services from "foccacia-services";
-import { groupToDto, teamToDto } from "./foccacia-dtos.mjs";
+import {
+  groupToDto,
+  playerToGroupDto,
+  teamToDto,
+  userToDto,
+} from "./foccacia-dtos.mjs";
 import errors from "foccacia-errors";
 import { logInfo } from "foccacia-utils";
 
@@ -23,11 +28,7 @@ export const verifyToken = wrapAsync(async (req, res, next) => {
     throw errors.UNAUTHORIZED("Missing or invalid Bearer token");
   }
 
-  // TODO: implementar em services
-  // Deve devolver o userId correspondente ao token ou lançar UNAUTHORIZED
-  const userId = await services.convertTokenToUserId(token); // quando existirem services
-
-  // TODO : if(token nao pertence a nenhum user) throw UNAUTHORIZED
+  const userId = await services.convertTokenToUserId(token);
   req.token = token;
   req.userId = userId;
   logInfo(
@@ -59,63 +60,69 @@ export const getCompetitions = wrapAsync((req, res) =>
 // Teams
 export const getTeams = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.getTeams, {
-    transformObj: (teamsArr) => teamsArr.map(teamToDto),
     servicesFuncArgs: [req.params.competitionCode, req.params.seasonYear],
+    transformObj: (teamsArr) => teamsArr.map(teamToDto),
   })
 );
 
 // Users
-export const createUser = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.createUser, {
-    transformObj: (createdToken) => ({ token: createdToken }),
-    servicesFuncArgs: [req.body?.username],
-  })
-);
+export const createUser = wrapAsync(async (req, res) => {
+  const username = req.body?.username;
+  const user = await services.createUser(username);
+  return res.status(201).json(userToDto(user));
+});
 
 // Groups
 export const getGroups = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.getGroups, {
     servicesFuncArgs: [req.userId],
+    transformObj: (groups) => groups.map(groupToDto),
   })
 );
 
-export const createGroup = wrapAsync((req, res) => {
-  const { name, description, competition, year } = req.body;
-  return genericApiRoute(req, res, services.createGroup, {
-    servicesFuncArgs: [req.userId, name, description, competition, year],
-  });
+export const createGroup = wrapAsync(async (req, res) => {
+  const { name, description, competition, year } = req.body ?? {};
+  const group = await services.createGroup(
+    req.userId,
+    name,
+    description,
+    competition,
+    year
+  );
+  return res.status(201).json(groupToDto(group));
 });
 
 export const getGroup = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.getGroup, {
-    servicesFuncArgs: [parseInt(req.params.groupId)],
-    transformObj: (group) => groupToDto(group),
+    servicesFuncArgs: [req.userId, req.params.groupId],
+    transformObj: groupToDto,
   })
 );
 
 export const replaceGroup = wrapAsync((req, res) => {
-  const { name, description } = req.body;
+  const { name, description } = req.body ?? {};
   return genericApiRoute(req, res, services.replaceGroup, {
-    servicesFuncArgs: [req.params.groupId, { name, description }],
+    servicesFuncArgs: [req.userId, req.params.groupId, { name, description }],
     transformObj: groupToDto,
   });
 });
 
-export const deleteGroup = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.deleteGroup, {
-    servicesFuncArgs: [req.params.groupId],
-  })
-);
+export const deleteGroup = wrapAsync(async (req, res) => {
+  await services.deleteGroup(req.userId, req.params.groupId);
+  return res.status(204).end();
+});
 
 export const addPlayerToGroup = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.addPlayerToGroup, {
-    servicesFuncArgs: [req.params.groupId, req.body],
+    servicesFuncArgs: [req.userId, req.params.groupId, req.body],
+    transformObj: playerToGroupDto,
   })
 );
 
 export const deletePlayerFromGroup = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.deletePlayerFromGroup, {
-    servicesFuncArgs: [req.params.groupId, req.params.playerId],
+    servicesFuncArgs: [req.userId, req.params.groupId, req.params.playerId],
+    transformObj: (result) => result,
   })
 );
 

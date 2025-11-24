@@ -16,6 +16,7 @@ export function Player(
   playerId,
   playerName,
   teamId,
+  teamCode,
   teamName,
   position,
   nationality,
@@ -24,6 +25,7 @@ export function Player(
   this.id = playerId;
   this.playerName = playerName;
   this.teamId = teamId;
+  this.teamCode = teamCode;
   this.teamName = teamName;
   this.position = position;
   this.nationality = nationality;
@@ -41,7 +43,7 @@ export function Group(
   groupId,
   name,
   description,
-  competitionCode,
+  competition,
   year,
   players = []
 ) {
@@ -49,7 +51,7 @@ export function Group(
   this.id = groupId;
   this.name = name;
   this.description = description;
-  this.competitionCode = competitionCode;
+  this.competition = competition;
   this.year = year;
   this.players = players;
 }

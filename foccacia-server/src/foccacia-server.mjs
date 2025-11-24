@@ -17,6 +17,7 @@ import {
 
 const PORT = 1904;
 
+// TODO : Francisco => Make routes dynamic based on available resources
 const ROUTES = {
   COMPETITIONS: "/competitions",
   TEAMS: "/competitions/:competitionCode/seasons/:seasonYear/teams",

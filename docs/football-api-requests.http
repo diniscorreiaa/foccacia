@@ -6,7 +6,6 @@
 @compCL = CL
 @benficaId = 1903
 
-// TODO : todas as variaveis globais entre {{VAR}}
 
 ### GET - Todas as Competições
 GET {{api}}/competitions
