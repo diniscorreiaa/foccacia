@@ -63,8 +63,8 @@ export const getTeams = wrapAsync((req, res) =>
 // Users
 export const createUser = wrapAsync(async (req, res) => {
   const username = req.body?.username;
-  const user = await services.createUser(username);
-  return res.status(201).json(user);
+  const { id, username: name, token } = await services.createUser(username);
+  return res.status(201).json({ id, username: name, token });
 });
 
 // Groups

@@ -20,6 +20,7 @@ const USERS = [],
   USERS_CACHE_PATH = getUsersFilePath();
 
 // USERS
+// TODO : Tiago => read persisted users from file on startup
 function persistUsers() {
   writeJson(USERS, USERS_CACHE_PATH).catch((err) => {
     logError("Error writing users cache", err);
@@ -37,11 +38,9 @@ export function findUserByToken(token) {
   return USERS.find((u) => u.token === token) || null;
 }
 
-export function getAllUsersMem() {
-  return [...USERS];
-}
-
 // GROUPS
+// TODO : Tiago => Create groups persistence on file
+// TODO : Tiago =>  read persisted groups from file on startup
 export function createGroupMem(userId, name, description, competition, year) {
   const group = new Group(
     userId,
@@ -59,6 +58,7 @@ export function listGroupsMem(userId) {
   return GROUPS.filter((g) => g.ownerId === userId);
 }
 
+// TODO : Tiago => persist group changes on file
 export function updateGroupMem(groupId, changes) {
   const group = GROUPS.find((g) => g.id === groupId);
   if (!group) {
@@ -75,6 +75,7 @@ export function updateGroupMem(groupId, changes) {
   return group;
 }
 
+// TODO : Tiago => persist group deletion on file
 export function deleteGroupMem(groupId) {
   const idx = GROUPS.findIndex((g) => g.id === groupId);
   if (idx === -1) return false;
@@ -87,6 +88,7 @@ export function getGroupMem(groupId) {
 }
 
 // GROUP PLAYERS
+// TODO : Tiago => persist group players changes on file
 export function addPlayerToGroupMem(groupId, playerData) {
   const group = getGroupMem(groupId);
   if (!group) {
@@ -106,6 +108,7 @@ export function addPlayerToGroupMem(groupId, playerData) {
   return player;
 }
 
+// TODO : Tiago => persist group players changes on file
 export function removePlayerFromGroup(groupId, playerId) {
   const group = getGroupMem(groupId);
   if (!group || !playerId) {

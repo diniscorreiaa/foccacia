@@ -69,6 +69,7 @@ export async function getTeams(code, season) {
     );
   });
 
+  // TODO : Tiago => persist teams and players
   logInfo(
     `Service: built ${result.length} Team objects for competition ${code} season ${season}`,
     ""
@@ -114,7 +115,7 @@ export function createGroup(userId, name, description, competition, year) {
   return createGroupMem(userId, name, description, competition, year);
 }
 
-// TODO : Francisco -> verificar se podemos fazer um wrapper para reduzir repetição de código
+// TODO : Francisco => verificar se podemos fazer um wrapper para reduzir repetição de código
 
 export function getGroup(userId, groupId) {
   const id = parseInt(groupId);
@@ -217,6 +218,18 @@ export function addPlayerToGroup(userId, groupId, playerData) {
   }
   if (group.ownerId !== userId) {
     throw errors.FORBIDDEN("You do not have access to this group");
+  }
+
+  // TODO : Dinis => Testar este novo throw
+  const { competition, year } = playerData;
+  if (competition !== group.competition || year !== group.year) {
+    throw errors.UNPROCESSABLE(
+      "Player does not belong to the competition/year of this group"
+    );
+  }
+  // TODO : Dinis => Testar este novo throw
+  if (group.players.some((p) => p.id === playerId)) {
+    throw errors.UNPROCESSABLE("Player is already in this group");
   }
 
   if (group.players.length >= 11) {
