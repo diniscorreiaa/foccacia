@@ -248,6 +248,18 @@ export function addPlayerToGroup(userId, groupId, playerData) {
   }
 
   // TODO : Dinis => Testar este novo throw
+  const groupYear = Number(group.year);
+  const playerYear = Number(year);
+  if (!Number.isInteger(playerYear)) {
+    throw errors.INVALID_DATA("Year must be a valid integer");
+  }
+  if (competition !== group.competition || playerYear !== groupYear) {
+    throw errors.UNPROCESSABLE(
+      "Player does not belong to the competition/year of this group"
+    );
+  }
+
+  // TODO : Dinis => Testar este novo throw
   if (group.players.some((p) => p.id === playerId)) {
     throw errors.UNPROCESSABLE("Player is already in this group");
   }
