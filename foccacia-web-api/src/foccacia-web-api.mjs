@@ -45,8 +45,9 @@ async function genericApiRoute(
   { transformObj = (obj) => obj, servicesFuncArgs = [] } = {}
 ) {
   const obj = await servicesFunc(...servicesFuncArgs);
+  const size = Array.isArray(obj) ? obj.length : 1;
 
-  logInfo(`API: responding with ${obj.length} for path ${req.path}`, ""); // TODO think of useful generic log
+  logInfo(`API: responding with ${size} item(s) for path ${req.path}`, "");
   res.json(transformObj(obj));
 }
 
@@ -107,7 +108,7 @@ export const deleteGroup = wrapAsync((req, res) =>
 
 export const addPlayerToGroup = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.addPlayerToGroup, {
-    servicesFuncArgs: [req.params.groupId],
+    servicesFuncArgs: [req.params.groupId, req.body],
   })
 );
 
