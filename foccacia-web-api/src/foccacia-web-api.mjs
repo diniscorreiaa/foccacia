@@ -17,16 +17,6 @@ function getToken(req) {
   return value;
 }
 
-function toGroupListDto(group) {
-  return {
-    id: group.id,
-    name: group.name,
-    description: group.description,
-    competition: group.competition,
-    year: group.year,
-  };
-}
-
 export const verifyToken = wrapAsync(async (req, res, next) => {
   const token = getToken(req);
   if (!token) {
@@ -65,7 +55,7 @@ export const getCompetitions = wrapAsync((req, res) =>
 // Teams
 export const getTeams = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.getTeams, {
-    args: [req.params.competitionCode, req.params.seasonYear],
+    servicesFuncArgs: [req.params.competitionCode, req.params.seasonYear],
     transformObj: (teamsArr) => teamsArr.map(teamToDto),
   })
 );
@@ -80,8 +70,8 @@ export const createUser = wrapAsync(async (req, res) => {
 // Groups
 export const getGroups = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.getGroups, {
-    args: [req.userId],
-    transformObj: (groups) => groups.map(toGroupListDto),
+    servicesFuncArgs: [req.userId],
+    transformObj: (groups) => groups.map(groupToDto),
   })
 );
 
@@ -94,12 +84,12 @@ export const createGroup = wrapAsync(async (req, res) => {
     competition,
     year
   );
-  return res.status(201).json(toGroupListDto(group));
+  return res.status(201).json(groupToDto(group));
 });
 
 export const getGroup = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.getGroup, {
-    args: [req.userId, req.params.groupId],
+    servicesFuncArgs: [req.userId, req.params.groupId],
     transformObj: groupToDto,
   })
 );
@@ -107,7 +97,7 @@ export const getGroup = wrapAsync((req, res) =>
 export const replaceGroup = wrapAsync((req, res) => {
   const { name, description } = req.body ?? {};
   return genericApiRoute(req, res, services.replaceGroup, {
-    args: [req.userId, req.params.groupId, { name, description }],
+    servicesFuncArgs: [req.userId, req.params.groupId, { name, description }],
     transformObj: groupToDto,
   });
 });
@@ -119,14 +109,14 @@ export const deleteGroup = wrapAsync(async (req, res) => {
 
 export const addPlayerToGroup = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.addPlayerToGroup, {
-    args: [req.userId, req.params.groupId, req.body],
+    servicesFuncArgs: [req.userId, req.params.groupId, req.body],
     transformObj: playerToGroupDto,
   })
 );
 
 export const deletePlayerFromGroup = wrapAsync((req, res) =>
   genericApiRoute(req, res, services.deletePlayerFromGroup, {
-    args: [req.userId, req.params.groupId, req.params.playerId],
+    servicesFuncArgs: [req.userId, req.params.groupId, req.params.playerId],
     transformObj: (result) => result,
   })
 );

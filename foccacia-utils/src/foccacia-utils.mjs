@@ -13,6 +13,10 @@ export function isString(value) {
   return typeof value === "string" || value instanceof String;
 }
 
+export function isNonEmptyString(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 export function calculateAge(dateOfBirthStr) {
   if (!dateOfBirthStr) {
     return null;

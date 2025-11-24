@@ -1,0 +1,189 @@
+@api = http://localhost:1904
+@accept-content = application/json
+
+@season = 2025
+@compPPL = PPL
+@compCL = CL
+
+# IDs usados nos exemplos
+@groupId = 1
+@playerId = 1903
+
+# Tokens:
+# 1) Cria primeiro 1 utilizador e copia o token devolvido para @token
+# 2) Cria um 2º utilizador e copia o token para @otherToken (para testar 403)
+@token = Bearer e5e9322c-e47f-4d1a-923b-b524cd2e420f
+@otherToken = Bearer 5509a55d-ad5f-4926-8ee2-30d8e047eac3
+@invalidToken = Bearer invalid-token
+
+### GET - Todas as Competições Disponíveis (200)
+GET {{api}}/competitions
+Accept: {{accept-content}}
+
+### GET - Equipas da Primeira Liga da Época {{season}} (200)
+GET {{api}}/competitions/{{compPPL}}/seasons/{{season}}/teams
+Accept: {{accept-content}}
+
+### GET - Equipas da Champions League da Época {{season}} (200)
+GET {{api}}/competitions/{{compCL}}/seasons/{{season}}/teams
+Accept: {{accept-content}}
+
+### POST - Cria um novo Utilizador (201)
+POST {{api}}/users
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "username": "grupo1"
+}
+
+### NEGATIVO - 400 (Falta username)
+POST {{api}}/users
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+}
+
+### GET - Grupos do Utilizador (200)
+GET {{api}}/groups
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 401 (Sem token)
+GET {{api}}/groups
+Accept: {{accept-content}}
+
+### NEGATIVO - 401 (Token inválido)
+GET {{api}}/groups
+Authorization: {{invalidToken}}
+Accept: {{accept-content}}
+
+### POST - Cria um Novo Grupo (201)
+POST {{api}}/groups
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "name": "Melhores da Champions",
+  "description": "Onze ideal da Champions 2025",
+  "competition": "CL",
+  "year": 2025
+}
+
+### NEGATIVO - 400 (Dados em falta na criação do grupo)
+POST {{api}}/groups
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "name": "Sem competition e year"
+}
+
+### GET - Grupo {{groupId}} do Utilizador (200)
+GET {{api}}/groups/{{groupId}}
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 404 (Grupo não encontrado)
+GET {{api}}/groups/99999
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 400 (groupId não numérico)
+GET {{api}}/groups/abc
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### PUT - Edita Nome e Descrição de um Grupo (200)
+PUT {{api}}/groups/{{groupId}}
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "name": "Melhores da Champions (Atualizado)",
+  "description": "Onze ideal da Champions 2025 (atualizado)"
+}
+
+### NEGATIVO - 400 (Body inválido no PUT - falta campos)
+PUT {{api}}/groups/{{groupId}}
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "name": ""
+}
+
+### DELETE - Remove um Grupo {{groupId}} (204)
+DELETE {{api}}/groups/{{groupId}}
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 404 (Remover grupo inexistente)
+DELETE {{api}}/groups/99999
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 403 (Grupo de outro utilizador)
+DELETE {{api}}/groups/{{groupId}}
+Authorization: {{otherToken}}
+Accept: {{accept-content}}
+
+
+### POST - Adiciona Jogador a Grupo (200)
+POST {{api}}/groups/2/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": {{playerId}},
+  "playerName": "João Neves",
+  "teamId": 1903,
+  "teamName": "SL Benfica",
+  "position": "Midfielder",
+  "nationality": "Portugal",
+  "age": 20
+}
+
+### NEGATIVO - 400 (Body inválido ao adicionar jogador)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerName": "Sem IDs obrigatórios"
+}
+
+### NEGATIVO - 422 (Mais de 11 jogadores no mesmo grupo)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+Accept: {{accept-content}}
+
+{
+  "playerId": 999999,
+  "playerName": "Jogador Extra",
+  "teamId": 1903,
+  "teamName": "SL Benfica"
+}
+
+### DELETE - Remove Jogador de um Grupo (200)
+DELETE {{api}}/groups/{{groupId}}/players/{{playerId}}
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 404 (Jogador não existe no grupo)
+DELETE {{api}}/groups/{{groupId}}/players/999999
+Authorization: {{token}}
+Accept: {{accept-content}}
+
+### NEGATIVO - 403 (Remover jogador de grupo de outro utilizador)
+DELETE {{api}}/groups/{{groupId}}/players/{{playerId}}
+Authorization: {{otherToken}}
+Accept: {{accept-content}}

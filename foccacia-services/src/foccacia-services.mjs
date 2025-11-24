@@ -16,7 +16,7 @@ import {
   fetchCompetitionTeams,
   fetchTeamWithSquad,
 } from "fapi-teams-data";
-import { calculateAge, logInfo } from "foccacia-utils";
+import { calculateAge, isNonEmptyString, logInfo } from "foccacia-utils";
 import errors from "foccacia-errors";
 
 // Competitions
@@ -46,7 +46,6 @@ export async function getTeams(code, season) {
     teams.map((team) => fetchTeamWithSquad(team.id))
   );
 
-  // TODO : players acrescentar o resto das propriedades do player e o seu dto
   const result = squads.map((teamJson) => {
     const players = (teamJson.squad ?? []).map(
       (player) =>
@@ -102,7 +101,7 @@ export async function createUser(username) {
 }
 
 export function getGroups(userId) {
-  return { groups: listGroupsMem(userId) };
+  return listGroupsMem(userId);
 }
 
 export function createGroup(userId, name, description, competition, year) {
@@ -114,7 +113,7 @@ export function createGroup(userId, name, description, competition, year) {
   return createGroupMem(userId, name, description, competition, year);
 }
 
-// TODO : Dinis -> verificar se podemos fazer um wrapper para reduzir repetição de código
+// TODO : Francisco -> verificar se podemos fazer um wrapper para reduzir repetição de código
 
 export function getGroup(userId, groupId) {
   const id = parseInt(groupId);
@@ -135,7 +134,7 @@ export function getGroup(userId, groupId) {
   return group;
 }
 
-export function replaceGroup(groupId, changes) {
+export function replaceGroup(userId, groupId, changes) {
   if (!changes) {
     throw errors.INVALID_DATA(
       "Make sure you provide the group id and changes for this operation"
@@ -148,6 +147,13 @@ export function replaceGroup(groupId, changes) {
     );
   }
 
+  const { name, description } = changes;
+  if (!isNonEmptyString(name) || !isNonEmptyString(description)) {
+    throw errors.INVALID_DATA(
+      "Both name and description are required and must be non-empty strings"
+    );
+  }
+
   const group = getGroupMem(id);
   if (!group) {
     throw errors.NOT_FOUND("Group not found");
@@ -156,12 +162,16 @@ export function replaceGroup(groupId, changes) {
     throw errors.FORBIDDEN("You do not have access to this group");
   }
 
-  const update = updateGroupMem(groupId, changes);
-  if (!update) {
+  const updated = updateGroupMem(id, {
+    name: name.trim(),
+    description: description.trim(),
+  });
+
+  if (!updated) {
     throw errors.NOT_FOUND("Group not found");
   }
 
-  return update;
+  return updated;
 }
 
 export function deleteGroup(userId, groupId) {

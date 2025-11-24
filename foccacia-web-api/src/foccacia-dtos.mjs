@@ -19,7 +19,6 @@ export function groupToDto(group) {
 
 function playerToTeamDto(player) {
   return {
-    playerId: player.id,
     playerName: player.playerName,
     position: player.position,
   };
