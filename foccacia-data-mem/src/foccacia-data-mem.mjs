@@ -1,5 +1,10 @@
 import { Group, Player, User } from "./domain-model.mjs";
-import { getUsersFilePath, logError, writeJson } from "foccacia-utils";
+import {
+  getUsersFilePath,
+  isString,
+  logError,
+  writeJson,
+} from "foccacia-utils";
 
 export function hello(name = "world") {
   return `hello ${name}`;
@@ -32,12 +37,12 @@ export function findUserByToken(token) {
   return USERS.find((u) => u.token === token) || null;
 }
 
-export function getAllUsers() {
+export function getAllUsersMem() {
   return [...USERS];
 }
 
 // GROUPS
-export function createGroup(userId, name, description, competition, year) {
+export function createGroupMem(userId, name, description, competition, year) {
   const group = new Group(
     userId,
     nextGroupId++,
@@ -50,50 +55,64 @@ export function createGroup(userId, name, description, competition, year) {
   return group;
 }
 
-export function listGroups(userId) {
+export function listGroupsMem(userId) {
   return GROUPS.filter((g) => g.ownerId === userId);
 }
 
-export function updateGroup(groupId, changes) {
+export function updateGroupMem(groupId, changes) {
   const group = GROUPS.find((g) => g.id === groupId);
   if (!group) {
     return null;
   }
 
-  if (changes.name) group.name = changes.name;
-  if (changes.description) group.description = changes.description;
+  if (isString(changes.name)) {
+    group.name = changes.name;
+  }
+  if (isString(changes.description)) {
+    group.description = changes.description;
+  }
+
   return group;
 }
 
-export function deleteGroup(groupId) {
+export function deleteGroupMem(groupId) {
   const idx = GROUPS.findIndex((g) => g.id === groupId);
   if (idx === -1) return false;
   GROUPS.splice(idx, 1);
   return true;
 }
 
-export function getGroup(groupId) {
+export function getGroupMem(groupId) {
   return GROUPS.find((g) => g.id === groupId) || null;
 }
 
 // GROUP PLAYERS
 export function addPlayerToGroup(groupId, playerData) {
-  const group = getGroup(groupId);
-  if (!group) return null;
+  const group = getGroupMem(groupId);
+  if (!group) {
+    return null;
+  }
+
+  const playerName = playerData.playerName ?? playerData.name;
 
   const player = new Player(
     playerData.id,
-    playerData.name,
+    playerName,
     playerData.teamId,
-    playerData.teamName
+    playerData.teamName,
+    playerData.position,
+    playerData.nationality,
+    playerData.age
   );
   group.players.push(player);
   return player;
 }
 
 export function removePlayerFromGroup(groupId, playerId) {
-  const group = getGroup(groupId);
-  if (!group) return null;
+  const group = getGroupMem(groupId);
+  if (!group || !playerId) {
+    return null;
+  }
 
   const idx = group.players.findIndex((p) => p.id === playerId);
   if (idx === -1) return null;

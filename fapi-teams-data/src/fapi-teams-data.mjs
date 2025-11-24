@@ -33,6 +33,10 @@ function buildFootballApiError(url, status) {
       return errors.UNAUTHORIZED("Invalid external service Football API token");
     case 403:
       return errors.FORBIDDEN("Access denied to external service Football API");
+    case 404:
+      return errors.NOT_FOUND(
+        `Resource not found in external service Football API (${url})`
+      );
     case 429:
       return errors.TOO_MANY_REQUESTS(
         "Reached limit of requests to external service Football API, try again in a few moments"
@@ -86,27 +90,19 @@ async function fetchWithCache({
 // Competitions
 export async function fetchCompetitions() {
   const cachePath = getCompetitionsFilePath();
-  if (fileExists(cachePath)) {
-    logInfo(`Using competitions cache at ${cachePath}`, "");
-    return readJson(cachePath);
-  }
   const url = `${FOOTBALL_API_URI}/competitions`;
-  if (!url) {
-    logError("Error getting URL for competitions", "");
-    throw errors.UNEXPECTED("Unexpected internal error");
-  }
 
   return fetchWithCache({
     cachePath,
     url,
     logContext: "competitions",
-    fromCache: (cached) => cached, // já guardamos a lista pronta
+    fromCache: (cached) => cached,
     buildResult: (body) =>
       (body.competitions ?? []).map((competition) => ({
         code: competition.code,
         name: competition.name,
       })),
-    buildCacheData: (result) => result, // guardamos diretamente a lista
+    buildCacheData: (result) => result,
   });
 }
 
@@ -117,16 +113,9 @@ export async function fetchCompetitionTeams(code, season) {
       "Make sure you provide both competition code and season"
     );
   }
+
   const cachePath = getCompetitionTeamsFilePath(code, season);
-  if (!cachePath) {
-    logError("Error getting cache path for competition teams", "");
-    throw errors.UNEXPECTED("Unexpected internal error");
-  }
   const url = `${FOOTBALL_API_URI}/competitions/${code}/teams?season=${season}`;
-  if (!url) {
-    logError("Error getting URL for teams", "");
-    throw errors.UNEXPECTED("Unexpected internal error");
-  }
 
   return fetchWithCache({
     cachePath,
@@ -138,21 +127,13 @@ export async function fetchCompetitionTeams(code, season) {
   });
 }
 
-// Team with Squad
 export async function fetchTeamWithSquad(teamId) {
   if (!teamId) {
     throw errors.INVALID_DATA("Make sure you provide a team id");
   }
+
   const cachePath = getTeamPlayersFilePath(teamId);
-  if (!cachePath) {
-    logError("Error getting cache path for team with squad", "");
-    throw errors.UNEXPECTED("Unexpected internal error");
-  }
   const url = `${FOOTBALL_API_URI}/teams/${teamId}`;
-  if (!url) {
-    logError("Error getting team url", "");
-    throw errors.UNEXPECTED("Unexpected internal error");
-  }
 
   return fetchWithCache({
     cachePath,

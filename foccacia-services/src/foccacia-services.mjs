@@ -1,22 +1,22 @@
 import {
   Competition,
-  createGroup as createGroupData,
+  createGroupMem,
   createUserMem,
+  deleteGroupMem,
   findUserByToken,
-  getGroup as getGroupData,
-  deleteGroup as deleteGroupData,
-  listGroups,
+  getGroupMem,
+  listGroupsMem,
   Player,
   Team,
-  updateGroup,
+  updateGroupMem,
 } from "foccacia-data-mem";
 import {
   fetchCompetitions,
   fetchCompetitionTeams,
   fetchTeamWithSquad,
 } from "fapi-teams-data";
-import { logInfo } from "foccacia-utils";
-import errors from "foccacia-errors";
+import { calculateAge, logInfo } from "foccacia-utils";
+import errors, { ERROR_CODES } from "foccacia-errors";
 
 // Competitions
 export async function getCompetitions() {
@@ -56,8 +56,8 @@ export async function getTeams(code, season) {
           teamJson.name,
           player.position,
           player.nationality,
-          player.dateOfBirth
-        ) // calculateAge(player.dateOfBirth)
+          calculateAge(player.dateOfBirth)
+        )
     );
 
     return new Team(
@@ -101,7 +101,7 @@ export async function createUser(username) {
 }
 
 export function getGroups(userId) {
-  return { groups: listGroups(userId) };
+  return { groups: listGroupsMem(userId) };
 }
 
 export function createGroup(userId, name, description, competition, year) {
@@ -110,7 +110,7 @@ export function createGroup(userId, name, description, competition, year) {
       "Make sure you provide userId, name, description, competition and year for this operation"
     );
   }
-  return createGroupData(userId, name, description, competition, year);
+  return createGroupMem(userId, name, description, competition, year);
 }
 
 export function getGroup(groupId) {
@@ -120,7 +120,7 @@ export function getGroup(groupId) {
     );
   }
 
-  const group = getGroupData(groupId);
+  const group = getGroupMem(groupId);
   if (!group) {
     throw errors.NOT_FOUND("Group not found");
   }
@@ -134,7 +134,7 @@ export function replaceGroup(groupId, changes) {
       "Make sure you provide the group id and changes for this operation"
     );
   }
-  const group = updateGroup(groupId, changes);
+  const group = updateGroupMem(groupId, changes);
 
   if (!group) {
     throw errors.NOT_FOUND("Group not found");
@@ -149,9 +149,8 @@ export function deleteGroup(groupId) {
       "Make sure you provide the group id for this operation"
     );
   }
-  return { deleted: deleteGroupData(parseInt(groupId)) };
+  return { deleted: deleteGroupMem(parseInt(groupId)) };
 }
-export function addPlayerToGroup() {}
 
 export function addPlayerToGroup(groupId, playerData) {
   if (!groupId || !playerId) {
@@ -159,7 +158,7 @@ export function addPlayerToGroup(groupId, playerData) {
       "Make sure you provide both group id and player id for this operation"
     );
   }
-  const group = getGroupData(groupId);
+  const group = getGroupMem(groupId);
   if (!group) {
     throw errors.NOT_FOUND("Group not found");
   }
