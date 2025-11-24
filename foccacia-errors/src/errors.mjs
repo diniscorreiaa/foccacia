@@ -35,8 +35,8 @@ export default {
   BAD_GATEWAY: (message) =>
     new ApplicationError(ERROR_CODES.BadGateway, message),
 
-  IO_ERROR: (message) => new ApplicationError(ERROR_CODES.BadGateway, message),
+  IO_ERROR: (message) => new ApplicationError(ERROR_CODES.IO_Error, message),
 
   UNEXPECTED: (message) =>
-    new ApplicationError(ERROR_CODES.BadGateway, message),
+    new ApplicationError(ERROR_CODES.Unexpected, message),
 };

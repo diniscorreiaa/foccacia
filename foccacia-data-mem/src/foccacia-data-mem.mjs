@@ -10,13 +10,11 @@ export { Competition, Team, Player, User, Group } from "./domain-model.mjs";
 let nextUserId = 1,
   nextGroupId = 1;
 
-// TODO: Micro-optimizations: Discuss an array is the best data structure here
 const USERS = [],
   GROUPS = [],
   USERS_CACHE_PATH = getUsersFilePath();
 
 // USERS
-// TODO: Discuss the possibility of a MAP with user token as key and User object as value
 function persistUsers() {
   writeJson(USERS, USERS_CACHE_PATH).catch((err) => {
     logError("Error writing users cache", err);
@@ -57,8 +55,11 @@ export function listGroups(userId) {
 }
 
 export function updateGroup(groupId, changes) {
-  // changes is going to be obtained by filtering relevant properties from the group object received in the body
   const group = GROUPS.find((g) => g.id === groupId);
+  if (!group) {
+    return null;
+  }
+
   if (changes.name) group.name = changes.name;
   if (changes.description) group.description = changes.description;
   return group;
@@ -77,7 +78,6 @@ export function getGroup(groupId) {
 
 // GROUP PLAYERS
 export function addPlayerToGroup(groupId, playerData) {
-  // A mesma coisa da função update se aplica aqui para playerData
   const group = getGroup(groupId);
   if (!group) return null;
 

@@ -81,7 +81,7 @@ export async function convertTokenToUserId(token) {
   }
   const user = findUserByToken(token);
   if (!user) {
-    throw errors.NOT_FOUND("User not found");
+    throw errors.UNAUTHORIZED("Invalid token");
   }
   return user.id;
 }
@@ -119,7 +119,13 @@ export function getGroup(groupId) {
       "Make sure you provide the group id for this operation"
     );
   }
-  return getGroupData(groupId);
+
+  const group = getGroupData(groupId);
+  if (!group) {
+    throw errors.NOT_FOUND("Group not found");
+  }
+
+  return group;
 }
 
 export function replaceGroup(groupId, changes) {
@@ -128,7 +134,13 @@ export function replaceGroup(groupId, changes) {
       "Make sure you provide the group id and changes for this operation"
     );
   }
-  return updateGroup(parseInt(groupId), changes);
+  const group = updateGroup(groupId, changes);
+
+  if (!group) {
+    throw errors.NOT_FOUND("Group not found");
+  }
+
+  return group;
 }
 
 export function deleteGroup(groupId) {
