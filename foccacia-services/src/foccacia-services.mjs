@@ -127,7 +127,7 @@ export function replaceGroup(groupId, changes) {
       "Make sure you provide the group id and changes for this operation"
     );
   }
-  return updateGroup(groupId, changes);
+  return updateGroup(parseInt(groupId), changes);
 }
 
 export function deleteGroup(groupId) {}
