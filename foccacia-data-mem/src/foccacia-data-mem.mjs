@@ -87,17 +87,15 @@ export function getGroupMem(groupId) {
 }
 
 // GROUP PLAYERS
-export function addPlayerToGroup(groupId, playerData) {
+export function addPlayerToGroupMem(groupId, playerData) {
   const group = getGroupMem(groupId);
   if (!group) {
     return null;
   }
 
-  const playerName = playerData.playerName ?? playerData.name;
-
   const player = new Player(
     playerData.id,
-    playerName,
+    playerData.playerName,
     playerData.teamId,
     playerData.teamName,
     playerData.position,

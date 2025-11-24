@@ -1,4 +1,5 @@
 import {
+  addPlayerToGroupMem,
   Competition,
   createGroupMem,
   createUserMem,
@@ -231,7 +232,7 @@ export function addPlayerToGroup(userId, groupId, playerData) {
     );
   }
 
-  return addPlayerToGroup(id, {
+  const player = addPlayerToGroupMem(id, {
     id: playerId,
     playerName,
     teamId,
@@ -240,6 +241,12 @@ export function addPlayerToGroup(userId, groupId, playerData) {
     nationality,
     age,
   });
+
+  if (!player) {
+    throw errors.UNEXPECTED("Could not add player to group");
+  }
+
+  return player;
 }
 
 export function deletePlayerFromGroup(userId, groupId, playerId) {

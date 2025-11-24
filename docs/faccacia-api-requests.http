@@ -12,8 +12,8 @@
 # Tokens:
 # 1) Cria primeiro 1 utilizador e copia o token devolvido para @token
 # 2) Cria um 2º utilizador e copia o token para @otherToken (para testar 403)
-@token = Bearer e5e9322c-e47f-4d1a-923b-b524cd2e420f
-@otherToken = Bearer 5509a55d-ad5f-4926-8ee2-30d8e047eac3
+@token = Bearer 364f32e6-2d46-4f7b-9447-ba777154f12f
+@otherToken = Bearer 99d8ec4b-6eea-41c8-b0aa-dededbe7f76e
 @invalidToken = Bearer invalid-token
 
 ### GET - Todas as Competições Disponíveis (200)
@@ -133,9 +133,8 @@ DELETE {{api}}/groups/{{groupId}}
 Authorization: {{otherToken}}
 Accept: {{accept-content}}
 
-
 ### POST - Adiciona Jogador a Grupo (200)
-POST {{api}}/groups/2/players
+POST {{api}}/groups/{{groupId}}/players
 Authorization: {{token}}
 Content-Type: {{accept-content}}
 Accept: {{accept-content}}
@@ -179,7 +178,7 @@ Authorization: {{token}}
 Accept: {{accept-content}}
 
 ### NEGATIVO - 404 (Jogador não existe no grupo)
-DELETE {{api}}/groups/{{groupId}}/players/999999
+DELETE {{api}}/groups/{{groupId}}/players/77777777777
 Authorization: {{token}}
 Accept: {{accept-content}}
 
