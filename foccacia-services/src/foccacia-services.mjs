@@ -153,7 +153,7 @@ export function addPlayerToGroup(groupId, playerData) {
   }
 
   if (group.players.find((p) => p.id === player.id)) {
-    throw { code: ERROR_CODES.InvalidData, message: "Player already in group" };
+    throw errors.UNPROCESSABLE("Player already in group");
   }
 
   group.players.push(playerId);
