@@ -8,7 +8,7 @@ import {
   getGroupMem,
   listGroupsMem,
   Player,
-  removePlayerFromGroup,
+  removePlayerFromGroupMem,
   Team,
   updateGroupMem,
 } from "foccacia-data-mem";
@@ -21,7 +21,7 @@ import { calculateAge, isNonEmptyString, logInfo } from "foccacia-utils";
 import errors from "foccacia-errors";
 
 // Competitions
-export async function getCompetitions() {
+export async function getCompetitionsServices() {
   const raw = await fetchCompetitions();
   const competitions = raw.map(
     (competition) => new Competition(competition.code, competition.name)
@@ -31,7 +31,7 @@ export async function getCompetitions() {
 }
 
 // Teams
-export async function getTeams(code, season) {
+export async function getTeamsServices(code, season) {
   if (!code || !season) {
     throw errors.INVALID_DATA(
       "Make sure you specify a correct competition code and season"
@@ -77,7 +77,7 @@ export async function getTeams(code, season) {
   return result;
 }
 
-export async function convertTokenToUserId(token) {
+export async function convertTokenToUserIdServices(token) {
   if (!token) {
     throw errors.UNAUTHORIZED("Invalid token");
   }
@@ -88,7 +88,7 @@ export async function convertTokenToUserId(token) {
   return user.id;
 }
 
-export async function createUser(username) {
+export async function createUserServices(username) {
   if (!username || !username.trim()) {
     throw errors.INVALID_DATA("Username is required");
   }
@@ -102,11 +102,17 @@ export async function createUser(username) {
   return user;
 }
 
-export function getGroups(userId) {
+export function getGroupsServices(userId) {
   return listGroupsMem(userId);
 }
 
-export function createGroup(userId, name, description, competition, year) {
+export function createGroupServices(
+  userId,
+  name,
+  description,
+  competition,
+  year
+) {
   if (!name || !description || !competition || !year) {
     throw errors.INVALID_DATA(
       "Make sure you provide userId, name, description, competition and year for this operation"
@@ -117,7 +123,7 @@ export function createGroup(userId, name, description, competition, year) {
 
 // TODO : Francisco => verificar se podemos fazer um wrapper para reduzir repetição de código
 
-export function getGroup(userId, groupId) {
+export function getGroupServices(userId, groupId) {
   const id = parseInt(groupId);
   if (Number.isNaN(id)) {
     throw errors.INVALID_DATA(
@@ -136,7 +142,7 @@ export function getGroup(userId, groupId) {
   return group;
 }
 
-export function replaceGroup(userId, groupId, changes) {
+export function replaceGroupServices(userId, groupId, changes) {
   if (!changes) {
     throw errors.INVALID_DATA(
       "Make sure you provide the group id and changes for this operation"
@@ -176,7 +182,7 @@ export function replaceGroup(userId, groupId, changes) {
   return updated;
 }
 
-export function deleteGroup(userId, groupId) {
+export function deleteGroupServices(userId, groupId) {
   const id = parseInt(groupId);
   if (Number.isNaN(id)) {
     throw errors.INVALID_DATA(
@@ -196,10 +202,11 @@ export function deleteGroup(userId, groupId) {
   if (!deleted) {
     throw errors.NOT_FOUND("Group not found");
   }
+  return true;
 }
 
 // TODO : Dinis => verificar porque nao faz throw 400 (Body(playerData) inválido ao adicionar jogador)
-export async function addPlayerToGroup(userId, groupId, playerData) {
+export async function addPlayerToGroupServices(userId, groupId, playerData) {
   if (!playerData) {
     throw errors.INVALID_DATA(
       "Make sure you provide player data for this operation"
@@ -292,7 +299,7 @@ export async function addPlayerToGroup(userId, groupId, playerData) {
   return player;
 }
 
-export function deletePlayerFromGroup(userId, groupId, playerId) {
+export function deletePlayerFromGroupServices(userId, groupId, playerId) {
   const gId = parseInt(groupId);
   const pId = parseInt(playerId);
 
@@ -310,10 +317,9 @@ export function deletePlayerFromGroup(userId, groupId, playerId) {
     throw errors.FORBIDDEN("You do not have access to this group");
   }
 
-  const removed = removePlayerFromGroup(gId, pId);
-  if (removed === null) {
+  const removed = removePlayerFromGroupMem(gId, pId);
+  if (removed === false) {
     throw errors.NOT_FOUND("Player not found in group");
   }
-
-  return { removed: true };
+  return true;
 }

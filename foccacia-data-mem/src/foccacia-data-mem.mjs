@@ -111,14 +111,14 @@ export function addPlayerToGroupMem(groupId, playerData) {
 }
 
 // TODO : Tiago => persist group players changes on file
-export function removePlayerFromGroup(groupId, playerId) {
+export function removePlayerFromGroupMem(groupId, playerId) {
   const group = getGroupMem(groupId);
   if (!group || !playerId) {
-    return null;
+    return false;
   }
 
   const idx = group.players.findIndex((p) => p.id === playerId);
   if (idx === -1) return null;
   group.players.splice(idx, 1);
-  return playerId;
+  return true;
 }
