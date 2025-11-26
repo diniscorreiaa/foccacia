@@ -78,7 +78,7 @@ export const getTeams = wrapAsync((req, res) =>
 );
 
 // Users
-export const createUser = wrapAsync(async (req, res) => {
+export const createUser = wrapAsync((req, res) => {
   const username = req.body?.username;
   const user = createUserServices(username);
   return res.status(201).json(userToDto(user));
