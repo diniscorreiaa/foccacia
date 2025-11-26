@@ -119,6 +119,7 @@ export const replaceGroup = wrapAsync((req, res) => {
   });
 });
 
+// TODO : Tiago => Verificar se o deleteGroup deve ser async
 export const deleteGroup = wrapAsync((req, res) => {
   const result = deleteGroupServices(req.userId, req.params.groupId);
   if (!result) {
@@ -134,6 +135,7 @@ export const addPlayerToGroup = wrapAsync((req, res) =>
   })
 );
 
+// TODO : Tiago => Verificar se o deletePlayerFromGroup deve ser async
 export const deletePlayerFromGroup = wrapAsync((req, res) => {
   const result = deletePlayerFromGroupServices(
     req.userId,
