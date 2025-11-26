@@ -1,6 +1,5 @@
 import {
   addPlayerToGroupServices,
-  convertTokenToUserIdServices,
   createGroupServices,
   createUserServices,
   deleteGroupServices,
@@ -9,6 +8,7 @@ import {
   getGroupServices,
   getGroupsServices,
   getTeamsServices,
+  getUserIdFromTokenServices,
   replaceGroupServices,
 } from "foccacia-services";
 import {
@@ -40,7 +40,7 @@ export const verifyToken = wrapAsync(async (req, res, next) => {
     throw errors.UNAUTHORIZED("Missing or invalid Bearer token");
   }
 
-  const userId = await convertTokenToUserIdServices(token);
+  const userId = await getUserIdFromTokenServices(token);
   req.token = token;
   req.userId = userId;
   logInfo(
@@ -123,7 +123,7 @@ export const replaceGroup = wrapAsync((req, res) => {
 export const deleteGroup = wrapAsync((req, res) => {
   const result = deleteGroupServices(req.userId, req.params.groupId);
   if (!result) {
-    // TODO : David => Ver qual erro retornar aqui
+    // TODO : Dinis => Ver qual erro retornar aqui
   }
   return res.sendStatus(204);
 });
@@ -143,7 +143,7 @@ export const deletePlayerFromGroup = wrapAsync((req, res) => {
     req.params.playerId
   );
   if (!result) {
-    // TODO : David => Ver qual erro retornar aqui
+    // TODO : Dinis => Ver qual erro retornar aqui
   }
   return res.sendStatus(204);
 });
