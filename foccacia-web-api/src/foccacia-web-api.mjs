@@ -80,7 +80,7 @@ export const getTeams = wrapAsync((req, res) =>
 // Users
 export const createUser = wrapAsync(async (req, res) => {
   const username = req.body?.username;
-  const user = await createUserServices(username);
+  const user = createUserServices(username);
   return res.status(201).json(userToDto(user));
 });
 
@@ -124,7 +124,7 @@ export const deleteGroup = wrapAsync((req, res) => {
   if (!result) {
     // TODO : David => Ver qual erro retornar aqui
   }
-  return res.status(204).end();
+  return res.sendStatus(204);
 });
 
 export const addPlayerToGroup = wrapAsync((req, res) =>
@@ -143,7 +143,7 @@ export const deletePlayerFromGroup = wrapAsync((req, res) => {
   if (!result) {
     // TODO : David => Ver qual erro retornar aqui
   }
-  return res.status(204).end();
+  return res.sendStatus(204);
 });
 
 export function hello(name = "world") {

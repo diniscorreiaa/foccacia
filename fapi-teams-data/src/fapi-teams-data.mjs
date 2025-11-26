@@ -87,6 +87,7 @@ async function fetchWithCache({
   return result;
 }
 
+// TODO : Francisco => Conseguimos modular isto melhor para evitar duplicação de código? Exemplo: Extrair cachePath e url
 // Competitions
 export async function fetchCompetitions() {
   const cachePath = getCompetitionsFilePath();

@@ -4,7 +4,7 @@ import {
   createGroupMem,
   createUserMem,
   deleteGroupMem,
-  findUserByToken,
+  findUserByTokenMem,
   getGroupMem,
   listGroupsMem,
   Player,
@@ -77,18 +77,18 @@ export async function getTeamsServices(code, season) {
   return result;
 }
 
-export async function convertTokenToUserIdServices(token) {
+export function convertTokenToUserIdServices(token) {
   if (!token) {
     throw errors.UNAUTHORIZED("Invalid token");
   }
-  const user = findUserByToken(token);
+  const user = findUserByTokenMem(token);
   if (!user) {
     throw errors.UNAUTHORIZED("Invalid token");
   }
   return user.id;
 }
 
-export async function createUserServices(username) {
+export function createUserServices(username) {
   if (!username || !username.trim()) {
     throw errors.INVALID_DATA("Username is required");
   }
@@ -318,7 +318,7 @@ export function deletePlayerFromGroupServices(userId, groupId, playerId) {
   }
 
   const removed = removePlayerFromGroupMem(gId, pId);
-  if (removed === false) {
+  if (!removed) {
     throw errors.NOT_FOUND("Player not found in group");
   }
   return true;

@@ -21,6 +21,7 @@ const USERS = [],
 
 // USERS
 // TODO : Tiago => read persisted users from file on startup
+// TODO : Confirmar com Professor sendo o writeJson async todo depende dele tambem deve ser async?
 function persistUsers() {
   writeJson(USERS, USERS_CACHE_PATH).catch((err) => {
     logError("Error writing users cache", err);
@@ -34,7 +35,7 @@ export function createUserMem(username) {
   return user;
 }
 
-export function findUserByToken(token) {
+export function findUserByTokenMem(token) {
   return USERS.find((u) => u.token === token) || null;
 }
 
@@ -118,7 +119,10 @@ export function removePlayerFromGroupMem(groupId, playerId) {
   }
 
   const idx = group.players.findIndex((p) => p.id === playerId);
-  if (idx === -1) return null;
+  if (idx === -1) {
+    return false;
+  }
+
   group.players.splice(idx, 1);
   return true;
 }
