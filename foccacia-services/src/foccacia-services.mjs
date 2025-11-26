@@ -77,7 +77,7 @@ export async function getTeamsServices(code, season) {
   return result;
 }
 
-export function convertTokenToUserIdServices(token) {
+export function getUserIdFromTokenServices(token) {
   if (!token) {
     throw errors.UNAUTHORIZED("Invalid token");
   }
