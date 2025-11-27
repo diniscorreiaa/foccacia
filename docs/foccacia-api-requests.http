@@ -13,8 +13,8 @@
 # Tokens:
 # 1) Cria primeiro 1 utilizador e copia o token devolvido para @token
 # 2) Cria um 2º utilizador e copia o token para @otherToken (para testar 403)
-@token = Bearer d0fd58b9-03d9-40b1-b259-1f70ff75ac14
-@otherToken = Bearer 9d72ed2b-6edb-41f4-8abf-817859b35e33
+@token = Bearer 9f56ba91-2fe5-4d1a-999d-91080de753b9
+@otherToken = Bearer 98aca6f8-6570-4945-920a-b97e1eb8a3eb
 @invalidToken = Bearer invalid-token
 
 ### GET - Todas as Competições Disponíveis (200)
@@ -307,7 +307,7 @@ Accept: {{accept-content}}
   "teamName": "SL Benfica"
 }
 
-### DELETE - Remove Jogador de um Grupo (200)
+### DELETE - Remove Jogador de um Grupo (204)
 DELETE {{api}}/groups/{{groupId}}/players/{{playerId}}
 Authorization: {{token}}
 Accept: {{accept-content}}

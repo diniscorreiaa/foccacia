@@ -18,7 +18,7 @@ import {
   fetchTeamWithSquad,
 } from "fapi-teams-data";
 import { calculateAge, isNonEmptyString, logInfo } from "foccacia-utils";
-import errors from "foccacia-errors";
+import errors from "foccacia-errors"; // Competitions
 
 // Competitions
 export async function getCompetitionsServices() {
@@ -54,6 +54,7 @@ export async function getTeamsServices(code, season) {
           player.id,
           player.name,
           teamJson.id,
+          teamJson.tla,
           teamJson.name,
           player.position,
           player.nationality,
@@ -233,7 +234,7 @@ export async function addPlayerToGroupServices(userId, groupId, playerData) {
   // TODO : Dinis => Testar este novo throw
   if (playerId == null || !playerName || !teamCode || !teamName) {
     throw errors.INVALID_DATA(
-      "Make sure you provide playerId, playerName, teamId and teamName"
+      "Make sure you provide playerId, playerName, teamCode and teamName"
     );
   }
 

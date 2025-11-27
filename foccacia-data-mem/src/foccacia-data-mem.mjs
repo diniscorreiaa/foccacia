@@ -100,7 +100,7 @@ export function addPlayerToGroupMem(groupId, playerData) {
     playerData.id,
     playerData.playerName,
     playerData.teamId,
-    playerData.teamCode, // novo
+    playerData.teamCode,
     playerData.teamName,
     playerData.position,
     playerData.nationality,

@@ -14,6 +14,7 @@ import {
   sendApplicationError,
   verifyToken,
 } from "foccacia-web-api";
+import errors from "foccacia-errors";
 
 const PORT = 1904;
 
@@ -48,12 +49,9 @@ app.delete(ROUTES.GROUP, deleteGroup);
 app.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
 app.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
 
-// Erro especial que o nosso Error Handling Middleware não deteta
+// Quando nenhuma rota anterior corresponde ao pedido
 app.use((req, res, next) => {
-  res.status(404).json({
-    uri: req.path,
-    description: "Route not found",
-  });
+  next(errors.NOT_FOUND("Route not found"));
 });
 
 // Error Handling Middleware
