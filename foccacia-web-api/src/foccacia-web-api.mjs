@@ -1,4 +1,16 @@
-import * as services from "foccacia-services";
+import {
+  addPlayerToGroupServices,
+  createGroupServices,
+  createUserServices,
+  deleteGroupServices,
+  deletePlayerFromGroupServices,
+  getCompetitionsServices,
+  getGroupServices,
+  getGroupsServices,
+  getTeamsServices,
+  getUserIdFromTokenServices,
+  updateGroupServices,
+} from "foccacia-services";
 import {
   groupToDto,
   playerToGroupDto,
@@ -28,7 +40,7 @@ export const verifyToken = wrapAsync(async (req, res, next) => {
     throw errors.UNAUTHORIZED("Missing or invalid Bearer token");
   }
 
-  const userId = await services.convertTokenToUserId(token);
+  const userId = await getUserIdFromTokenServices(token);
   req.token = token;
   req.userId = userId;
   logInfo(
@@ -54,27 +66,27 @@ async function genericApiRoute(
 
 // Competitions
 export const getCompetitions = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.getCompetitions)
+  genericApiRoute(req, res, getCompetitionsServices)
 );
 
 // Teams
 export const getTeams = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.getTeams, {
+  genericApiRoute(req, res, getTeamsServices, {
     servicesFuncArgs: [req.params.competitionCode, req.params.seasonYear],
     transformObj: (teamsArr) => teamsArr.map(teamToDto),
   })
 );
 
 // Users
-export const createUser = wrapAsync(async (req, res) => {
+export const createUser = wrapAsync((req, res) => {
   const username = req.body?.username;
-  const user = await services.createUser(username);
+  const user = createUserServices(username);
   return res.status(201).json(userToDto(user));
 });
 
 // Groups
 export const getGroups = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.getGroups, {
+  genericApiRoute(req, res, getGroupsServices, {
     servicesFuncArgs: [req.userId],
     transformObj: (groups) => groups.map(groupToDto),
   })
@@ -82,7 +94,7 @@ export const getGroups = wrapAsync((req, res) =>
 
 export const createGroup = wrapAsync(async (req, res) => {
   const { name, description, competition, year } = req.body ?? {};
-  const group = await services.createGroup(
+  const group = await createGroupServices(
     req.userId,
     name,
     description,
@@ -93,38 +105,48 @@ export const createGroup = wrapAsync(async (req, res) => {
 });
 
 export const getGroup = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.getGroup, {
+  genericApiRoute(req, res, getGroupServices, {
     servicesFuncArgs: [req.userId, req.params.groupId],
     transformObj: groupToDto,
   })
 );
 
-export const replaceGroup = wrapAsync((req, res) => {
+export const updateGroup = wrapAsync((req, res) => {
   const { name, description } = req.body ?? {};
-  return genericApiRoute(req, res, services.replaceGroup, {
+  return genericApiRoute(req, res, updateGroupServices, {
     servicesFuncArgs: [req.userId, req.params.groupId, { name, description }],
     transformObj: groupToDto,
   });
 });
 
-export const deleteGroup = wrapAsync(async (req, res) => {
-  await services.deleteGroup(req.userId, req.params.groupId);
-  return res.status(204).end();
+// TODO : Tiago => Verificar se o deleteGroup deve ser async
+export const deleteGroup = wrapAsync((req, res) => {
+  const result = deleteGroupServices(req.userId, req.params.groupId);
+  if (!result) {
+    // TODO : Dinis => Ver qual erro retornar aqui
+  }
+  return res.sendStatus(204);
 });
 
 export const addPlayerToGroup = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.addPlayerToGroup, {
+  genericApiRoute(req, res, addPlayerToGroupServices, {
     servicesFuncArgs: [req.userId, req.params.groupId, req.body],
     transformObj: playerToGroupDto,
   })
 );
 
-export const deletePlayerFromGroup = wrapAsync((req, res) =>
-  genericApiRoute(req, res, services.deletePlayerFromGroup, {
-    servicesFuncArgs: [req.userId, req.params.groupId, req.params.playerId],
-    transformObj: (result) => result,
-  })
-);
+// TODO : Tiago => Verificar se o deletePlayerFromGroup deve ser async
+export const deletePlayerFromGroup = wrapAsync((req, res) => {
+  const result = deletePlayerFromGroupServices(
+    req.userId,
+    req.params.groupId,
+    req.params.playerId
+  );
+  if (!result) {
+    // TODO : Dinis => Ver qual erro retornar aqui
+  }
+  return res.sendStatus(204);
+});
 
 export function hello(name = "world") {
   return `hello ${name}`;
