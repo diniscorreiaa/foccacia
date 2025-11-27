@@ -34,13 +34,13 @@ function getToken(req) {
   return value;
 }
 
-export const verifyToken = wrapAsync(async (req, res, next) => {
+export const verifyToken = wrapAsync((req, res, next) => {
   const token = getToken(req);
   if (!token) {
     throw errors.UNAUTHORIZED("Missing or invalid Bearer token");
   }
 
-  const userId = await getUserIdFromTokenServices(token);
+  const userId = getUserIdFromTokenServices(token);
   req.token = token;
   req.userId = userId;
   logInfo(
@@ -92,9 +92,9 @@ export const getGroups = wrapAsync((req, res) =>
   })
 );
 
-export const createGroup = wrapAsync(async (req, res) => {
+export const createGroup = wrapAsync((req, res) => {
   const { name, description, competition, year } = req.body ?? {};
-  const group = await createGroupServices(
+  const group = createGroupServices(
     req.userId,
     name,
     description,
