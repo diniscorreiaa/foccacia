@@ -18,7 +18,7 @@ import {
   fetchTeamWithSquad,
 } from "fapi-teams-data";
 import { calculateAge, isNonEmptyString, logInfo } from "foccacia-utils";
-import errors from "foccacia-errors"; // Competitions
+import errors from "foccacia-errors";
 
 // Competitions
 export async function getCompetitionsServices() {
