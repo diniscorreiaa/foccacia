@@ -4,11 +4,11 @@ import {
   createGroupMem,
   createUserMem,
   deleteGroupMem,
-  findUserByTokenMem,
+  deletePlayerFromGroupMem,
   getGroupMem,
+  getUserByTokenMem,
   listGroupsMem,
   Player,
-  removePlayerFromGroupMem,
   Team,
   updateGroupMem,
 } from "foccacia-data-mem";
@@ -17,7 +17,7 @@ import {
   fetchCompetitionTeams,
   fetchTeamWithSquad,
 } from "fapi-teams-data";
-import { calculateAge, isNonEmptyString, logInfo } from "foccacia-utils";
+import { getAgeFromDate, isNonEmptyString, logInfo } from "foccacia-utils";
 import errors from "foccacia-errors";
 
 // Competitions
@@ -58,7 +58,7 @@ export async function getTeamsServices(code, season) {
           teamJson.name,
           player.position,
           player.nationality,
-          calculateAge(player.dateOfBirth)
+          getAgeFromDate(player.dateOfBirth)
         )
     );
 
@@ -82,7 +82,7 @@ export function getUserIdFromTokenServices(token) {
   if (!token) {
     throw errors.UNAUTHORIZED("Invalid token");
   }
-  const user = findUserByTokenMem(token);
+  const user = getUserByTokenMem(token);
   if (!user) {
     throw errors.UNAUTHORIZED("Invalid token");
   }
@@ -143,7 +143,7 @@ export function getGroupServices(userId, groupId) {
   return group;
 }
 
-export function replaceGroupServices(userId, groupId, changes) {
+export function updateGroupServices(userId, groupId, changes) {
   if (!changes) {
     throw errors.INVALID_DATA(
       "Make sure you provide the group id and changes for this operation"
@@ -290,7 +290,7 @@ export async function addPlayerToGroupServices(userId, groupId, playerData) {
     teamName: teamDetails.shortName ?? teamDetails.name,
     position: squadPlayer.position,
     nationality: squadPlayer.nationality,
-    age: calculateAge(squadPlayer.dateOfBirth),
+    age: getAgeFromDate(squadPlayer.dateOfBirth),
   });
 
   if (!player) {
@@ -318,7 +318,7 @@ export function deletePlayerFromGroupServices(userId, groupId, playerId) {
     throw errors.FORBIDDEN("You do not have access to this group");
   }
 
-  const removed = removePlayerFromGroupMem(gId, pId);
+  const removed = deletePlayerFromGroupMem(gId, pId);
   if (!removed) {
     throw errors.NOT_FOUND("Player not found in group");
   }

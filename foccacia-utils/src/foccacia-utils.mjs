@@ -17,7 +17,7 @@ export function isNonEmptyString(value) {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-export function calculateAge(dateOfBirthStr) {
+export function getAgeFromDate(dateOfBirthStr) {
   if (!dateOfBirthStr) {
     return null;
   }

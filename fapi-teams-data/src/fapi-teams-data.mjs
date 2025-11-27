@@ -12,10 +12,6 @@ import {
 } from "foccacia-utils";
 import errors from "foccacia-errors";
 
-export function hello(name = "world") {
-  return `hello ${name}`;
-}
-
 const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 
 async function loadAuthHeaders() {
@@ -144,4 +140,8 @@ export async function fetchTeamWithSquad(teamId) {
     buildResult: (body) => body,
     buildCacheData: (result) => result,
   });
+}
+
+export function hello(name = "world") {
+  return `hello ${name}`;
 }

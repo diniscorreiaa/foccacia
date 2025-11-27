@@ -9,7 +9,7 @@ import {
   getGroupsServices,
   getTeamsServices,
   getUserIdFromTokenServices,
-  replaceGroupServices,
+  updateGroupServices,
 } from "foccacia-services";
 import {
   groupToDto,
@@ -111,9 +111,9 @@ export const getGroup = wrapAsync((req, res) =>
   })
 );
 
-export const replaceGroup = wrapAsync((req, res) => {
+export const updateGroup = wrapAsync((req, res) => {
   const { name, description } = req.body ?? {};
-  return genericApiRoute(req, res, replaceGroupServices, {
+  return genericApiRoute(req, res, updateGroupServices, {
     servicesFuncArgs: [req.userId, req.params.groupId, { name, description }],
     transformObj: groupToDto,
   });

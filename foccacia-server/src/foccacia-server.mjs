@@ -10,8 +10,8 @@ import {
   getGroup,
   getGroups,
   getTeams,
-  replaceGroup,
   sendApplicationError,
+  updateGroup,
   verifyToken,
 } from "foccacia-web-api";
 import errors from "foccacia-errors";
@@ -42,9 +42,9 @@ app.use(verifyToken);
 
 // Rotas Privadas
 app.get(ROUTES.GROUPS, getGroups);
-app.post(ROUTES.GROUPS, createGroup);
 app.get(ROUTES.GROUP, getGroup);
-app.put(ROUTES.GROUP, replaceGroup);
+app.post(ROUTES.GROUPS, createGroup);
+app.put(ROUTES.GROUP, updateGroup);
 app.delete(ROUTES.GROUP, deleteGroup);
 app.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
 app.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
