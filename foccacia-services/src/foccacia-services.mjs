@@ -1,5 +1,7 @@
+// TODO : depende dataMem, fapiTeams, utils, errors
+
 // TODO : Francisco => eliminar código repetido e modularizar
-export function initFoccaciaServices({ dataMem, fapiTeams, utils, errors }) {
+export function initServices({ dataMem, fapiTeams, utils, errors }) {
   // Competitions
   async function getCompetitionsServices() {
     const raw = await fapiTeams.fetchCompetitions();

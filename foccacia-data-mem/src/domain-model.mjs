@@ -1,3 +1,5 @@
+// TODO : Sem depedencias externas
+
 import { randomUUID } from "node:crypto";
 
 export function Competition(code, name) {

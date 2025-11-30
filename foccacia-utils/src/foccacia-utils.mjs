@@ -1,3 +1,5 @@
+// TODO : depende de log-utils e json-utils e io-utils
+
 export { logInfo, logSuccess, logError } from "./log-utils.mjs";
 export { readJson, writeJson } from "./json-utils.mjs";
 export {

@@ -1,3 +1,5 @@
+// TODO : Depende de errors e utils
+
 import {
   fileExists,
   getCompetitionsFilePath,

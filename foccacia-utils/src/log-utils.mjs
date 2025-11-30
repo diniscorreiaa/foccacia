@@ -1,3 +1,5 @@
+// TODO : Sem depedencias externas
+
 function now() {
   return new Date().toISOString();
 }

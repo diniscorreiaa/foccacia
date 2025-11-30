@@ -1,3 +1,5 @@
+// TODO : Depende de domain-model e utils
+
 import { Group, Player, User } from "./domain-model.mjs";
 import {
   getUsersFilePath,

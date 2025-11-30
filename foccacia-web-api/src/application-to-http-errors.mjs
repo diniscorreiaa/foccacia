@@ -1,3 +1,5 @@
+// TODO : Depende de errors e utils
+
 import { ERROR_CODES } from "foccacia-errors";
 import { logError } from "foccacia-utils";
 

@@ -1,3 +1,5 @@
+// TODO : Depende de fs, io-utils e foccacia-errors
+
 import fs from "fs/promises";
 import { fileExists, getDirName } from "./io-utils.mjs";
 import errors from "foccacia-errors";

@@ -1,20 +1,6 @@
-import express from "express";
-import { logSuccess } from "foccacia-utils";
-import {
-  addPlayerToGroup,
-  createGroup,
-  createUser,
-  deleteGroup,
-  deletePlayerFromGroup,
-  getCompetitions,
-  getGroup,
-  getGroups,
-  getTeams,
-  sendApplicationError,
-  updateGroup,
-  verifyToken,
-} from "foccacia-web-api";
-import errors from "foccacia-errors";
+// TODO : depende de app, api, errors, utils
+
+import { api, app, errors, utils } from "./foccacia-module-resolver.mjs";
 
 const PORT = 1904;
 
@@ -29,25 +15,22 @@ const ROUTES = {
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
 
-const app = express();
-app.use(express.json());
-
 //Rotas Públicas
-app.get(ROUTES.COMPETITIONS, getCompetitions);
-app.get(ROUTES.TEAMS, getTeams);
-app.post(ROUTES.USERS, createUser);
+app.get(ROUTES.COMPETITIONS, api.getCompetitions);
+app.get(ROUTES.TEAMS, api.getTeams);
+app.post(ROUTES.USERS, api.createUser);
 
 // Middleware de Autenticação
-app.use(verifyToken);
+app.use(api.verifyToken);
 
 // Rotas Privadas
-app.get(ROUTES.GROUPS, getGroups);
-app.get(ROUTES.GROUP, getGroup);
-app.post(ROUTES.GROUPS, createGroup);
-app.put(ROUTES.GROUP, updateGroup);
-app.delete(ROUTES.GROUP, deleteGroup);
-app.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
-app.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
+app.get(ROUTES.GROUPS, api.getGroups);
+app.get(ROUTES.GROUP, api.getGroup);
+app.post(ROUTES.GROUPS, api.createGroup);
+app.put(ROUTES.GROUP, api.updateGroup);
+app.delete(ROUTES.GROUP, api.deleteGroup);
+app.post(ROUTES.GROUP_PLAYERS, api.addPlayerToGroup);
+app.delete(ROUTES.GROUP_PLAYER, api.deletePlayerFromGroup);
 
 // Quando nenhuma rota anterior corresponde ao pedido
 app.use((req, res, next) => {
@@ -55,14 +38,16 @@ app.use((req, res, next) => {
 });
 
 // Error Handling Middleware
-app.use(sendApplicationError);
+app.use(api.sendApplicationError);
 
-logSuccess(
+utils.logSuccess(
   "FOCCACIA (Football Complete Clubs API and Chelas Internet Application) by Grupo 1 LEIC31D",
   ""
 );
 
-app.listen(PORT, () => logSuccess(`Server listening on port ${PORT}`, ""));
+app.listen(PORT, () =>
+  utils.logSuccess(`Server listening on port ${PORT}`, "")
+);
 
 export function hello(name = "world") {
   return `hello ${name}`;
