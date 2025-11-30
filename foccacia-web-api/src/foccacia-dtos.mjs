@@ -1,5 +1,3 @@
-// TODO : Sem Depedencias externas
-
 export function initDtos() {
   function teamToDto(team) {
     return {
@@ -45,6 +43,7 @@ export function initDtos() {
       token: user.token,
     };
   }
+
   return {
     teamToDto,
     groupToDto,

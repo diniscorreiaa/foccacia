@@ -1,6 +1,6 @@
-// TODO : depende de app, api, errors, utils
+import { createFoccaciaApp } from "./foccacia-module-resolver.mjs";
 
-import { api, app, errors, utils } from "./foccacia-module-resolver.mjs";
+const { app, api, errors, sendApplicationError, utils } = createFoccaciaApp();
 
 const PORT = 1904;
 
@@ -38,7 +38,7 @@ app.use((req, res, next) => {
 });
 
 // Error Handling Middleware
-app.use(api.sendApplicationError);
+app.use(sendApplicationError);
 
 utils.logSuccess(
   "FOCCACIA (Football Complete Clubs API and Chelas Internet Application) by Grupo 1 LEIC31D",
@@ -48,7 +48,3 @@ utils.logSuccess(
 app.listen(PORT, () =>
   utils.logSuccess(`Server listening on port ${PORT}`, "")
 );
-
-export function hello(name = "world") {
-  return `hello ${name}`;
-}

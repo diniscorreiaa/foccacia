@@ -1,6 +1,3 @@
-// TODO : Depende de services, dtos, errors e utils
-import { sendApplicationError } from "./application-to-http-errors.mjs";
-
 const wrapAsync = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
 
@@ -143,6 +140,5 @@ export function initWebApi({ services, dtos, errors, utils }) {
     deleteGroup,
     addPlayerToGroup,
     deletePlayerFromGroup,
-    sendApplicationError,
   };
 }
