@@ -1,7 +1,7 @@
-let nextUserId = 1,
-  nextGroupId = 1;
-
 export function initDataMem({ utils, domainModel }) {
+  let nextUserId = 1,
+    nextGroupId = 1;
+
   const users = [],
     groups = [],
     USERS_CACHE_PATH = utils.getUsersFilePath();

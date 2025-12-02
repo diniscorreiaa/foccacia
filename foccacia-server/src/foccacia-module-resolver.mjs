@@ -1,8 +1,15 @@
 import express from "express";
 import { randomUUID } from "node:crypto";
+import fsPromises from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 
-import * as utilsLib from "foccacia-utils";
 import errorsLib, { ERROR_CODES } from "foccacia-errors";
+
+import { initLogUtils } from "foccacia-utils/src/log-utils.mjs";
+import { initIoUtils } from "foccacia-utils/src/io-utils.mjs";
+import { initJsonUtils } from "foccacia-utils/src/json-utils.mjs";
+import { initUtils } from "foccacia-utils/src/foccacia-utils.mjs";
 
 import { initFapiTeams } from "fapi-teams-data";
 import { initDomainModel } from "foccacia-data-mem/src/domain-model.mjs";
@@ -14,16 +21,25 @@ import { initDto } from "foccacia-web-api/src/foccacia-dto.mjs";
 import { initSendApplicationError } from "foccacia-web-api/src/application-to-http-errors.mjs";
 
 export function createFoccaciaApp() {
-  const domainModel = initDomainModel({ randomUUID });
-  const dataMem = initDataMem({ utils: utilsLib, domainModel });
+  const logUtils = initLogUtils();
+  const ioUtils = initIoUtils({ fsPromises, path, fileURLToPath });
+  const jsonUtils = initJsonUtils({
+    fsPromises,
+    ioUtils,
+    errors: errorsLib,
+  });
+  const utils = initUtils({ logUtils, ioUtils, jsonUtils });
 
-  const fapiTeams = initFapiTeams({ utils: utilsLib, errors: errorsLib });
+  const domainModel = initDomainModel({ randomUUID });
+  const dataMem = initDataMem({ utils, domainModel });
+
+  const fapiTeams = initFapiTeams({ utils, errors: errorsLib });
 
   const services = initServices({
     domainModel,
     dataMem,
     fapiTeams,
-    utils: utilsLib,
+    utils,
     errors: errorsLib,
   });
 
@@ -32,7 +48,7 @@ export function createFoccaciaApp() {
     services,
     dto,
     errors: errorsLib,
-    utils: utilsLib,
+    utils,
   });
 
   const app = express();
@@ -40,7 +56,7 @@ export function createFoccaciaApp() {
 
   const sendApplicationError = initSendApplicationError({
     ERROR_CODES,
-    logError: utilsLib.logError,
+    logError: utils.logError,
   });
 
   return {
@@ -48,6 +64,6 @@ export function createFoccaciaApp() {
     api,
     sendApplicationError,
     errors: errorsLib,
-    utils: utilsLib,
+    utils,
   };
 }

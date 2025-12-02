@@ -1,5 +1,3 @@
-// TODO : Sem depedencias externas
-
 function ApplicationError(code, message) {
   this.code = code;
   this.message = message;

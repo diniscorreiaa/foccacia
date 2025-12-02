@@ -58,7 +58,7 @@ export function initFapiTeams({ utils, errors }) {
     buildResult,
     buildCacheData,
   }) {
-    if (utils.fileExists(cachePath)) {
+    if (await utils.fileExists(cachePath)) {
       utils.logInfo(`Using cache for ${logContext} at ${cachePath}`, "");
       const cached = await utils.readJson(cachePath);
       return fromCache(cached);

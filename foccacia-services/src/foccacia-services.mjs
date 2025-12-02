@@ -1,7 +1,3 @@
-// TODO : depende dataMem, fapiTeams, utils, errors
-// TODO : utils : logInfo, getAgeFromDate, isNonEmptyString
-// TODO : fapiTeams : fetchCompetitions, fetchCompetitionTeams, fetchTeamWithSquad, fetchTeamWithSquad
-
 // TODO : Francisco => eliminar código repetido e modularizar
 export function initServices({
   domainModel,

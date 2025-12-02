@@ -1,5 +1,3 @@
-// TODO : Sem depedencias externas
-
 export function initDomainModel({ randomUUID }) {
   function Competition(code, name) {
     this.code = code;
