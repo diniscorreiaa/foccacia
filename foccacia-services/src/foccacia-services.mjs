@@ -3,13 +3,19 @@
 // TODO : fapiTeams : fetchCompetitions, fetchCompetitionTeams, fetchTeamWithSquad, fetchTeamWithSquad
 
 // TODO : Francisco => eliminar código repetido e modularizar
-export function initServices({ dataMem, fapiTeams, utils, errors }) {
+export function initServices({
+  domainModel,
+  dataMem,
+  fapiTeams,
+  utils,
+  errors,
+}) {
   // Competitions
   async function getCompetitionsServices() {
     const raw = await fapiTeams.fetchCompetitions();
     const competitions = raw.map(
       (competition) =>
-        new dataMem.Competition(competition.code, competition.name)
+        new domainModel.Competition(competition.code, competition.name)
     );
     utils.logInfo(`Service: loaded ${competitions.length} competitions`, "");
     return competitions;
@@ -35,7 +41,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
     const result = squads.map((teamJson) => {
       const players = (teamJson.squad ?? []).map(
         (player) =>
-          new dataMem.Player(
+          new domainModel.Player(
             player.id,
             player.name,
             teamJson.id,
@@ -47,7 +53,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
           )
       );
 
-      return new dataMem.Team(
+      return new domainModel.Team(
         teamJson.id,
         teamJson.name,
         teamJson.area?.name ?? null,

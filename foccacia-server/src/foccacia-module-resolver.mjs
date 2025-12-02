@@ -1,6 +1,7 @@
 import express from "express";
+import { randomUUID } from "node:crypto";
+
 // TODO : dataMem & fapiTeams init
-import * as dataMem from "foccacia-data-mem";
 import * as fapiTeams from "fapi-teams-data";
 
 import * as utilsLib from "foccacia-utils";
@@ -11,9 +12,15 @@ import { initServices } from "foccacia-services";
 import { initWebApi } from "foccacia-web-api";
 import { initDto } from "foccacia-web-api/src/foccacia-dto.mjs";
 import { initSendApplicationError } from "foccacia-web-api/src/application-to-http-errors.mjs";
+import { initDomainModel } from "foccacia-data-mem/src/domain-model.mjs";
+import { initDataMem } from "foccacia-data-mem";
 
 export function createFoccaciaApp() {
+  const domainModel = initDomainModel({ randomUUID });
+  const dataMem = initDataMem({ utils: utilsLib, domainModel });
+
   const services = initServices({
+    domainModel,
     dataMem,
     fapiTeams,
     utils: utilsLib,
