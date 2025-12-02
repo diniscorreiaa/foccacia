@@ -1,4 +1,4 @@
-export function initDtos() {
+export function initDto() {
   function teamToDto(team) {
     return {
       teamName: team.teamName,

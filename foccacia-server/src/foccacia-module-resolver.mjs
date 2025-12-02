@@ -1,4 +1,5 @@
 import express from "express";
+// TODO : dataMem & fapiTeams init
 import * as dataMem from "foccacia-data-mem";
 import * as fapiTeams from "fapi-teams-data";
 
@@ -6,8 +7,9 @@ import * as utilsLib from "foccacia-utils";
 import errorsLib, { ERROR_CODES } from "foccacia-errors";
 
 import { initServices } from "foccacia-services";
+
 import { initWebApi } from "foccacia-web-api";
-import { initDtos } from "foccacia-web-api/src/foccacia-dtos.mjs";
+import { initDto } from "foccacia-web-api/src/foccacia-dto.mjs";
 import { initSendApplicationError } from "foccacia-web-api/src/application-to-http-errors.mjs";
 
 export function createFoccaciaApp() {
@@ -18,11 +20,10 @@ export function createFoccaciaApp() {
     errors: errorsLib,
   });
 
-  const dtos = initDtos();
-
+  const dto = initDto();
   const api = initWebApi({
     services,
-    dtos,
+    dto,
     errors: errorsLib,
     utils: utilsLib,
   });

@@ -10,7 +10,7 @@ function getToken(req) {
   return value;
 }
 
-export function initWebApi({ services, dtos, errors, utils }) {
+export function initWebApi({ services, dto, errors, utils }) {
   async function genericApiRoute(
     req,
     res,
@@ -53,7 +53,7 @@ export function initWebApi({ services, dtos, errors, utils }) {
   const getTeams = wrapAsync((req, res) =>
     genericApiRoute(req, res, services.getTeams, {
       servicesFuncArgs: [req.params.competitionCode, req.params.seasonYear],
-      transformObj: (teamsArr) => teamsArr.map(dtos.teamToDto),
+      transformObj: (teamsArr) => teamsArr.map(dto.teamToDto),
     })
   );
 
@@ -61,14 +61,14 @@ export function initWebApi({ services, dtos, errors, utils }) {
   const createUser = wrapAsync((req, res) => {
     const username = req.body?.username;
     const user = services.createUser(username);
-    return res.status(201).json(dtos.userToDto(user));
+    return res.status(201).json(dto.userToDto(user));
   });
 
   // Groups
   const getGroups = wrapAsync((req, res) =>
     genericApiRoute(req, res, services.getGroups, {
       servicesFuncArgs: [req.userId],
-      transformObj: (groups) => groups.map(dtos.groupToDto),
+      transformObj: (groups) => groups.map(dto.groupToDto),
     })
   );
 
@@ -81,13 +81,13 @@ export function initWebApi({ services, dtos, errors, utils }) {
       competition,
       year
     );
-    return res.status(201).json(dtos.groupToDto(group));
+    return res.status(201).json(dto.groupToDto(group));
   });
 
   const getGroup = wrapAsync((req, res) =>
     genericApiRoute(req, res, services.getGroup, {
       servicesFuncArgs: [req.userId, req.params.groupId],
-      transformObj: dtos.groupToDto,
+      transformObj: dto.groupToDto,
     })
   );
 
@@ -95,7 +95,7 @@ export function initWebApi({ services, dtos, errors, utils }) {
     const { name, description } = req.body ?? {};
     return genericApiRoute(req, res, services.updateGroup, {
       servicesFuncArgs: [req.userId, req.params.groupId, { name, description }],
-      transformObj: dtos.groupToDto,
+      transformObj: dto.groupToDto,
     });
   });
 
@@ -111,7 +111,7 @@ export function initWebApi({ services, dtos, errors, utils }) {
   const addPlayerToGroup = wrapAsync((req, res) =>
     genericApiRoute(req, res, services.addPlayerToGroup, {
       servicesFuncArgs: [req.userId, req.params.groupId, req.body],
-      transformObj: dtos.playerToGroupDto,
+      transformObj: dto.playerToGroupDto,
     })
   );
 
