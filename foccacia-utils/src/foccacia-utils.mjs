@@ -1,47 +1,61 @@
-export { logInfo, logSuccess, logError } from "./log-utils.mjs";
-export { readJson, writeJson } from "./json-utils.mjs";
-export {
-  fileExists,
-  getCompetitionsFilePath,
-  getCompetitionTeamsFilePath,
-  getHeadersFilePath,
-  getTeamPlayersFilePath,
-  getUsersFilePath,
-} from "./io-utils.mjs";
+export function initUtils({ logUtils, ioUtils, jsonUtils }) {
+  const { logInfo, logSuccess, logError } = logUtils;
+  const {
+    fileExists,
+    getHeadersFilePath,
+    getCompetitionsFilePath,
+    getCompetitionTeamsFilePath,
+    getTeamPlayersFilePath,
+    getUsersFilePath,
+  } = ioUtils;
+  const { readJson, writeJson } = jsonUtils;
 
-export function isString(value) {
-  return typeof value === "string" || value instanceof String;
-}
-
-export function isNonEmptyString(value) {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-export function getAgeFromDate(dateOfBirthStr) {
-  if (!dateOfBirthStr) {
-    return null;
+  function isString(value) {
+    return typeof value === "string" || value instanceof String;
   }
 
-  const birth = new Date(dateOfBirthStr);
-
-  if (Number.isNaN(birth.getTime())) {
-    return null;
+  function isNonEmptyString(value) {
+    return typeof value === "string" && value.trim().length > 0;
   }
 
-  const today = new Date();
+  function getAgeFromDate(dateOfBirthStr) {
+    if (!dateOfBirthStr) {
+      return null;
+    }
 
-  let age = today.getFullYear() - birth.getFullYear();
+    const birth = new Date(dateOfBirthStr);
 
-  const monthDiff = today.getMonth() - birth.getMonth();
-  const dayDiff = today.getDate() - birth.getDate();
+    if (Number.isNaN(birth.getTime())) {
+      return null;
+    }
 
-  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-    age--;
+    const today = new Date();
+
+    let age = today.getFullYear() - birth.getFullYear();
+
+    const monthDiff = today.getMonth() - birth.getMonth();
+    const dayDiff = today.getDate() - birth.getDate();
+
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age--;
+    }
+
+    return age;
   }
-
-  return age;
-}
-
-export function hello(name = "world") {
-  return `hello ${name}`;
+  return {
+    logInfo,
+    logSuccess,
+    logError,
+    fileExists,
+    readJson,
+    writeJson,
+    getHeadersFilePath,
+    getCompetitionsFilePath,
+    getCompetitionTeamsFilePath,
+    getTeamPlayersFilePath,
+    getUsersFilePath,
+    isString,
+    isNonEmptyString,
+    getAgeFromDate,
+  };
 }

@@ -217,7 +217,7 @@ ___
 ### 1.5. `foccacia-web-api`
 **Responsabilidade:** camada HTTP lógica (handlers Express, DTOs, middleware de auth, mapeamento erro→HTTP).
 
-- `src/foccacia-dtos.mjs`
+- `src/foccacia-dto.mjs`
     - Converte modelos internos em respostas JSON:
         - `teamToDto(team)`
         - `playerToDto(player)`
@@ -477,3 +477,52 @@ ___
     - atualizar `.http` para testar os principais fluxos:
         - criar user → obter token → usar token em chamadas de grupos.
         - tentar criar grupo/jogador inválido → receber erro adequado.
+
+## Dependency Injection
+
+```mermaid
+graph TD
+
+    subgraph BaseLibs
+        Errors["foccacia-errors"]
+        Utils["foccacia-utils"]
+    end
+
+    subgraph Modules
+        DataMem["foccacia-data-mem\ninitDataMem({ utils, errors? })"]
+        Fapi["fapi-teams-data\ninitFootballApi({ utils, errors })"]
+        Services["foccacia-services\ninitServices({ dataMem, footballApi, utils, errors })"]
+        WebApi["foccacia-web-api\ninitWebApi({ services, dtos, errors, utils })"]
+        Dtos["foccacia-dtos\ninitDtos()"]
+        ErrorHandler["application-to-http-errors\ninitSendApplicationError({ errors, utils })"]
+        Site["foccacia-site\ninitSite({ services, errors, utils })\n(futuro)"]
+    end
+
+    Resolver["foccacia-module-resolver\ncreateFoccaciaApp()"]
+    Server["foccacia-server"]
+
+%% Base libs só são importadas pelo resolver
+    Errors --> Resolver
+    Utils --> Resolver
+
+%% Resolver injeta tudo
+    Resolver --> DataMem
+    Resolver --> Fapi
+    Resolver --> Dtos
+    Resolver --> Services
+    Resolver --> WebApi
+    Resolver --> ErrorHandler
+    Resolver --> Site
+
+%% Fluxo lógico das dependências
+    DataMem --> Services
+    Fapi --> Services
+    Services --> WebApi
+    Services --> Site
+
+%% Server só fala com o resolver + APIs prontas
+    Resolver --> Server
+    WebApi --> Server
+    ErrorHandler --> Server
+
+```
