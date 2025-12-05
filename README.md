@@ -1,16 +1,18 @@
 # IPW - Introdução à Programação Web
 
-## Assignment 2
+## TODO : Atualizar para Assignment 3
+
+## Assignment 3
 ___
 
-- [Second Practical Assignment](https://github.com/isel-leic-ipw/2526i-IPW-LEIC31D/wiki/IPW_IP-2526-1-A2)
+- [Practical Assignment](https://github.com/isel-leic-ipw/2526i-IPW-LEIC31D/wiki/IPW_IP-2526-1-A3)
 
 
 <p align="center">
   <img src="https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg" alt="Review Assignment Due Date" />
 </p>
 
-<h2 align="center">📅 Due date for this assignment: 23/11/2025 — 23h59</h2>
+<h2 align="center">📅 Due date for this assignment: 19/12/2025 — 23h59</h2>
 
 ---
 
@@ -26,6 +28,7 @@ Modulos presentes:
 - `fapi-teams-data`
 - `foccacia-data-mem`
 - `foccacia-utils`
+- `TODO : other modules`
 
 Cada módulo tem `package.json`, `src/` e `test/` com testes ESM (`*.test.mjs`).
 
@@ -44,7 +47,8 @@ Adicionar workspaces para gestão centralizada:
 "foccacia-services",
 "fapi-teams-data",
 "foccacia-data-mem",
-  "foccacia-utils"
+"foccacia-utils",
+"TODO : other-modules"
 ]
 }
 ```
@@ -130,6 +134,8 @@ ___
 ___
 
 # FOCCACIA – Organização dos módulos e plano de trabalho
+
+## TODO : Atualizar
 
 ## 1. Módulos e responsabilidades
 
@@ -262,7 +268,7 @@ ___
 
 ---
 
-### 1.7. `foccacia-errors` (proposto)
+### 1.7. `foccacia-errors`
 **Responsabilidade:** modelo de erro de aplicação, independente de Express/HTTP.
 
 - `src/errors.mjs` (novo)
@@ -278,137 +284,60 @@ ___
 
 ---
 
-## 2. Dependências entre módulos
+### 1.8. Outros Modulos
+- TODO
 
-### 2.1. Grafo de dependências (alvo desejado)
+## 2. Dependências entre módulos com Dependency Injection
 
-```text
-          +-------------------+
-          |   foccacia-utils  |
-          +-------------------+
-                    ^
-                    |
-          +-------------------+
-          |  foccacia-errors  |
-          +-------------------+
-           ^       ^      ^
-           |       |      |
-+----------------+ |  +-------------------+
-| fapi-teams-data| |  | foccacia-data-mem |
-+----------------+ |  +-------------------+
-           ^       \      ^
-           |        \     |
-           |         \    |
-        +----------------------+
-        |    foccacia-services |
-        +----------------------+
-                    ^
-                    |
-          +--------------------+
-          |  foccacia-web-api  |
-          +--------------------+
-                    ^
-                    |
-          +--------------------+
-          |  foccacia-server   |
-          +--------------------+
+```mermaid
+
+flowchart TD
+    FS["foccacia-server.mjs"]
+    MR["foccacia-module-resolver.mjs (createFoccaciaApp)"]
+
+%% raiz
+    FS --> MR
+
+%% módulos principais criados pelo resolver
+    MR --> App["Express app (app)"]
+    MR --> Api["Web API (initWebApi)"]
+    MR --> Services["Services (initServices)"]
+    MR --> DataMem["Data in memory (initDataMem)"]
+    MR --> Domain["Domain model (initDomainModel)"]
+    MR --> Fapi["Football API wrapper (initFapiTeams)"]
+    MR --> Dto["DTO mappers (initDto)"]
+    MR --> ErrMw["Error middleware (initSendApplicationError)"]
+    MR --> Utils["foccacia-utils (logs, json, io, helpers)"]
+    MR --> Errors["foccacia-errors (ApplicationError + ERROR_CODES)"]
+
+%% dependências internas
+    Services --> DataMem
+    Services --> Domain
+    Services --> Fapi
+    Services --> Utils
+    Services --> Errors
+
+    Api --> Services
+    Api --> Dto
+    Api --> Errors
+    Api --> Utils
+
+    App --> Api
+    App --> ErrMw
+
 ```
-
-- Módulos de cima podem depender dos de baixo, nunca ao contrário.
-- `foccacia-server` é o único que conhece Express diretamente.
-- `foccacia-services` e `foccacia-data-mem` não sabem nada de HTTP.
-
----
 
 ## 3. Melhorias e tarefas futuras
 
 ### 3.1. Melhorias/correções no estado atual
-
-1. **DONE**
-2. **DONE**
-3. **Corrigir bugs em `foccacia-data-mem`**
-    - `updateGroup`:
-        - Trocar `filter` por `find`.
-        - Garantir que devolve `null` quando não encontra.
-    - `deleteGroup`:
-        - Corrigir `findIndex(g.id === groupId)` → `findIndex(g => g.id === groupId)`.
-    - `addPlayerToGroup`:
-        - Importar `Player`.
-        - Ajustar construtor ou argumentos para serem consistentes.
-    - `removePlayerFromGroup`:
-        - Usar `===` de forma consistente.
-        - Devolver `true/false` ou o player removido (definir API clara).
-    - `User`:
-        - Importar `randomUUID` de `node:crypto`.
-
-4. **Corrigir `foccacia-services`**
-    - Alinhar `Player`:
-        - ou simplificar o modelo em `domain-model.mjs` para o que é usado.
-        - ou criar DTOs sem usar `new Player(...)`.
-
-5. **Corrigir `foccacia-web-api`**
-    - Corrigir `verifyToken` para usar `errors.UNAUTHORIZED(...)`.
-    - Em todos os handlers:
-        - passar `req.userId`, `req.params` e `req.body` explicitamente para os services.
-
-6. **Done**
-
-7. **Done**
-   
+  
 ---
 
 ### 3.2. Novas features para cumprir o enunciado
 
-1. **Autenticação completa (Bearer token)**
-**Done**
-
-2. **Gestão de grupos “Best XI”**
-    - `getGroups(userId)`:
-        - obter grupos desse utilizador.
-        - devolver lista (aplicar `.map` para DTO).
-    - `createGroup(userId, data)`:
-        - validar `name`, `description`, `competitionCode`, `year`.
-        - criar grupo com `ownerId = userId`.
-    - `getGroup(userId, groupId)`:
-        - garantir que o grupo pertence ao `userId` (caso contrário → `FORBIDDEN`).
-    - `replaceGroup(userId, groupId, data)`:
-        - validar campos.
-        - atualizar nome/descrição/ano/competitionCode conforme regras.
-    - `deleteGroup(userId, groupId)`:
-        - validar owner, apagar grupo.
-
-3. **Gestão de jogadores nos grupos**
-    - `addPlayerToGroup(userId, groupId, playerData)`:
-        - verificar se o grupo pertence ao `userId`.
-        - garantir que não ultrapassa 11 jogadores.
-        - validar que o jogador pertence à competição/época do grupo (usando dados de `fapi-teams-data`).
-        - não permitir o mesmo jogador duas vezes.
-    - `deletePlayerFromGroup(userId, groupId, playerId)`:
-        - remover jogador pelo id.
-        - lidar bem com caso “não existe” (404 vs 422 conforme decidirem).
-
-4. **Alinhamento com estilo funcional**
-    - Sempre que fizer sentido, usar:
-        - `.map` para transformação de listas.
-        - `.filter` para seleção de elementos.
-        - `.reduce` para agregações (ex.: contagem, verificação de limite de jogadores).
-    - Evitar mutações desnecessárias e ciclos imperativos.
-
-5. **Documentação e testes**
-    - Atualizar o ficheiro OpenAPI (`.yaml`) com:
-        - schemas corretos de `User`, `Group`, `Player`, etc.
-        - descrições de erros e códigos HTTP (404, 401, 422, 429, 502).
-    - Atualizar `.http` para cobrir:
-        - criação de user e reutilização do token.
-        - criação/listagem/remoção de grupos.
-        - constraints de Best XI (11 jogadores, competição/ano coerente).
-    - Tests (`mocha` + `c8`):
-        - testes unitários para services (sem Express).
-        - testes dos handlers com chamadas diretas às funções.
-
 ---
 
-## 4. Divisão de tarefas (3 devs, sem conflitos)
+## 4. Divisão de tarefas
 
 ### Perfis
 
@@ -431,98 +360,20 @@ ___
 
 ### 4.2. Fase 2 – Erros e autenticação (Dinis Correia)
 
-1. Implementar e testar `foccacia-errors`:
-    - factories (`INVALID_DATA`, `UNAUTHORIZED`, etc.).
-    - garantir que todos os usos antigos estão atualizados.
-2. Rever `fapi-teams-data`:
-    - usar `foccacia-errors` para mapear status → erros de aplicação (incluindo 429, 5xx).
-3. Ajustar `sendApplicationError`:
-    - garantir mapeamento 1–1 de `ERROR_CODES` → HTTP status.
-    - logs consistentes via `logError`.
-4. **Done**
-5. Atualizar `verifyToken` em `foccacia-web-api` para:
-    - devolver erros `UNAUTHORIZED` e `FORBIDDEN` conforme o caso.
-
 ---
 
 ### 4.3. Fase 3 – Refactor e regras de negócio (Francisco Mendes)
-
-1. Corrigir e limpar `foccacia-data-mem`:
-    - `updateGroup`, `deleteGroup`, `addPlayerToGroup`, `removePlayerFromGroup`.
-    - ajustar `Player` (construtor coerente com uso).
-2. Definir a API de `foccacia-services`:
-    - assinaturas exatas de `createUser`, `getGroups`, `createGroup`, etc.
-    - extrair helpers de validação (`validateGroupBody`, `ensureGroupOwner`, etc.).
-3. Implementar regras de “Best XI”:
-    - max 11 jogadores (usar `.length` + `.reduce` se fizer sentido).
-    - validação da competição/época usando `fapi-teams-data`.
-    - evitar duplicados (`.some` / `.find` + `.filter`).
-4. Alinhar DTOs e nomes:
-    - rever `foccacia-dtos.mjs` para garantir que resposta bate com o OpenAPI.
-    - evitar nomes ambíguos em services e data-mem.
-5. Promover uso de `.map`, `.filter`, `.reduce` em listas em vez de ciclos imperativos.
 
 ---
 
 ### 4.4. Fase 4 – Integração final e documentação
 
 1. Dev Tiago Nevoa:
-    - verificar que as rotas definidas no server batem com o enunciado.
-    - garantir que todos os módulos são usados de forma unidirecional (sem ciclos).
+    - 
+    - 
 2. Dev Dinis Correia:
-    - rever mensagens de erro (em inglês no HTTP, logs podem ficar PT).
-    - garantir que todos os erros de negócio vão parar ao `sendApplicationError`.
+    - 
+    - 
 3. Dev Francisco Mendes:
-    - alinhar o `.yaml` (OpenAPI) com a implementação final.
-    - atualizar `.http` para testar os principais fluxos:
-        - criar user → obter token → usar token em chamadas de grupos.
-        - tentar criar grupo/jogador inválido → receber erro adequado.
-
-## Dependency Injection
-
-```mermaid
-graph TD
-
-    subgraph BaseLibs
-        Errors["foccacia-errors"]
-        Utils["foccacia-utils"]
-    end
-
-    subgraph Modules
-        DataMem["foccacia-data-mem\ninitDataMem({ utils, errors? })"]
-        Fapi["fapi-teams-data\ninitFootballApi({ utils, errors })"]
-        Services["foccacia-services\ninitServices({ dataMem, footballApi, utils, errors })"]
-        WebApi["foccacia-web-api\ninitWebApi({ services, dtos, errors, utils })"]
-        Dtos["foccacia-dtos\ninitDtos()"]
-        ErrorHandler["application-to-http-errors\ninitSendApplicationError({ errors, utils })"]
-        Site["foccacia-site\ninitSite({ services, errors, utils })\n(futuro)"]
-    end
-
-    Resolver["foccacia-module-resolver\ncreateFoccaciaApp()"]
-    Server["foccacia-server"]
-
-%% Base libs só são importadas pelo resolver
-    Errors --> Resolver
-    Utils --> Resolver
-
-%% Resolver injeta tudo
-    Resolver --> DataMem
-    Resolver --> Fapi
-    Resolver --> Dtos
-    Resolver --> Services
-    Resolver --> WebApi
-    Resolver --> ErrorHandler
-    Resolver --> Site
-
-%% Fluxo lógico das dependências
-    DataMem --> Services
-    Fapi --> Services
-    Services --> WebApi
-    Services --> Site
-
-%% Server só fala com o resolver + APIs prontas
-    Resolver --> Server
-    WebApi --> Server
-    ErrorHandler --> Server
-
-```
+    - 
+    -

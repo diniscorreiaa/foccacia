@@ -54,6 +54,8 @@ export function createFoccaciaApp() {
   const app = express();
   app.use(express.json());
 
+  // TODO : app.use(express.urlencoded()); Leitura de forms
+
   const sendApplicationError = initSendApplicationError({
     ERROR_CODES,
     logError: utils.logError,

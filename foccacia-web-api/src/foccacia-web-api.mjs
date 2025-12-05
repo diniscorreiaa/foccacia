@@ -27,6 +27,7 @@ export function initWebApi({ services, dto, errors, utils }) {
     res.json(transformObj(obj));
   }
 
+  // TODO : ALL => Em modular ainda mais as funcoes para evitar duplicacao de codigo, os middlewares, etc, podem ser chamados no return para nao contaminar visualmente as funcoes
   const verifyToken = wrapAsync((req, res, next) => {
     const token = getToken(req);
     if (!token) {
@@ -142,3 +143,5 @@ export function initWebApi({ services, dto, errors, utils }) {
     deletePlayerFromGroup,
   };
 }
+
+// TODO : ALL => Exemplo de modularizacao das funncoes em vez cada uma ter o wrapAsync, fazer o wrap aqui no return

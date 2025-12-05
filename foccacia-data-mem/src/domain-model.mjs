@@ -1,3 +1,5 @@
+// TODO : ALL -> e dado pelo services a quem enviar-lhe e recebe dados dele, e esses sao responsaveis por mapear os seus dados para essa estrutura
+
 export function initDomainModel({ randomUUID }) {
   function Competition(code, name) {
     this.code = code;
