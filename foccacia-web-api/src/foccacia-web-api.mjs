@@ -103,7 +103,7 @@ export function initWebApi({ services, dto, errors, utils }) {
   const deleteGroup = wrapAsync((req, res) => {
     const result = services.deleteGroup(req.userId, req.params.groupId);
     if (!result) {
-      // TODO : Dinis => Ver qual erro retornar aqui
+      throw errors.UNEXPECTED("Unexpected internal error")
     }
     return res.sendStatus(204);
   });
@@ -123,7 +123,7 @@ export function initWebApi({ services, dto, errors, utils }) {
       req.params.playerId
     );
     if (!result) {
-      // TODO : Dinis => Ver qual erro retornar aqui
+      throw errors.UNEXPECTED("Unexpected internal error")
     }
     return res.sendStatus(204);
   });
