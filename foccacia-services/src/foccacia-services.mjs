@@ -1,3 +1,5 @@
+// TODO : ALL => O service nao deve conhecer a estrutura de quem envia ou recebe dados dele
+// TODO : ALL => Criar uma funcao que verifica todos os parametros obrigatorios e se estao no estado correcto
 // TODO : Francisco => eliminar código repetido e modularizar
 export function initServices({
   domainModel,

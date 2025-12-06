@@ -1,3 +1,5 @@
+// TODO : ALL -> Receber Domain-model, mapear segundo o domain-model e retornar para o service num formato que ele conhece
+
 export function initDataMem({ utils, domainModel }) {
   let nextUserId = 1,
     nextGroupId = 1;

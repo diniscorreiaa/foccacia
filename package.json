@@ -11,7 +11,8 @@
     "fapi-teams-data",
     "foccacia-data-mem",
     "foccacia-utils",
-    "foccacia-errors"
+    "foccacia-errors",
+    "foccacia-web-site"
   ],
   "main": "foccacia-server/src/foccacia-server.mjs",
   "scripts": {

@@ -1,0 +1,16 @@
+{
+  "name": "foccacia-web-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/foccacia-web-site.mjs",
+  "scripts": {
+    "test": "mocha",
+    "coverage": "c8 mocha"
+  },
+  "dependencies": {
+    "foccacia-services": "file:../foccacia-services",
+    "foccacia-utils": "file:../foccacia-utils",
+    "foccacia-errors": "file:../foccacia-errors"
+  }
+}
