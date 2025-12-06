@@ -187,7 +187,6 @@ export function initServices({
     return true;
   }
 
-  // TODO : Dinis => verificar porque nao faz throw 400 (Body(playerData) inválido ao adicionar jogador)
   async function addPlayerToGroupServices(userId, groupId, playerData) {
     if (!playerData) {
       throw errors.INVALID_DATA(
@@ -212,19 +211,16 @@ export function initServices({
 
     const { playerId, playerName, teamCode, teamName } = playerData;
 
-    // TODO : Dinis => Testar este novo throw
     if (playerId == null || !playerName || !teamCode || !teamName) {
       throw errors.INVALID_DATA(
         "Make sure you provide playerId, playerName, teamCode and teamName"
       );
     }
 
-    // TODO : Dinis => Testar este novo throw
     if (group.players.some((p) => p.id === playerId)) {
       throw errors.UNPROCESSABLE("Player is already in this group");
     }
 
-    // TODO : Dinis => Testar este novo throw
     if (group.players.length >= 11) {
       throw errors.UNPROCESSABLE("Group already has 11 players");
     }

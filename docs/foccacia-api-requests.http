@@ -13,8 +13,8 @@
 # Tokens:
 # 1) Cria primeiro 1 utilizador e copia o token devolvido para @token
 # 2) Cria um 2º utilizador e copia o token para @otherToken (para testar 403)
-@token = Bearer ca45053c-b36f-492b-97ce-e260bd1d5ac9
-@otherToken = Bearer 723c693a-35f2-44a2-a451-9bea8b3c93c2
+@token = Bearer bedd834e-6bc1-4a6a-904e-ad7bbd994a20
+@otherToken = Bearer 07a9b570-9159-4ca2-94cf-ef6262eed3c6
 @invalidToken = Bearer invalid-token
 
 ### GET - Todas as Competições Disponíveis (200)
@@ -113,6 +113,18 @@ Content-Type: {{accept-content}}
 }
 
 ### POST - Adiciona Jogador 1 ao Grupo (200 - válido)
+POST {{api}}/groups/{{groupId}}/players
+Authorization: {{token}}
+Content-Type: {{accept-content}}
+
+{
+  "playerId": {{playerId}},
+  "playerName": "Vangelis Pavlidis",
+  "teamCode": "BEN",
+  "teamName": "SL Benfica"
+}
+
+### NEGATIVO - 422 (Jogador já existe no grupo)
 POST {{api}}/groups/{{groupId}}/players
 Authorization: {{token}}
 Content-Type: {{accept-content}}
