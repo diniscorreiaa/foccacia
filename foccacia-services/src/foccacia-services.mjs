@@ -10,11 +10,10 @@ export function initServices({
 }) {
   // Competitions
   async function getCompetitionsServices() {
-    const raw = await fapiTeams.fetchCompetitions();
-    const competitions = raw.map(
-      (competition) =>
-        new domainModel.Competition(competition.code, competition.name)
-    );
+    const competitions = await fapiTeams.fetchCompetitions();
+    if (!competitions) {
+      // TODO : Dinis
+    }
     utils.logInfo(`Service: loaded ${competitions.length} competitions`, "");
     return competitions;
   }
