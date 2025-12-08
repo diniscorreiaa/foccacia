@@ -7,5 +7,6 @@
   "scripts": {
     "test": "mocha",
     "coverage": "c8 mocha"
-  }
+  },
+  "dependencies": {}
 }
