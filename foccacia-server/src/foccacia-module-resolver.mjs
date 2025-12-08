@@ -36,7 +36,6 @@ export function createFoccaciaApp() {
   const fapiTeams = initFapiTeams({ domainModel, utils, errors: errorsLib });
 
   const services = initServices({
-    domainModel,
     dataMem,
     fapiTeams,
     utils,

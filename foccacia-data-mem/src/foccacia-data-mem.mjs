@@ -17,21 +17,31 @@ export function initDataMem({ utils, domainModel }) {
     });
   }
 
-  function createUserMem(username) {
+  function createUser(username) {
+    if (!username) {
+      // TODO : Dinis => return null ? or throw error
+    }
     const user = new domainModel.User(nextUserId++, username);
+    if (!user) {
+      // TODO : Dinis => return null ? or throw error
+    }
     users.push(user);
     persistUsers();
     return user;
   }
 
-  function getUserByTokenMem(token) {
+  function getUserByToken(token) {
+    if (!token) {
+      return null;
+    }
     return users.find((u) => u.token === token) || null;
   }
 
   // GROUPS
   // TODO : Tiago => Create groups persistence on file
   // TODO : Tiago =>  read persisted groups from file on startup
-  function createGroupMem(userId, name, description, competition, year) {
+  function createGroup(userId, name, description, competition, year) {
+    // TODO : Dinis => validate parameters
     const group = new domainModel.Group(
       userId,
       nextGroupId++,
@@ -40,16 +50,23 @@ export function initDataMem({ utils, domainModel }) {
       competition,
       year
     );
+    if (!group) {
+      // TODO : Dinis => return null ? or throw error
+    }
     groups.push(group);
     return group;
   }
 
-  function listGroupsMem(userId) {
+  function listGroups(userId) {
+    if (!userId) {
+      // TODO : Dinis => return null, [] ? or throw error
+    }
     return groups.filter((g) => g.ownerId === userId);
   }
 
   // TODO : Tiago => persist group changes on file
-  function updateGroupMem(groupId, changes) {
+  function updateGroup(groupId, changes) {
+    // TODO : Dinis => validate parameters
     const group = groups.find((g) => g.id === groupId);
     if (!group) {
       return null;
@@ -66,64 +83,58 @@ export function initDataMem({ utils, domainModel }) {
   }
 
   // TODO : Tiago => persist group deletion on file
-  function deleteGroupMem(groupId) {
+  function deleteGroup(groupId) {
+    if (!groupId) return false;
     const idx = groups.findIndex((g) => g.id === groupId);
     if (idx === -1) return false;
     groups.splice(idx, 1);
     return true;
   }
 
-  function getGroupMem(groupId) {
+  function getGroup(groupId) {
+    if (!groupId) {
+      return null;
+    }
     return groups.find((g) => g.id === groupId) || null;
   }
 
   // GROUP PLAYERS
   // TODO : Tiago => persist group players changes on file
-  function addPlayerToGroupMem(groupId, playerData) {
-    const group = getGroupMem(groupId);
+  function addPlayerToGroup(groupId, player) {
+    if (!groupId || !player) {
+      return null;
+    }
+    const group = getGroup(groupId);
     if (!group) {
       return null;
     }
-
-    const player = new domainModel.Player(
-      playerData.id,
-      playerData.playerName,
-      playerData.teamId,
-      playerData.teamCode,
-      playerData.teamName,
-      playerData.position,
-      playerData.nationality,
-      playerData.age
-    );
 
     group.players.push(player);
     return player;
   }
 
   // TODO : Tiago => persist group players changes on file
-  function deletePlayerFromGroupMem(groupId, playerId) {
-    const group = getGroupMem(groupId);
-    if (!group || !playerId) {
-      return false;
-    }
+  function deletePlayerFromGroup(groupId, playerId) {
+    if (!groupId || !playerId) return false;
 
-    const idx = group.players.findIndex((p) => p.id === playerId);
-    if (idx === -1) {
-      return false;
-    }
+    const group = getGroup(groupId);
+    if (!group) return false;
+
+    const idx = group.players.findIndex((player) => player.id === playerId);
+    if (idx === -1) return false;
 
     group.players.splice(idx, 1);
     return true;
   }
   return {
-    createUser: createUserMem,
-    getUserByToken: getUserByTokenMem,
-    createGroup: createGroupMem,
-    listGroups: listGroupsMem,
-    updateGroup: updateGroupMem,
-    deleteGroup: deleteGroupMem,
-    getGroup: getGroupMem,
-    addPlayerToGroup: addPlayerToGroupMem,
-    deletePlayerFromGroup: deletePlayerFromGroupMem,
+    createUser,
+    getUserByToken,
+    createGroup,
+    listGroups,
+    updateGroup,
+    deleteGroup,
+    getGroup,
+    addPlayerToGroup,
+    deletePlayerFromGroup,
   };
 }
