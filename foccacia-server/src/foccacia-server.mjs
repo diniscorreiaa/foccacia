@@ -1,8 +1,12 @@
+import express from "express";
 import { createFoccaciaApp } from "./foccacia-module-resolver.mjs";
 
-const { app, api, errors, sendApplicationError, utils } = createFoccaciaApp();
+const { api, errors, sendApplicationError, utils } = createFoccaciaApp();
 
 const PORT = 1904;
+
+const app = express();
+app.use(express.json());
 
 // TODO : Francisco => Make routes dynamic based on available resources
 const ROUTES = {
