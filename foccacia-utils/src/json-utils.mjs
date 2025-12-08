@@ -1,4 +1,6 @@
-export function initJsonUtils({ fsPromises, ioUtils, errors }) {
+import fsPromises from "fs/promises";
+
+export function initJsonUtils({ ioUtils, errors }) {
   async function readJson(filePath) {
     try {
       const content = await fsPromises.readFile(filePath, "utf8");

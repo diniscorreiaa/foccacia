@@ -1,9 +1,3 @@
-import express from "express";
-import { randomUUID } from "node:crypto";
-import fsPromises from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
-
 import errorsLib, { ERROR_CODES } from "foccacia-errors";
 
 import { initLogUtils } from "foccacia-utils/src/log-utils.mjs";
@@ -22,15 +16,14 @@ import { initSendApplicationError } from "foccacia-web-api/src/application-to-ht
 
 export function createFoccaciaApp() {
   const logUtils = initLogUtils();
-  const ioUtils = initIoUtils({ fsPromises, path, fileURLToPath });
+  const ioUtils = initIoUtils();
   const jsonUtils = initJsonUtils({
-    fsPromises,
     ioUtils,
     errors: errorsLib,
   });
   const utils = initUtils({ logUtils, ioUtils, jsonUtils });
 
-  const domainModel = initDomainModel({ randomUUID });
+  const domainModel = initDomainModel();
   const dataMem = initDataMem({ domainModel, utils });
 
   const fapiTeams = initFapiTeams({ domainModel, utils, errors: errorsLib });
@@ -50,9 +43,6 @@ export function createFoccaciaApp() {
     utils,
   });
 
-  const app = express();
-  app.use(express.json());
-
   // TODO : app.use(express.urlencoded()); Leitura de forms
 
   const sendApplicationError = initSendApplicationError({
@@ -61,7 +51,6 @@ export function createFoccaciaApp() {
   });
 
   return {
-    app,
     api,
     sendApplicationError,
     errors: errorsLib,
