@@ -18,6 +18,9 @@
   ],
   "main": "foccacia-server/src/foccacia-server.mjs",
   "scripts": {
+    "docker:up": "docker compose up -d elasticsearch",
+    "docker:down": "docker compose down",
+    "prestart": "npm run docker:up",
     "start": "node foccacia-server/src/foccacia-server.mjs",
     "test:web-api": "npm --workspace=foccacia-web-api run test",
     "test:foccacia-server": "npm --workspace=foccacia-server run test",
