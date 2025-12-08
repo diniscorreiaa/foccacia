@@ -8,9 +8,5 @@
     "test": "mocha",
     "coverage": "c8 mocha"
   },
-  "dependencies": {
-    "foccacia-services": "file:../foccacia-services",
-    "foccacia-utils": "file:../foccacia-utils",
-    "foccacia-errors": "file:../foccacia-errors"
-  }
+  "dependencies": {}
 }
