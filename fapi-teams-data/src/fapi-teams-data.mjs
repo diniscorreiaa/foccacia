@@ -90,9 +90,10 @@ export function initFapiTeams({ domainModel, utils, errors }) {
       logContext: "competitions",
       fromCache: (cached) => cached,
       buildResult: (body) =>
-        (body.competitions ?? []).map(
-          (c) => new domainModel.Competition(c.code, c.name)
-        ),
+        (body.competitions ?? []).map((competition) => ({
+          code: competition.code,
+          name: competition.name,
+        })),
       buildCacheData: (result) => result,
     });
   }
@@ -136,9 +137,150 @@ export function initFapiTeams({ domainModel, utils, errors }) {
     });
   }
 
+  async function getCompetitionsDomainMapper() {
+    const raw = await fetchCompetitions();
+    if (!raw) {
+      // TODO : Dinis => Proper error handling
+    }
+
+    const competitions = raw.map(
+      (competition) =>
+        new domainModel.Competition(competition.code, competition.name)
+    );
+    if (!competitions) {
+      // TODO : Dinis => Proper error handling
+    }
+
+    return competitions;
+  }
+
+  async function getTeamsWithSquadsDomainMapper(code, season) {
+    const teams = await fetchCompetitionTeams(code, season);
+    if (!teams) {
+      // TODO : Dinis => Proper error handling
+    }
+
+    const squads = await Promise.all(
+      teams.map((team) => fetchTeamWithSquad(team.id))
+    );
+    if (!squads) {
+      // TODO : Dinis => Proper error handling
+    }
+
+    const result = squads.map((teamJson) => {
+      const players = (teamJson.squad ?? []).map(
+        (player) =>
+          new domainModel.Player(
+            player.id,
+            player.name,
+            teamJson.id,
+            teamJson.tla,
+            teamJson.name,
+            player.position,
+            player.nationality,
+            utils.getAgeFromDate(player.dateOfBirth)
+          )
+      );
+      if (!players) {
+        // TODO : Dinis => Proper error handling
+      }
+
+      const team = new domainModel.Team(
+        teamJson.id,
+        teamJson.name,
+        teamJson.area?.name ?? null,
+        players
+      );
+      if (!team) {
+        // TODO : Dinis => Proper error handling
+      }
+      return team;
+    });
+
+    // TODO : Tiago => persist teams and players
+    utils.logInfo(
+      `Fapi: built ${result.length} Team objects for competition ${code} season ${season}`,
+      ""
+    );
+    return result;
+  }
+
+  async function getPlayerForCompetitionDomainMapper({
+    competition,
+    year,
+    playerId,
+    playerName,
+    teamCode,
+    teamName,
+  }) {
+    // TODO : Dinis => Validate all parameters
+    if (!competition || !year) {
+      throw errors.INVALID_DATA(
+        "Make sure you provide competition and year for this operation"
+      );
+    }
+
+    const teams = await fetchCompetitionTeams(competition, year);
+    // TODO : Dinis => Confirmar que esta validação especifica e a que faz mais sentido
+    if (!Array.isArray(teams) || teams.length === 0) {
+      throw errors.UNEXPECTED(
+        "Could not load teams for the competition and year of this group"
+      );
+    }
+
+    const teamHeader = teams.find(
+      (team) =>
+        team.tla === teamCode &&
+        (team.shortName === teamName || team.name === teamName)
+    );
+    if (!teamHeader) {
+      throw errors.UNPROCESSABLE(
+        "Player does not belong to this competition/year"
+      );
+    }
+    if (!teamHeader) {
+      // TODO : Dinis => Proper error handling
+    }
+
+    const teamDetails = await fetchTeamWithSquad(teamHeader.id);
+    if (!teamDetails) {
+      // TODO : Dinis => Proper error handling
+    }
+
+    const squad = teamDetails.squad;
+    // TODO : Dinis => Confirmar que esta validação especifica e a que faz mais sentido
+    if (!Array.isArray(squad)) {
+      throw errors.UNEXPECTED("Could not load squad for this team");
+    }
+
+    const squadPlayer = squad.find(
+      (player) => player.id === playerId && player.name === playerName
+    );
+    if (!squadPlayer) {
+      throw errors.UNPROCESSABLE(
+        "Player does not belong to this competition/year"
+      );
+    }
+
+    const player = new domainModel.Player(
+      squadPlayer.id,
+      squadPlayer.name,
+      teamDetails.id,
+      teamDetails.tla,
+      teamDetails.shortName ?? teamDetails.name,
+      squadPlayer.position,
+      squadPlayer.nationality,
+      utils.getAgeFromDate(squadPlayer.dateOfBirth)
+    );
+    if (!player) {
+      // TODO : Dinis => Proper error handling
+    }
+    return player;
+  }
+
   return {
-    fetchCompetitions,
-    fetchCompetitionTeams,
-    fetchTeamWithSquad,
+    getCompetitions: getCompetitionsDomainMapper,
+    getTeamsWithSquads: getTeamsWithSquadsDomainMapper,
+    getPlayerForCompetition: getPlayerForCompetitionDomainMapper,
   };
 }
