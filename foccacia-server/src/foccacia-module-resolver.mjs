@@ -12,7 +12,7 @@ import { initJsonUtils } from "foccacia-utils/src/json-utils.mjs";
 import { initUtils } from "foccacia-utils/src/foccacia-utils.mjs";
 
 import { initFapiTeams } from "fapi-teams-data";
-import { initDomainModel } from "foccacia-data-mem/src/domain-model.mjs";
+import { initDomainModel } from "foccacia-services/src/domain-model.mjs";
 import { initDataMem } from "foccacia-data-mem";
 import { initServices } from "foccacia-services";
 
@@ -31,9 +31,9 @@ export function createFoccaciaApp() {
   const utils = initUtils({ logUtils, ioUtils, jsonUtils });
 
   const domainModel = initDomainModel({ randomUUID });
-  const dataMem = initDataMem({ utils, domainModel });
+  const dataMem = initDataMem({ domainModel, utils });
 
-  const fapiTeams = initFapiTeams({ utils, errors: errorsLib });
+  const fapiTeams = initFapiTeams({ domainModel, utils, errors: errorsLib });
 
   const services = initServices({
     domainModel,

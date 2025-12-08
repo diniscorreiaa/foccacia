@@ -2,7 +2,7 @@
 
 const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 
-export function initFapiTeams({ utils, errors }) {
+export function initFapiTeams({ domainModel, utils, errors }) {
   async function loadAuthHeaders() {
     const headersJson = await utils.readJson(utils.getHeadersFilePath());
     const token = headersJson["X-Auth-Token"];
@@ -90,10 +90,9 @@ export function initFapiTeams({ utils, errors }) {
       logContext: "competitions",
       fromCache: (cached) => cached,
       buildResult: (body) =>
-        (body.competitions ?? []).map((competition) => ({
-          code: competition.code,
-          name: competition.name,
-        })),
+        (body.competitions ?? []).map(
+          (c) => new domainModel.Competition(c.code, c.name)
+        ),
       buildCacheData: (result) => result,
     });
   }

@@ -104,7 +104,7 @@ export function initWebApi({ services, dto, errors, utils }) {
   const deleteGroup = wrapAsync((req, res) => {
     const result = services.deleteGroup(req.userId, req.params.groupId);
     if (!result) {
-      throw errors.UNEXPECTED("Unexpected internal error")
+      throw errors.UNEXPECTED("Unexpected internal error");
     }
     return res.sendStatus(204);
   });
@@ -124,7 +124,7 @@ export function initWebApi({ services, dto, errors, utils }) {
       req.params.playerId
     );
     if (!result) {
-      throw errors.UNEXPECTED("Unexpected internal error")
+      throw errors.UNEXPECTED("Unexpected internal error");
     }
     return res.sendStatus(204);
   });

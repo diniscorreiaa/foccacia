@@ -116,14 +116,14 @@ export function initDataMem({ utils, domainModel }) {
     return true;
   }
   return {
-    createUserMem,
-    getUserByTokenMem,
-    createGroupMem,
-    listGroupsMem,
-    updateGroupMem,
-    deleteGroupMem,
-    getGroupMem,
-    addPlayerToGroupMem,
-    deletePlayerFromGroupMem,
+    createUser: createUserMem,
+    getUserByToken: getUserByTokenMem,
+    createGroup: createGroupMem,
+    listGroups: listGroupsMem,
+    updateGroup: updateGroupMem,
+    deleteGroup: deleteGroupMem,
+    getGroup: getGroupMem,
+    addPlayerToGroup: addPlayerToGroupMem,
+    deletePlayerFromGroup: deletePlayerFromGroupMem,
   };
 }
