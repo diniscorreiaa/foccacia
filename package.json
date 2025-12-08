@@ -12,7 +12,8 @@
     "foccacia-data-mem",
     "foccacia-utils",
     "foccacia-errors",
-    "foccacia-web-site"
+    "foccacia-web-site",
+    "foccacia-db"
   ],
   "main": "foccacia-server/src/foccacia-server.mjs",
   "scripts": {
