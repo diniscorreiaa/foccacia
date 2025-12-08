@@ -13,7 +13,8 @@
     "foccacia-utils",
     "foccacia-errors",
     "foccacia-web-site",
-    "foccacia-db"
+    "foccacia-db",
+    "foccacia-domain-model"
   ],
   "main": "foccacia-server/src/foccacia-server.mjs",
   "scripts": {

@@ -1,0 +1,12 @@
+{
+  "name": "foccacia-domain-model",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/foccacia-domain-model.mjs",
+  "scripts": {
+    "test": "mocha",
+    "coverage": "c8 mocha"
+  },
+  "dependencies": {}
+}

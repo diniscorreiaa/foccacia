@@ -6,7 +6,7 @@ import { initJsonUtils } from "foccacia-utils/src/json-utils.mjs";
 import { initUtils } from "foccacia-utils/src/foccacia-utils.mjs";
 
 import { initFapiTeams } from "fapi-teams-data";
-import { initDomainModel } from "foccacia-services/src/domain-model.mjs";
+import { initDomainModel } from "foccacia-domain-model";
 import { initDataMem } from "foccacia-data-mem";
 import { initServices } from "foccacia-services";
 
