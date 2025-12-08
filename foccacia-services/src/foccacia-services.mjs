@@ -5,7 +5,7 @@
 export function initServices({ dataMem, fapiTeams, utils, errors }) {
   // Competitions
   async function getCompetitions() {
-    const competitions = await fapiTeams.fetchCompetitions();
+    const competitions = await fapiTeams.getCompetitions();
 
     if (!competitions) {
       // TODO : Dinis throw the proper error
@@ -36,48 +36,6 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
     );
 
     return teams;
-    /*
-    TODO : Tiago => Move this to fapi
-    const teams = await fapiTeams.fetchCompetitionTeams(code, season);
-    utils.logInfo(
-      `Service: fetched ${teams.length} teams for competition ${code} season ${season}`,
-      ""
-    );
-
-    const squads = await Promise.all(
-      teams.map((team) => fapiTeams.fetchTeamWithSquad(team.id))
-    );
-
-    const result = squads.map((teamJson) => {
-      const players = (teamJson.squad ?? []).map(
-        (player) =>
-          new domainModel.Player(
-            player.id,
-            player.name,
-            teamJson.id,
-            teamJson.tla,
-            teamJson.name,
-            player.position,
-            player.nationality,
-            utils.getAgeFromDate(player.dateOfBirth)
-          )
-      );
-
-      return new domainModel.Team(
-        teamJson.id,
-        teamJson.name,
-        teamJson.area?.name ?? null,
-        players
-      );
-    });
-
-    // TODO : Tiago => persist teams and players
-    utils.logInfo(
-      `Service: built ${result.length} Team objects for competition ${code} season ${season}`,
-      ""
-    );
-    return result;
-    */
   }
 
   function getUserIdFromToken(token) {
@@ -312,57 +270,6 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
     }
 
     return added;
-    /*
-    TODO : Tiago => Move this to fapi
-    const teams = await fapiTeams.fetchCompetitionTeams(competition, year);
-    if (!Array.isArray(teams) || teams.length === 0) {
-      throw errors.UNEXPECTED(
-        "Could not load teams for the competition and year of this group"
-      );
-    }
-
-    const teamHeader = teams.find(
-      (t) =>
-        t.tla === teamCode && (t.shortName === teamName || t.name === teamName)
-    );
-    if (!teamHeader) {
-      throw errors.UNPROCESSABLE(
-        "Player does not belong to this competition/year"
-      );
-    }
-
-    const teamDetails = await fapiTeams.fetchTeamWithSquad(teamHeader.id);
-    const squad = teamDetails?.squad;
-    if (!Array.isArray(squad)) {
-      throw errors.UNEXPECTED("Could not load squad for this team");
-    }
-
-    const squadPlayer = squad.find(
-      (p) => p.id === playerId && p.name === playerName
-    );
-    if (!squadPlayer) {
-      throw errors.UNPROCESSABLE(
-        "Player does not belong to this competition/year"
-      );
-    }
-
-    const player = dataMem.addPlayerToGroupMem(id, {
-      id: playerId,
-      playerName: squadPlayer.name,
-      teamId: teamDetails.id,
-      teamCode: teamDetails.tla,
-      teamName: teamDetails.shortName ?? teamDetails.name,
-      position: squadPlayer.position,
-      nationality: squadPlayer.nationality,
-      age: utils.getAgeFromDate(squadPlayer.dateOfBirth),
-    });
-
-    if (!player) {
-      throw errors.UNEXPECTED("Could not add player to group");
-    }
-
-    return player;
-     */
   }
 
   function deletePlayerFromGroup(userId, groupId, playerId) {
