@@ -1,30 +1,19 @@
-export function initDataElasticSearch({ utils, domainModel }) {
-  let nextUserId = 1,
-    nextGroupId = 1;
+const ES_BASE_URL = "http://localhost:9200";
+const USERS_INDEX = "foccacia-users";
+const GROUPS_INDEX = "foccacia-groups";
 
-  const users = [],
-    groups = [],
-    USERS_CACHE_PATH = utils.getUsersFilePath();
-
-  // USERS
-  // TODO : Tiago => read persisted users from file on startup
-  // TODO : Confirmar com Professor sendo o writeJson async todo depende dele tambem deve ser async?
-  function persistUsers() {
-    utils.writeJson(users, USERS_CACHE_PATH).catch((err) => {
-      utils.logError("Error writing users cache", err);
-    });
-  }
-
+export function initDataElasticSearch({ domainModel, utils }) {
   function createUser(username) {
     if (!username) {
-      // TODO : Dinis => return null ? or throw error
+      return null;
     }
     const user = new domainModel.User(nextUserId++, username);
     if (!user) {
-      // TODO : Dinis => return null ? or throw error
+      return null;
     }
-    users.push(user);
-    persistUsers();
+
+    // TODO : Tiago => push user in elasticsearch
+
     return user;
   }
 
@@ -32,60 +21,79 @@ export function initDataElasticSearch({ utils, domainModel }) {
     if (!token) {
       return null;
     }
+
+    // TODO : Tiago => get user from elasticsearch by token
     return users.find((u) => u.token === token) || null;
   }
 
   // GROUPS
-  // TODO : Tiago => Create groups persistence on file
-  // TODO : Tiago =>  read persisted groups from file on startup
+
   function createGroup(userId, name, description, competition, year) {
-    // TODO : Dinis => validate parameters
+    if (!userId || !name || !description || !competition || !year) {
+      return null;
+    }
+
+    // TODO : Tiago => getNextGroupId from elasticsearch
+
     const group = new domainModel.Group(
       userId,
-      nextGroupId++,
+      nextGroupId,
       name,
       description,
       competition,
       year
     );
     if (!group) {
-      // TODO : Dinis => return null ? or throw error
+      return null;
     }
-    groups.push(group);
+
+    // TODO : Tiago => push group in elasticsearch
+
     return group;
   }
 
   function listGroups(userId) {
     if (!userId) {
-      // TODO : Dinis => return null, [] ? or throw error
+      return null;
     }
+
+    // TODO : Tiago => get groups from elasticsearch by userId
+
     return groups.filter((g) => g.ownerId === userId);
   }
 
-  // TODO : Tiago => persist group changes on file
   function updateGroup(groupId, changes) {
-    // TODO : Dinis => validate parameters
-    const group = groups.find((g) => g.id === groupId);
+    if (!groupId || !changes) {
+      return null;
+    }
+
+    // TODO : Tiago => get group from elasticsearch by groupId
+
+    const group = groups.find((group) => group.id === groupId);
+
     if (!group) {
       return null;
     }
 
     if (utils.isString(changes.name)) {
+      // TODO : Tiago => update group name in elasticsearch
       group.name = changes.name;
     }
     if (utils.isString(changes.description)) {
+      // TODO : Tiago => update group description in elasticsearch
       group.description = changes.description;
     }
 
     return group;
   }
 
-  // TODO : Tiago => persist group deletion on file
   function deleteGroup(groupId) {
     if (!groupId) return false;
+
+    // TODO : Tiago => delete group from elasticsearch by groupId
     const idx = groups.findIndex((g) => g.id === groupId);
     if (idx === -1) return false;
-    groups.splice(idx, 1);
+
     return true;
   }
 
@@ -93,35 +101,37 @@ export function initDataElasticSearch({ utils, domainModel }) {
     if (!groupId) {
       return null;
     }
+
+    // TODO : Tiago => get group from elasticsearch by groupId
     return groups.find((g) => g.id === groupId) || null;
   }
 
   // GROUP PLAYERS
-  // TODO : Tiago => persist group players changes on file
   function addPlayerToGroup(groupId, player) {
     if (!groupId || !player) {
       return null;
     }
+
     const group = getGroup(groupId);
     if (!group) {
       return null;
     }
 
-    group.players.push(player);
+    // TODO : Tiago => update group pushing player to players on elasticsearch
     return player;
   }
 
-  // TODO : Tiago => persist group players changes on file
   function deletePlayerFromGroup(groupId, playerId) {
     if (!groupId || !playerId) return false;
 
     const group = getGroup(groupId);
     if (!group) return false;
 
+    // TODO : Tiago => get player from elasticsearch by playerId
     const idx = group.players.findIndex((player) => player.id === playerId);
     if (idx === -1) return false;
 
-    group.players.splice(idx, 1);
+    // TODO : Tiago => update group removing player from players on elasticsearch
     return true;
   }
   return {
