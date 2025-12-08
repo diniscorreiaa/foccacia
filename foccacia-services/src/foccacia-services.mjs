@@ -291,7 +291,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
 
     const { competition, year } = group;
 
-    const fapiPlayer = await fapiTeams.getPlayerForCompetition({
+    const player = await fapiTeams.getPlayerForCompetition({
       competition,
       year,
       playerId,
@@ -300,27 +300,18 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       teamName,
     });
 
-    if (!fapiPlayer) {
+    if (!player) {
       // TODO : Dinis throw the proper error
     }
 
     // TODO : ALL => verificar se em vez de reconstruir o objeto, passar o próprio fapiPlayer
-    const player = dataMem.addPlayerToGroup(id, {
-      id: fapiPlayer.id,
-      playerName: fapiPlayer.playerName,
-      teamId: fapiPlayer.teamId,
-      teamCode: fapiPlayer.teamCode,
-      teamName: fapiPlayer.teamName,
-      position: fapiPlayer.position,
-      nationality: fapiPlayer.nationality,
-      age: fapiPlayer.age,
-    });
+    const added = dataMem.addPlayerToGroup(id, player);
 
-    if (!player) {
+    if (!added) {
       throw errors.UNEXPECTED("Could not add player to group");
     }
 
-    return player;
+    return added;
     /*
     TODO : Tiago => Move this to fapi
     const teams = await fapiTeams.fetchCompetitionTeams(competition, year);
