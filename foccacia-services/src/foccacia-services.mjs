@@ -91,7 +91,10 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
   }
 
   function createGroup(userId, name, description, competition, year) {
-    if (!userId || !name || !description || !competition || !year) {
+    if (!userId)
+      throw errors.UNAUTHORIZED("You must authenticate yourself for group creation")
+
+    if (!name || !description || !competition || !year) {
       throw errors.INVALID_DATA(
         "Make sure you provide userId, name, description, competition and year for this operation"
       );
@@ -116,7 +119,11 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
 
   function getGroup(userId, groupId) {
     const id = parseInt(groupId);
-    if (!userId || Number.isNaN(id)) {
+
+    if (!userId)
+      throw errors.UNAUTHORIZED("You must authenticate yourself for getting group details")
+
+    if (Number.isNaN(id)) {
       throw errors.INVALID_DATA(
         "Make sure you provide the group id for this operation"
       );
@@ -135,7 +142,10 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
   }
 
   function updateGroup(userId, groupId, changes) {
-    if (!userId || !groupId || !changes) {
+    if (!userId)
+      throw errors.UNAUTHORIZED("You must authenticate yourself before updating groups")
+
+    if (!groupId || !changes) {
       throw errors.INVALID_DATA(
         "Make sure you provide the group id and changes for this operation"
       );
@@ -183,7 +193,11 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
 
   function deleteGroup(userId, groupId) {
     const id = parseInt(groupId);
-    if (!userId || Number.isNaN(id)) {
+
+    if (!userId)
+      throw errors.UNAUTHORIZED("You must authenticate yourself before deleting groups")
+
+    if (Number.isNaN(id)) {
       throw errors.INVALID_DATA(
         "Make sure you provide a valid numeric group id for this operation"
       );
@@ -215,7 +229,11 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
     }
 
     const id = parseInt(groupId);
-    if (!userId || Number.isNaN(id)) {
+
+    if (!userId)
+      throw errors.UNAUTHORIZED("You must authenticate yourself before adding players to a group")
+
+    if (Number.isNaN(id)) {
       throw errors.INVALID_DATA(
         "Make sure you provide a valid numeric group id for this operation"
       );
@@ -274,7 +292,11 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
   function deletePlayerFromGroup(userId, groupId, playerId) {
     const gId = parseInt(groupId);
     const pId = parseInt(playerId);
-    if (!userId || Number.isNaN(gId) || Number.isNaN(pId)) {
+
+    if (!userId)
+      throw errors.UNAUTHORIZED("You must authenticate yourself before deleting players from a group")
+    
+    if (Number.isNaN(gId) || Number.isNaN(pId)) {
       throw errors.INVALID_DATA(
         "Make sure you provide valid numeric ids for group and player"
       );

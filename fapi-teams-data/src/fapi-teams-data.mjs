@@ -4,6 +4,8 @@ const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 export function initFapiTeams({ domainModel, utils, errors }) {
   async function loadAuthHeaders() {
     const headersJson = await utils.readJson(utils.getHeadersFilePath());
+    if (!headersJson)
+      throw errors.IO_ERROR(`Couldn't read JSON at ${utils.getHeadersFilePath}`)
     const token = headersJson["X-Auth-Token"];
     if (!token) {
       throw errors.UNAUTHORIZED(
@@ -40,10 +42,14 @@ export function initFapiTeams({ domainModel, utils, errors }) {
 
   async function fetchJsonFromFootballApi(url, logContext) {
     const headers = await loadAuthHeaders();
+    if(!headers || headers["X-Auth-Token"] == undefined)
+      throw errors.UNEXPECTED("Couldn't load authentication headers")
     const response = await fetch(url, { headers });
 
     if (!response.ok) {
       const err = buildFootballApiError(url, response.status);
+      if (!err)
+        throw errors.UNEXPECTED("Couldn't provide apropriate error for Football API's bad response") // Aqui estou na duvida se meto internal nosso ou bad gateway pois tecnicamente algo errado aconteceu do outro lado mas nós não conseguimos definir o erro apropriado (que é falha do nosso lado)
       utils.logError(`Error fetching ${logContext} from Football API`, err);
       throw err;
     }
@@ -59,19 +65,32 @@ export function initFapiTeams({ domainModel, utils, errors }) {
     buildResult,
     buildCacheData,
   }) {
-    if (await utils.fileExists(cachePath)) {
+    const cacheExists = await utils.fileExists(cachePath)
+    if (cacheExists) {
       utils.logInfo(`Using cache for ${logContext} at ${cachePath}`, "");
       const cached = await utils.readJson(cachePath);
+      if (!cached) 
+        throw errors.IO_ERROR(`Couldnt read JSON at ${cachePath}`)
       return fromCache(cached);
     }
 
     utils.logInfo(`Fetching ${logContext} from Football Data API`, "");
     const body = await fetchJsonFromFootballApi(url, logContext);
+    if (!body)
+      throw errors.UNEXPECTED("Couldn't process the response from Football API and specify the error properly")
 
     const result = buildResult(body);
+    if(!result)
+      throw errors.UNEXPECTED("Couldn't process Football API data to local domain model")
+      
     const toCache = buildCacheData(result, body);
+    if(!toCache)
+      throw errors.UNEXPECTED("Couldn't generate file content to save in server")
 
-    await utils.writeJson(toCache, cachePath);
+    const saveCache = await utils.writeJson(toCache, cachePath);
+    if(!saveCache)
+      throw errors.IO_ERROR("Couldn't save data in server")
+    
     utils.logSuccess(`Saved ${logContext} cache to ${cachePath}`, "");
 
     return result;
@@ -81,7 +100,11 @@ export function initFapiTeams({ domainModel, utils, errors }) {
   // Competitions
   async function fetchCompetitions() {
     const cachePath = utils.getCompetitionsFilePath();
+    if(!cachePath)
+      throw errors.UNEXPECTED("Couldn't process path to cache for Football API competitions") // TODO: Mudar quando for com DB
     const url = `${FOOTBALL_API_URI}/competitions`;
+    if(!url)
+      throw errors.UNEXPECTED("Couldn't process URL to Football API competitions")
 
     return fetchWithCache({
       cachePath,
@@ -106,7 +129,12 @@ export function initFapiTeams({ domainModel, utils, errors }) {
     }
 
     const cachePath = utils.getCompetitionTeamsFilePath(code, season);
+    if(!cachePath)
+      throw errors.UNEXPECTED("Couldn't process path to cache for Football API teams") // TODO: Mudar quando for com DB
+
     const url = `${FOOTBALL_API_URI}/competitions/${code}/teams?season=${season}`;
+    if(!url)
+      throw errors.UNEXPECTED("Couldn't process URL to Football API teams")
 
     return fetchWithCache({
       cachePath,
@@ -124,7 +152,11 @@ export function initFapiTeams({ domainModel, utils, errors }) {
     }
 
     const cachePath = utils.getTeamPlayersFilePath(teamId);
+    if(!cachePath)
+      throw errors.UNEXPECTED("Couldn't process path to cache for Football API team squad")
     const url = `${FOOTBALL_API_URI}/teams/${teamId}`;
+    if(!url)
+      throw errors.UNEXPECTED("Couldn't process URL to Football API team squad")
 
     return fetchWithCache({
       cachePath,
