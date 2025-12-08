@@ -1,5 +1,3 @@
-// TODO : ALL -> Receber Domain-model, mapear segundo o domain-model e retornar para o service num formato que ele conhece
-
 export function initDataElasticSearch({ utils, domainModel }) {
   let nextUserId = 1,
     nextGroupId = 1;

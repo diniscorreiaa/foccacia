@@ -330,7 +330,44 @@ flowchart TD
 ## 3. Melhorias e tarefas futuras
 
 ### 3.1. Melhorias/correções no estado atual
-  
+
+#### Web API
+
+- [ ] Refatorar o uso de `wrapAsync` + `genericApiRoute`:
+    - criar um helper que recebe um objeto de handlers e devolve outro com todos embrulhados em `wrapAsync`, **ou**
+    - mover a lógica de `genericApiRoute` para um único factory para handlers, para não repetir o padrão em cada endpoint.
+- [ ] Confirmar que os handlers da web-api apenas:
+    - extraem dados de `req` (params/body/headers),
+    - chamam o services,
+    - transformam resultados em DTOs,
+    - delegam todos os `ApplicationError` para o middleware `sendApplicationError`.
+
+#### Web Site (HTML/Handlebars)
+
+- [ ] Implementar o módulo `foccacia-web-site`:
+    - gerar HTML server-side com Handlebars (páginas para listar competições, equipas, grupos, etc.);
+    - operações que na API são `PUT`/`DELETE` passam a ser `POST` com formulários HTML;
+    - o utilizador humano nunca vê/introduz IDs crus (só escolhe em listas, selects, etc.).
+- [ ] Integrar o site no `foccacia-server`:
+    - definir rotas (por ex. `/`, `/groups`, `/groups/:id`…);
+    - instanciar `foccacia-web-site` no `createFoccaciaApp` de forma semelhante à web-api.
+
+#### ElasticSearch / Novo módulo de dados
+
+- [ ] Criar um novo módulo de dados (ex.: `foccacia-db` ou `foccacia-elastic`) que implemente **a mesma interface** pública de `foccacia-data-mem`:
+    - `createUser`, `getUserByToken`, `createGroup`, `listGroups`, `updateGroup`,
+      `deleteGroup`, `getGroup`, `addPlayerToGroup`, `deletePlayerFromGroup`;
+    - internamente fala com ElasticSearch via HTTP (`fetch`), sem SDK externo.
+- [ ] Garantir que trocar Mem ↔ Elastic implica **apenas** alterar o `foccacia-module-resolver.mjs`
+  (escolher `initDataMem` ou `initDataElastic`), sem tocar nos serviços.
+- [ ] Criar um `docker-compose.yml` com ElasticSearch:
+    - serviço elastic (versão free);
+    - documentar (ou automatizar via script npm) como arrancar o compose antes de `npm run start`.
+
+#### 7. Testes / Qualidade
+
+- [ ] Atualizar/adicionar testes de unidade.
+- [ ] [Opcional] Criar testes de integração da API com `supertest`.
 ---
 
 ### 3.2. Novas features para cumprir o enunciado
