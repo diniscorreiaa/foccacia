@@ -1,5 +1,4 @@
-// TODO : ALL -> Receber Domain-model, mapear segundo o domain-model e retornar para o service num formato que ele conhece
-
+// TODO : Francisco => modular codigo para evitar duplicação
 const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 
 export function initFapiTeams({ domainModel, utils, errors }) {
