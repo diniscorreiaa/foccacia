@@ -12,10 +12,15 @@
     "foccacia-data-mem",
     "foccacia-utils",
     "foccacia-errors",
-    "foccacia-web-site"
+    "foccacia-web-site",
+    "foccacia-db",
+    "foccacia-domain-model"
   ],
   "main": "foccacia-server/src/foccacia-server.mjs",
   "scripts": {
+    "docker:up": "docker compose up -d elasticsearch",
+    "docker:down": "docker compose down",
+    "prestart": "npm run docker:up",
     "start": "node foccacia-server/src/foccacia-server.mjs",
     "test:web-api": "npm --workspace=foccacia-web-api run test",
     "test:foccacia-server": "npm --workspace=foccacia-server run test",
@@ -34,8 +39,7 @@
     "format:mjs": "prettier --write \"**/*.mjs\"",
     "format:yaml": "prettier --write \"**/*.{yaml,yml}\"",
     "format:json": "prettier --write \"**/*.json\"",
-    "format:http": "git ls-files \"**/*.http\" | xargs -r -I{} sh -c \"sed -i 's/[ \\t]*$//' {} && printf '\\n' >> {}\"",
-    "format:all": "npm run format:mjs && npm run format:yaml && npm run format:json && npm run format:http"
+    "format:all": "npm run format:mjs && npm run format:yaml && npm run format:json"
   },
   "repository": {
     "type": "git",

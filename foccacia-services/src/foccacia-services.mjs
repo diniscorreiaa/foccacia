@@ -1,7 +1,7 @@
 // TODO : Dinis & Francisco => Criar uma funcao que verifica todos os parametros obrigatorios e se estao no estado correcto, verificar quando faz sentido o tipo de cada parametro (exemplos isNumber)
 // TODO : Dinis & Francisco => Criar uma funcao que verifica todos os dados returnados e se estao no estado correcto, verificar quando faz sentido o tipo de cada parametro (exemplos isNumber)
 // TODO : Francisco => eliminar código repetido e modularizar ( Todas as funcoes estao com a seguinte estrutura : verificar parametros, buscar dados na dataMem, verificar dados, retornar dados)
-export function initServices({ dataMem, fapiTeams, utils, errors }) {
+export function initServices({ data, fapiTeams, utils, errors }) {
   // Competitions
   async function getCompetitions() {
     const competitions = await fapiTeams.getCompetitions();
@@ -37,12 +37,12 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
     return teams;
   }
 
-  function getUserIdFromToken(token) {
+  async function getUserIdFromToken(token) {
     if (!token) {
       throw errors.UNAUTHORIZED("Invalid token");
     }
 
-    const user = dataMem.getUserByToken(token);
+    const user = data.getUserByToken(token);
 
     if (!user || Number.isNaN(user.id)) {
       throw errors.UNAUTHORIZED("Invalid token");
@@ -51,7 +51,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
     return user.id;
   }
   // TODO : Tiago, Franciso e Dinis => verificar de dataMem precisa de await devido ao writeJson
-  function createUser(username) {
+  async function createUser(username) {
     if (!username.trim()) {
       throw errors.INVALID_DATA("Username is required");
     }
@@ -59,7 +59,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       // Tinha de verificar que não era string vazia acrescentei logo regras de negocio
       throw errors.INVALID_DATA("Username must contain at least 3 characters");
 
-    const user = dataMem.createUser(username.trim());
+    const user = data.createUser(username.trim());
 
     if (!user) {
       throw errors.UNEXPECTED("Unexpected error at user creation");
@@ -78,7 +78,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       throw errors.INVALID_DATA("You must provide user Id for getting groups");
     }
 
-    const groups = dataMem.listGroups(userId);
+    const groups = data.listGroups(userId);
 
     if (!groups) {
       throw errors.UNEXPECTED("Unexpected error at getting groups");
@@ -104,7 +104,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = dataMem.createGroup(
+    const group = data.createGroup(
       userId,
       name,
       description,
@@ -135,7 +135,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = dataMem.getGroup(id);
+    const group = data.getGroup(id);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -177,7 +177,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = dataMem.getGroup(id);
+    const group = data.getGroup(id);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -187,8 +187,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    const updated = dataMem.updateGroup(id, {
-      // TODO : ALL => trim e realmente necessario? - R: Sim para tirares os espaços do lado esquerdo e direito da string
+    const updated = data.updateGroup(id, {
       name: name.trim(),
       description: description.trim(),
     });
@@ -214,7 +213,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = dataMem.getGroup(id);
+    const group = data.getGroup(id);
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
     }
@@ -222,7 +221,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    const deleted = dataMem.deleteGroup(id);
+    const deleted = data.deleteGroup(id);
 
     if (!deleted) {
       throw errors.NOT_FOUND("Group not found");
@@ -264,7 +263,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = dataMem.getGroup(id);
+    const group = data.getGroup(id);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -297,7 +296,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
     }
 
     // TODO : ALL => verificar se em vez de reconstruir o objeto, passar o próprio fapiPlayer
-    const added = dataMem.addPlayerToGroup(id, player);
+    const added = data.addPlayerToGroup(id, player);
 
     if (!added) {
       throw errors.UNEXPECTED("Could not add player to group");
@@ -321,7 +320,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = dataMem.getGroup(gId);
+    const group = data.getGroup(gId);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -330,7 +329,7 @@ export function initServices({ dataMem, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    const removed = dataMem.deletePlayerFromGroup(gId, pId);
+    const removed = data.deletePlayerFromGroup(gId, pId);
 
     if (!removed) {
       throw errors.NOT_FOUND("Player not found in group");
