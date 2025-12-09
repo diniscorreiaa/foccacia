@@ -1,3 +1,5 @@
+// TODO : Dinis => verifica todos os erros e se faz sentido return null ou throw
+
 const ELASTIC_SEARCH_BASE_URL = "http://localhost:9200";
 const USERS_INDEX = "foccacia-users";
 const GROUPS_INDEX = "foccacia-groups";
@@ -13,8 +15,10 @@ export function initDataElasticSearch({ domainModel, utils }) {
     }
 
     const url = `${ELASTIC_SEARCH_BASE_URL}/${path}`;
-    const options = { method, headers: { "Content-Type": "application/json" } };
-
+    const options = {
+      method,
+      headers: { "Content-Type": "application/json" },
+    };
     // TODO : Dinis => ve se faz sentido manter a logica das outras funcoes de testar !body (caso negativo)
     if (body !== undefined) {
       options.body = JSON.stringify(body);
@@ -34,31 +38,85 @@ export function initDataElasticSearch({ domainModel, utils }) {
     return response.json();
   }
 
-  function createUser(username) {
+  // USERS
+  async function createUser(username) {
     if (!username) {
-      return null;
-    }
-    const user = new domainModel.User(nextUserId++, username);
-    if (!user) {
       return null;
     }
 
     // TODO : Tiago => push user in elasticsearch
+    const user = new domainModel.User(null, username);
+
+    const body = {
+      username: user.username,
+      token: user.token,
+      createdAt: new Date().toISOString(),
+    };
+    if (!body) {
+      return null;
+    }
+
+    const response = await elasticSearchRequest(`${USERS_INDEX}/_doc`, {
+      method: "POST",
+      body,
+    });
+    if (!response) {
+      return null;
+    }
+
+    const id = response._id;
+    if (!id) {
+      return null;
+    }
+
+    user.id = response._id;
 
     return user;
   }
 
-  function getUserByToken(token) {
+  async function getUserByToken(token) {
     if (!token) {
       return null;
     }
 
     // TODO : Tiago => get user from elasticsearch by token
-    return users.find((u) => u.token === token) || null;
+
+    const query = {
+      query: {
+        term: { token },
+      },
+      size: 1,
+    };
+    if (!query) {
+      return null;
+    }
+
+    const response = await elasticSearchRequest(`${USERS_INDEX}/_search`, {
+      method: "POST",
+      body: query,
+    });
+    if (!response) {
+      return null;
+    }
+
+    const hits = response.hits?.hits ?? [];
+    if (hits.length === 0) {
+      return null;
+    }
+
+    const hit = hits[0];
+    const src = hit._source;
+    const id = hit._id;
+
+    const user = new domainModel.User(id, src.username, src.token);
+    if (!user) {
+      return null;
+    }
+
+    return user;
   }
 
   // GROUPS
-
   function createGroup(userId, name, description, competition, year) {
     if (!userId || !name || !description || !competition || !year) {
       return null;

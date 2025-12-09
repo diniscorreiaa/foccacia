@@ -33,10 +33,10 @@ export function initDomainModel() {
     this.age = age;
   }
 
-  function User(userId, username) {
+  function User(userId, username, token = randomUUID()) {
     this.id = userId;
     this.username = username;
-    this.token = randomUUID();
+    this.token = token;
   }
 
   function Group(
