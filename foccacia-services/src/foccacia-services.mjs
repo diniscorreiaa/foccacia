@@ -5,9 +5,9 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   // Competitions
   async function getCompetitions() {
     const competitions = await fapiTeams.getCompetitions();
-
+    // TODO: Dinis => Inverter a logica dos erros relativos à camada fapi
     if (!competitions) {
-      // TODO : Dinis throw the proper error
+      throw errors.UNEXPECTED("Unhandled error for get competitions operation");
     }
 
     utils.logInfo(`Service: loaded ${competitions.length} competitions`, "");
@@ -26,7 +26,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     const teams = await fapiTeams.getTeamsWithSquads(code, season);
 
     if (!teams) {
-      // TODO : Dinis throw the proper error
+      throw errors.UNEXPECTED("Unhandled error for get teams operation");
     }
 
     utils.logInfo(
@@ -44,7 +44,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
     const user = data.getUserByToken(token);
 
-    if (!user) {
+    if (!user || Number.isNaN(user.id)) {
       throw errors.UNAUTHORIZED("Invalid token");
     }
 
@@ -52,15 +52,17 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
   // TODO : Tiago, Franciso e Dinis => verificar de dataMem precisa de await devido ao writeJson
   async function createUser(username) {
-    // TODO : Dinis verificar se precisa mesmo de validar trim
-    if (!username || !username.trim()) {
+    if (!username.trim()) {
       throw errors.INVALID_DATA("Username is required");
     }
+    if (typeof username !== "string" || username.trim().length < 3)
+      // Tinha de verificar que não era string vazia acrescentei logo regras de negocio
+      throw errors.INVALID_DATA("Username must contain at least 3 characters");
 
     const user = data.createUser(username.trim());
 
     if (!user) {
-      // TODO : Dinis throw the proper error
+      throw errors.UNEXPECTED("Unexpected error at user creation");
     }
 
     utils.logInfo(
@@ -73,13 +75,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
   function getGroups(userId) {
     if (!userId) {
-      // TODO : Dinis throw the proper error
+      throw errors.INVALID_DATA("You must provide user Id for getting groups");
     }
 
     const groups = data.listGroups(userId);
 
     if (!groups) {
-      // TODO : Dinis throw the proper error
+      throw errors.UNEXPECTED("Unexpected error at getting groups");
     }
 
     utils.logInfo(
@@ -91,7 +93,12 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
 
   function createGroup(userId, name, description, competition, year) {
-    if (!userId || !name || !description || !competition || !year) {
+    if (!userId)
+      throw errors.UNAUTHORIZED(
+        "You must authenticate yourself for group creation"
+      );
+
+    if (!name || !description || !competition || !year) {
       throw errors.INVALID_DATA(
         "Make sure you provide userId, name, description, competition and year for this operation"
       );
@@ -106,7 +113,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     );
 
     if (!group) {
-      // TODO : Dinis throw the proper error
+      throw errors.UNEXPECTED("Unexpected error at group creation");
     }
 
     return group;
@@ -116,7 +123,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
   function getGroup(userId, groupId) {
     const id = parseInt(groupId);
-    if (!userId || Number.isNaN(id)) {
+
+    if (!userId)
+      throw errors.UNAUTHORIZED(
+        "You must authenticate yourself for getting group details"
+      );
+
+    if (Number.isNaN(id)) {
       throw errors.INVALID_DATA(
         "Make sure you provide the group id for this operation"
       );
@@ -135,26 +148,32 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
 
   function updateGroup(userId, groupId, changes) {
-    if (!userId || !groupId || !changes) {
+    if (!userId)
+      throw errors.UNAUTHORIZED(
+        "You must authenticate yourself before updating groups"
+      );
+
+    const { name, description } = changes;
+
+    if (
+      !groupId ||
+      !changes ||
+      typeof name !== "string" ||
+      name.trim().length < 3 || // Regras de negocio
+      typeof description !== "string" ||
+      description.length < 3
+    ) {
       throw errors.INVALID_DATA(
-        "Make sure you provide the group id and changes for this operation"
+        "Make sure you provide the group id and changes for this operation\nChanges must have name " +
+          "and description and both need to be a string with more than 3 digits"
       );
     }
 
     const id = parseInt(groupId);
 
-    // TODO : Dinis => tentar validar tudo no minimo ifs possiveis
     if (Number.isNaN(id)) {
       throw errors.INVALID_DATA(
         "Make sure you provide a valid numeric group id for this operation"
-      );
-    }
-
-    const { name, description } = changes;
-
-    if (!utils.isNonEmptyString(name) || !utils.isNonEmptyString(description)) {
-      throw errors.INVALID_DATA(
-        "Both name and description are required and must be non-empty strings"
       );
     }
 
@@ -169,7 +188,6 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     }
 
     const updated = data.updateGroup(id, {
-      // TODO : ALL => trim e realmente necessario?
       name: name.trim(),
       description: description.trim(),
     });
@@ -183,7 +201,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
   function deleteGroup(userId, groupId) {
     const id = parseInt(groupId);
-    if (!userId || Number.isNaN(id)) {
+
+    if (Number.isNaN(userId))
+      throw errors.UNAUTHORIZED(
+        "You must authenticate yourself before deleting groups"
+      );
+
+    if (Number.isNaN(id)) {
       throw errors.INVALID_DATA(
         "Make sure you provide a valid numeric group id for this operation"
       );
@@ -207,7 +231,6 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
 
   async function addPlayerToGroup(userId, groupId, playerData) {
-    // TODO : Dinis => tentar validar tudo no minimo ifs possiveis
     if (!playerData) {
       throw errors.INVALID_DATA(
         "Make sure you provide player data for this operation"
@@ -215,9 +238,28 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     }
 
     const id = parseInt(groupId);
-    if (!userId || Number.isNaN(id)) {
+    const { playerId, playerName, teamCode, teamName } = playerData;
+
+    if (Number.isNaN(userId))
+      throw errors.UNAUTHORIZED(
+        "You must authenticate yourself before adding players to a group"
+      );
+
+    if (
+      Number.isNaN(id) ||
+      Number.isNaN(playerId) ||
+      typeof playerName !== "string" ||
+      playerName.trim() === 0 ||
+      typeof teamCode !== "string" ||
+      teamCode.trim().length < 2 ||
+      teamCode.trim().length > 4 ||
+      typeof teamName !== "string" ||
+      teamName.trim() === 0
+    ) {
       throw errors.INVALID_DATA(
-        "Make sure you provide a valid numeric group id for this operation"
+        "Make sure you provide a valid numeric group id for this operation\nPlayer data must have" +
+          "Valid numeric playerId, playerName, teamName and teamCode\n playerName and teamName must be valid" +
+          "and non empty and teamCode must be an acronym between 2 and 4 characters"
       );
     }
 
@@ -230,14 +272,6 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    const { playerId, playerName, teamCode, teamName } = playerData;
-
-    if (!playerId || !playerName || !teamCode || !teamName) {
-      throw errors.INVALID_DATA(
-        "Make sure you provide playerId, playerName, teamCode and teamName"
-      );
-    }
-
     if (group.players.some((p) => p.id === playerId)) {
       throw errors.UNPROCESSABLE("Player is already in this group");
     }
@@ -246,7 +280,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.UNPROCESSABLE("Group already has 11 players");
     }
 
-    const { competition, year } = group;
+    const { competition, year } = group; // Isto ta aqui por engano?
 
     const player = await fapiTeams.getPlayerForCompetition({
       competition,
@@ -258,7 +292,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     });
 
     if (!player) {
-      // TODO : Dinis throw the proper error
+      throw errors.UNEXPECTED("Unexpected error processing given player");
     }
 
     // TODO : ALL => verificar se em vez de reconstruir o objeto, passar o próprio fapiPlayer
@@ -274,7 +308,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   function deletePlayerFromGroup(userId, groupId, playerId) {
     const gId = parseInt(groupId);
     const pId = parseInt(playerId);
-    if (!userId || Number.isNaN(gId) || Number.isNaN(pId)) {
+
+    if (!userId)
+      throw errors.UNAUTHORIZED(
+        "You must authenticate yourself before deleting players from a group"
+      );
+
+    if (Number.isNaN(gId) || Number.isNaN(pId)) {
       throw errors.INVALID_DATA(
         "Make sure you provide valid numeric ids for group and player"
       );

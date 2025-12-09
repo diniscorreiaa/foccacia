@@ -1,4 +1,4 @@
-export function initDataMem({ domainModel, utils }) {
+export function initDataMem({ domainModel, utils, errors }) {
   let nextUserId = 1,
     nextGroupId = 1;
 
@@ -17,11 +17,11 @@ export function initDataMem({ domainModel, utils }) {
 
   function createUser(username) {
     if (!username) {
-      // TODO : Dinis => return null ? or throw error
+      throw errors.UNEXPECTED("Unhandled error validating username");
     }
     const user = new domainModel.User(nextUserId++, username);
     if (!user) {
-      // TODO : Dinis => return null ? or throw error
+      throw errors.UNEXPECTED("Unhandled error at user creation");
     }
     users.push(user);
     persistUsers();
@@ -30,7 +30,7 @@ export function initDataMem({ domainModel, utils }) {
 
   function getUserByToken(token) {
     if (!token) {
-      return null;
+      return UNEXPECTED("Unhandled error at token detection");
     }
     return users.find((u) => u.token === token) || null;
   }
@@ -39,7 +39,10 @@ export function initDataMem({ domainModel, utils }) {
   // TODO : Tiago => Create groups persistence on file
   // TODO : Tiago =>  read persisted groups from file on startup
   function createGroup(userId, name, description, competition, year) {
-    // TODO : Dinis => validate parameters
+    if (!userId || !name || !description || !competition || !year)
+      throw errors.UNEXPECTED(
+        "Unhandled error verifying requirements for group creation"
+      );
     const group = new domainModel.Group(
       userId,
       nextGroupId++,
@@ -49,7 +52,7 @@ export function initDataMem({ domainModel, utils }) {
       year
     );
     if (!group) {
-      // TODO : Dinis => return null ? or throw error
+      throw errors.UNEXPECTED("Unhandled error at group creation");
     }
     groups.push(group);
     return group;
@@ -57,17 +60,20 @@ export function initDataMem({ domainModel, utils }) {
 
   function listGroups(userId) {
     if (!userId) {
-      // TODO : Dinis => return null, [] ? or throw error
+      throw errors.UNEXPECTED("Unhandled error at verification of user Id");
     }
     return groups.filter((g) => g.ownerId === userId);
   }
 
   // TODO : Tiago => persist group changes on file
   function updateGroup(groupId, changes) {
-    // TODO : Dinis => validate parameters
+    if (!groupId || !changes)
+      throw errors.UNEXPECTED(
+        "Unhandled error verifying requirements for group update"
+      );
     const group = groups.find((g) => g.id === groupId);
     if (!group) {
-      return null;
+      throw errors.NOT_FOUND("Group not found");
     }
 
     if (utils.isString(changes.name)) {
