@@ -1,8 +1,39 @@
-const ES_BASE_URL = "http://localhost:9200";
+const ELASTIC_SEARCH_BASE_URL = "http://localhost:9200";
 const USERS_INDEX = "foccacia-users";
 const GROUPS_INDEX = "foccacia-groups";
 
 export function initDataElasticSearch({ domainModel, utils }) {
+  if (!domainModel || !utils) {
+    // TODO : Dinis => proper error handling
+  }
+
+  async function elasticSearchRequest(path, { method = "GET", body } = {}) {
+    if (!path) {
+      // TODO : Dinis => proper error handling, !method, !body with defaults values (maybe we should do this in other functions)
+    }
+
+    const url = `${ELASTIC_SEARCH_BASE_URL}/${path}`;
+    const options = { method, headers: { "Content-Type": "application/json" } };
+
+    // TODO : Dinis => ve se faz sentido manter a logica das outras funcoes de testar !body (caso negativo)
+    if (body !== undefined) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      utils.logError(
+        `ElasticSearch error ${method} ${url}: ${response.status} ${text}`
+      );
+      // TODO : Dinis => Aqui podemos decidir: mappear erro como no fapi ou devolver null.
+      throw new Error("ElasticSearch request failed");
+    }
+
+    return response.json();
+  }
+
   function createUser(username) {
     if (!username) {
       return null;
