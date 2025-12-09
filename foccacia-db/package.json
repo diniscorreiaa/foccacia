@@ -1,0 +1,12 @@
+{
+  "name": "foccacia-db",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/foccacia-data-elasticsearch.mjs",
+  "scripts": {
+    "test": "mocha",
+    "coverage": "c8 mocha"
+  },
+  "dependencies": {}
+}

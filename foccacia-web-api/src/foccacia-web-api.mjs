@@ -28,13 +28,13 @@ export function initWebApi({ services, dto, errors, utils }) {
   }
 
   // TODO : ALL => Em modular ainda mais as funcoes para evitar duplicacao de codigo, os middlewares, etc, podem ser chamados no return para nao contaminar visualmente as funcoes
-  const verifyToken = wrapAsync((req, res, next) => {
+  const verifyToken = wrapAsync(async (req, res, next) => {
     const token = getToken(req);
     if (!token) {
       throw errors.UNAUTHORIZED("Missing or invalid Bearer token");
     }
 
-    const userId = services.getUserIdFromToken(token);
+    const userId = await services.getUserIdFromToken(token);
     req.token = token;
     req.userId = userId;
     utils.logInfo(
@@ -59,9 +59,9 @@ export function initWebApi({ services, dto, errors, utils }) {
   );
 
   // Users
-  const createUser = wrapAsync((req, res) => {
+  const createUser = wrapAsync(async (req, res) => {
     const username = req.body?.username;
-    const user = services.createUser(username);
+    const user = await services.createUser(username);
     return res.status(201).json(dto.userToDto(user));
   });
 

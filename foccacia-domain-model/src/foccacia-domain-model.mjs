@@ -1,7 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-// TODO : ALL -> e dado pelo services a quem enviar-lhe e recebe dados dele, e esses sao responsaveis por mapear os seus dados para essa estrutura
-
 export function initDomainModel() {
   function Competition(code, name) {
     this.code = code;
@@ -35,10 +33,10 @@ export function initDomainModel() {
     this.age = age;
   }
 
-  function User(userId, username) {
+  function User(userId, username, token = randomUUID()) {
     this.id = userId;
     this.username = username;
-    this.token = randomUUID();
+    this.token = token;
   }
 
   function Group(

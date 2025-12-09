@@ -6,8 +6,9 @@ import { initJsonUtils } from "foccacia-utils/src/json-utils.mjs";
 import { initUtils } from "foccacia-utils/src/foccacia-utils.mjs";
 
 import { initFapiTeams } from "fapi-teams-data";
-import { initDomainModel } from "foccacia-services/src/domain-model.mjs";
+import { initDomainModel } from "foccacia-domain-model";
 import { initDataMem } from "foccacia-data-mem";
+import { initDataElasticSearch } from "foccacia-db";
 import { initServices } from "foccacia-services";
 
 import { initWebApi } from "foccacia-web-api";
@@ -25,11 +26,11 @@ export function createFoccaciaApp() {
 
   const domainModel = initDomainModel();
   const dataMem = initDataMem({ domainModel, utils });
-
+  const dataElasticSearch = initDataElasticSearch({ domainModel, utils });
   const fapiTeams = initFapiTeams({ domainModel, utils, errors: errorsLib });
 
   const services = initServices({
-    dataMem,
+    data: dataElasticSearch,
     fapiTeams,
     utils,
     errors: errorsLib,
