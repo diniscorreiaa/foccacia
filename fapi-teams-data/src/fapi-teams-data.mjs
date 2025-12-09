@@ -5,7 +5,9 @@ export function initFapiTeams({ domainModel, utils, errors }) {
   async function loadAuthHeaders() {
     const headersJson = await utils.readJson(utils.getHeadersFilePath());
     if (!headersJson)
-      throw errors.IO_ERROR(`Couldn't read JSON at ${utils.getHeadersFilePath}`)
+      throw errors.IO_ERROR(
+        `Couldn't read JSON at ${utils.getHeadersFilePath}`
+      );
     const token = headersJson["X-Auth-Token"];
     if (!token) {
       throw errors.UNAUTHORIZED(
@@ -42,14 +44,16 @@ export function initFapiTeams({ domainModel, utils, errors }) {
 
   async function fetchJsonFromFootballApi(url, logContext) {
     const headers = await loadAuthHeaders();
-    if(!headers || headers["X-Auth-Token"] == undefined)
-      throw errors.UNEXPECTED("Couldn't load authentication headers")
+    if (!headers || headers["X-Auth-Token"] == undefined)
+      throw errors.UNEXPECTED("Couldn't load authentication headers");
     const response = await fetch(url, { headers });
 
     if (!response.ok) {
       const err = buildFootballApiError(url, response.status);
       if (!err)
-        throw errors.UNEXPECTED("Couldn't provide apropriate error for Football API's bad response") // Aqui estou na duvida se meto internal nosso ou bad gateway pois tecnicamente algo errado aconteceu do outro lado mas nós não conseguimos definir o erro apropriado (que é falha do nosso lado)
+        throw errors.UNEXPECTED(
+          "Couldn't provide apropriate error for Football API's bad response"
+        ); // Aqui estou na duvida se meto internal nosso ou bad gateway pois tecnicamente algo errado aconteceu do outro lado mas nós não conseguimos definir o erro apropriado (que é falha do nosso lado)
       utils.logError(`Error fetching ${logContext} from Football API`, err);
       throw err;
     }
@@ -65,32 +69,36 @@ export function initFapiTeams({ domainModel, utils, errors }) {
     buildResult,
     buildCacheData,
   }) {
-    const cacheExists = await utils.fileExists(cachePath)
+    const cacheExists = await utils.fileExists(cachePath);
     if (cacheExists) {
       utils.logInfo(`Using cache for ${logContext} at ${cachePath}`, "");
       const cached = await utils.readJson(cachePath);
-      if (!cached) 
-        throw errors.IO_ERROR(`Couldnt read JSON at ${cachePath}`)
+      if (!cached) throw errors.IO_ERROR(`Couldnt read JSON at ${cachePath}`);
       return fromCache(cached);
     }
 
     utils.logInfo(`Fetching ${logContext} from Football Data API`, "");
     const body = await fetchJsonFromFootballApi(url, logContext);
     if (!body)
-      throw errors.UNEXPECTED("Couldn't process the response from Football API and specify the error properly")
+      throw errors.UNEXPECTED(
+        "Couldn't process the response from Football API and specify the error properly"
+      );
 
     const result = buildResult(body);
-    if(!result)
-      throw errors.UNEXPECTED("Couldn't process Football API data to local domain model")
-      
+    if (!result)
+      throw errors.UNEXPECTED(
+        "Couldn't process Football API data to local domain model"
+      );
+
     const toCache = buildCacheData(result, body);
-    if(!toCache)
-      throw errors.UNEXPECTED("Couldn't generate file content to save in server")
+    if (!toCache)
+      throw errors.UNEXPECTED(
+        "Couldn't generate file content to save in server"
+      );
 
     const saveCache = await utils.writeJson(toCache, cachePath);
-    if(!saveCache)
-      throw errors.IO_ERROR("Couldn't save data in server")
-    
+    if (!saveCache) throw errors.IO_ERROR("Couldn't save data in server");
+
     utils.logSuccess(`Saved ${logContext} cache to ${cachePath}`, "");
 
     return result;
@@ -100,11 +108,15 @@ export function initFapiTeams({ domainModel, utils, errors }) {
   // Competitions
   async function fetchCompetitions() {
     const cachePath = utils.getCompetitionsFilePath();
-    if(!cachePath)
-      throw errors.UNEXPECTED("Couldn't process path to cache for Football API competitions") // TODO: Mudar quando for com DB
+    if (!cachePath)
+      throw errors.UNEXPECTED(
+        "Couldn't process path to cache for Football API competitions"
+      ); // TODO: Mudar quando for com DB
     const url = `${FOOTBALL_API_URI}/competitions`;
-    if(!url)
-      throw errors.UNEXPECTED("Couldn't process URL to Football API competitions")
+    if (!url)
+      throw errors.UNEXPECTED(
+        "Couldn't process URL to Football API competitions"
+      );
 
     return fetchWithCache({
       cachePath,
@@ -129,12 +141,14 @@ export function initFapiTeams({ domainModel, utils, errors }) {
     }
 
     const cachePath = utils.getCompetitionTeamsFilePath(code, season);
-    if(!cachePath)
-      throw errors.UNEXPECTED("Couldn't process path to cache for Football API teams") // TODO: Mudar quando for com DB
+    if (!cachePath)
+      throw errors.UNEXPECTED(
+        "Couldn't process path to cache for Football API teams"
+      ); // TODO: Mudar quando for com DB
 
     const url = `${FOOTBALL_API_URI}/competitions/${code}/teams?season=${season}`;
-    if(!url)
-      throw errors.UNEXPECTED("Couldn't process URL to Football API teams")
+    if (!url)
+      throw errors.UNEXPECTED("Couldn't process URL to Football API teams");
 
     return fetchWithCache({
       cachePath,
@@ -152,11 +166,15 @@ export function initFapiTeams({ domainModel, utils, errors }) {
     }
 
     const cachePath = utils.getTeamPlayersFilePath(teamId);
-    if(!cachePath)
-      throw errors.UNEXPECTED("Couldn't process path to cache for Football API team squad")
+    if (!cachePath)
+      throw errors.UNEXPECTED(
+        "Couldn't process path to cache for Football API team squad"
+      );
     const url = `${FOOTBALL_API_URI}/teams/${teamId}`;
-    if(!url)
-      throw errors.UNEXPECTED("Couldn't process URL to Football API team squad")
+    if (!url)
+      throw errors.UNEXPECTED(
+        "Couldn't process URL to Football API team squad"
+      );
 
     return fetchWithCache({
       cachePath,
@@ -171,7 +189,7 @@ export function initFapiTeams({ domainModel, utils, errors }) {
   async function getCompetitionsDomainMapper() {
     const raw = await fetchCompetitions();
     if (!raw) {
-      // TODO : Dinis => Proper error handling
+      throw errors.UNEXPECTED("Unresolved error getting competitions data");
     }
 
     const competitions = raw.map(
@@ -179,23 +197,37 @@ export function initFapiTeams({ domainModel, utils, errors }) {
         new domainModel.Competition(competition.code, competition.name)
     );
     if (!competitions) {
-      // TODO : Dinis => Proper error handling
+      throw errors.UNEXPECTED(
+        "Error converting external data competitions to internal data type"
+      );
     }
 
     return competitions;
   }
 
   async function getTeamsWithSquadsDomainMapper(code, season) {
+    if (
+      typeof code !== "string" ||
+      code.trim().length === 0 ||
+      Number.isNaN(season)
+    )
+      throw errors.INVALID_DATA(
+        "You must provide both competition code and season for this operation"
+      );
     const teams = await fetchCompetitionTeams(code, season);
     if (!teams) {
-      // TODO : Dinis => Proper error handling
+      throw errors.UNEXPECTED(
+        "Unexpected error getting teams from Football API for internal domain mapper"
+      );
     }
 
     const squads = await Promise.all(
       teams.map((team) => fetchTeamWithSquad(team.id))
     );
     if (!squads) {
-      // TODO : Dinis => Proper error handling
+      throw errors.UNEXPECTED(
+        "Unexpected error getting team squad from Football API for internal domain mapper"
+      );
     }
 
     const result = squads.map((teamJson) => {
@@ -213,7 +245,9 @@ export function initFapiTeams({ domainModel, utils, errors }) {
           )
       );
       if (!players) {
-        // TODO : Dinis => Proper error handling
+        throw errors.UNEXPECTED(
+          "Error converting player data to match internal domain model"
+        );
       }
 
       const team = new domainModel.Team(
@@ -223,11 +257,16 @@ export function initFapiTeams({ domainModel, utils, errors }) {
         players
       );
       if (!team) {
-        // TODO : Dinis => Proper error handling
+        throw errors.UNEXPECTED(
+          "Error converting team data to match internal domain model"
+        );
       }
       return team;
     });
-
+    if (!result)
+      throw errors.UNEXPECTED(
+        "Unknown error for teams with squad domain model mapper"
+      );
     // TODO : Tiago => persist teams and players
     utils.logInfo(
       `Fapi: built ${result.length} Team objects for competition ${code} season ${season}`,
@@ -244,15 +283,25 @@ export function initFapiTeams({ domainModel, utils, errors }) {
     teamCode,
     teamName,
   }) {
-    // TODO : Dinis => Validate all parameters
-    if (!competition || !year) {
+    if (
+      typeof competition !== "string" ||
+      competition.trim().length === 0 ||
+      Number.isNaN(year) ||
+      year.toString().length !== 4 ||
+      Number.isNaN(playerId) ||
+      typeof playerName !== "string" ||
+      playerName.trim().length === 0 ||
+      typeof teamCode != "string" ||
+      teamCode.trim().length < 2 ||
+      teamCode.trim().length > 4 ||
+      typeof teamName != "string"
+    ) {
       throw errors.INVALID_DATA(
         "Make sure you provide competition and year for this operation"
       );
     }
 
     const teams = await fetchCompetitionTeams(competition, year);
-    // TODO : Dinis => Confirmar que esta validação especifica e a que faz mais sentido
     if (!Array.isArray(teams) || teams.length === 0) {
       throw errors.UNEXPECTED(
         "Could not load teams for the competition and year of this group"
@@ -264,23 +313,22 @@ export function initFapiTeams({ domainModel, utils, errors }) {
         team.tla === teamCode &&
         (team.shortName === teamName || team.name === teamName)
     );
-    if (!teamHeader) {
+    if (!teamHeader || Number.isNaN(teamHeader.id)) {
       throw errors.UNPROCESSABLE(
-        "Player does not belong to this competition/year"
+        "Team does not belong to this competition/year"
       );
-    }
-    if (!teamHeader) {
-      // TODO : Dinis => Proper error handling
     }
 
     const teamDetails = await fetchTeamWithSquad(teamHeader.id);
+
     if (!teamDetails) {
-      // TODO : Dinis => Proper error handling
+      throw errors.UNEXPECTED(
+        "Unresolved error getting team details for player domain mapper"
+      );
     }
 
     const squad = teamDetails.squad;
-    // TODO : Dinis => Confirmar que esta validação especifica e a que faz mais sentido
-    if (!Array.isArray(squad)) {
+    if (!Array.isArray(squad) || squad.length < 11) {
       throw errors.UNEXPECTED("Could not load squad for this team");
     }
 
@@ -304,7 +352,9 @@ export function initFapiTeams({ domainModel, utils, errors }) {
       utils.getAgeFromDate(squadPlayer.dateOfBirth)
     );
     if (!player) {
-      // TODO : Dinis => Proper error handling
+      throw errors.UNEXPECTED(
+        "Internal error during conversion of player data to domain model"
+      );
     }
     return player;
   }

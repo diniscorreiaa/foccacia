@@ -23,8 +23,8 @@ export function createFoccaciaApp() {
   });
   const utils = initUtils({ logUtils, ioUtils, jsonUtils });
 
-  const domainModel = initDomainModel();
-  const dataMem = initDataMem({ domainModel, utils });
+  const domainModel = initDomainModel({ randomUUID });
+  const dataMem = initDataMem({ domainModel, utils, errors: errorsLib });
 
   const fapiTeams = initFapiTeams({ domainModel, utils, errors: errorsLib });
 
