@@ -73,15 +73,15 @@ export function initWebApi({ services, dto, errors, utils }) {
     })
   );
 
-  const createGroup = wrapAsync((req, res) => {
+  const createGroup = wrapAsync(async (req, res) => {
     const { name, description, competition, year } = req.body ?? {};
-    const group = services.createGroup(
-      req.userId,
+    const group = await services.createGroup({
+      userId: req.userId,
       name,
       description,
       competition,
-      year
-    );
+      year,
+    });
     return res.status(201).json(dto.groupToDto(group));
   });
 

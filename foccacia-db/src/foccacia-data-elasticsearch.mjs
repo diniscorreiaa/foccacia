@@ -1,6 +1,6 @@
 // TODO : Dinis => verifica todos os erros e se faz sentido return null ou throw
 
-const ELASTIC_SEARCH_BASE_URL = "http://localhost:9200";
+const ELASTIC_SEARCH_BASE_URI = "http://localhost:9200";
 const USERS_INDEX = "foccacia-users";
 const GROUPS_INDEX = "foccacia-groups";
 
@@ -9,25 +9,27 @@ export function initDataElasticSearch({ domainModel, utils }) {
     // TODO : Dinis => proper error handling
   }
 
+  // TODO : Tiago => At init PUT USERS_INDEX and GROUPS_INDEX on elasticsearch if not exists
+
   async function elasticSearchRequest(path, { method = "GET", body } = {}) {
     if (!path) {
       // TODO : Dinis => proper error handling, !method, !body with defaults values (maybe we should do this in other functions)
     }
 
-    const url = `${ELASTIC_SEARCH_BASE_URL}/${path}`;
-    const options = {
+    const url = `${ELASTIC_SEARCH_BASE_URI}/${path}`;
+    const request = {
       method,
       headers: { "Content-Type": "application/json" },
     };
     // TODO : Dinis => ve se faz sentido manter a logica das outras funcoes de testar !body (caso negativo)
     if (body !== undefined) {
-      options.body = JSON.stringify(body);
+      request.body = JSON.stringify(body);
     }
 
-    const response = await fetch(url, options);
+    const response = await fetch(url, request);
 
     if (!response.ok) {
-      const text = await response.text().catch(() => "");
+      const text = await response.text().catch(() => null);
       utils.logError(
         `ElasticSearch error ${method} ${url}: ${response.status} ${text}`
       );
@@ -44,8 +46,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
       return null;
     }
 
-    // TODO : Tiago => push user in elasticsearch
-    const user = new domainModel.User(null, username);
+    const user = new domainModel.User({ username: username.trim() });
 
     const body = {
       username: user.username,
@@ -69,7 +70,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
       return null;
     }
 
-    user.id = response._id;
+    user.id = id;
 
     return user;
   }
@@ -108,7 +109,11 @@ export function initDataElasticSearch({ domainModel, utils }) {
     const src = hit._source;
     const id = hit._id;
 
-    const user = new domainModel.User(id, src.username, src.token);
+    const user = new domainModel.User({
+      id,
+      username: src.username,
+      toker: src.token,
+    });
     if (!user) {
       return null;
     }
@@ -117,24 +122,48 @@ export function initDataElasticSearch({ domainModel, utils }) {
   }
 
   // GROUPS
-  function createGroup(userId, name, description, competition, year) {
+  async function createGroup({ userId, name, description, competition, year }) {
     if (!userId || !name || !description || !competition || !year) {
       return null;
     }
 
-    // TODO : Tiago => getNextGroupId from elasticsearch
-
-    const group = new domainModel.Group(
+    const group = new domainModel.Group({
       userId,
-      nextGroupId,
       name,
       description,
       competition,
-      year
-    );
+      year,
+    });
     if (!group) {
       return null;
     }
+
+    const body = {
+      ownerId: group.ownerId,
+      name: group.name,
+      description: group.description,
+      competition: group.competition,
+      year: group.year,
+      players: group.players,
+      createdAt: new Date().toISOString(),
+    };
+
+    const response = await elasticSearchRequest(`${GROUPS_INDEX}/_doc`, {
+      method: "POST",
+      body,
+    });
+    if (!response) {
+      return null;
+    }
+
+    const id = response._id;
+    if (!id) {
+      return null;
+    }
+
+    group.id = id;
+
+    return user;
 
     // TODO : Tiago => push group in elasticsearch
 

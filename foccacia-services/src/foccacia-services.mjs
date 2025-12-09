@@ -42,7 +42,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.UNAUTHORIZED("Invalid token");
     }
 
-    const user = data.getUserByToken(token);
+    const user = await data.getUserByToken(token);
 
     if (!user || Number.isNaN(user.id)) {
       throw errors.UNAUTHORIZED("Invalid token");
@@ -52,14 +52,14 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
   // TODO : Tiago, Franciso e Dinis => verificar de dataMem precisa de await devido ao writeJson
   async function createUser(username) {
-    if (!username.trim()) {
+    if (!username || !username.trim()) {
       throw errors.INVALID_DATA("Username is required");
     }
     if (typeof username !== "string" || username.trim().length < 3)
       // Tinha de verificar que não era string vazia acrescentei logo regras de negocio
       throw errors.INVALID_DATA("Username must contain at least 3 characters");
 
-    const user = data.createUser(username.trim());
+    const user = await data.createUser(username.trim());
 
     if (!user) {
       throw errors.UNEXPECTED("Unexpected error at user creation");
@@ -92,7 +92,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return groups;
   }
 
-  function createGroup(userId, name, description, competition, year) {
+  async function createGroup({ userId, name, description, competition, year }) {
     if (!userId)
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself for group creation"
@@ -104,13 +104,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = data.createGroup(
+    const group = await data.createGroup({
       userId,
       name,
       description,
       competition,
-      year
-    );
+      year,
+    });
 
     if (!group) {
       throw errors.UNEXPECTED("Unexpected error at group creation");
