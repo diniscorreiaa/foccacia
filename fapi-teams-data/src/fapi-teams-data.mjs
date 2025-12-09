@@ -85,12 +85,17 @@ export function initFapiTeams({ domainModel, utils, errors }) {
       );
 
     const result = buildResult(body);
+    if(!result)
+      throw errors.UNEXPECTED("Couldn't process Football API data to local domain model")
+      
     if (!result)
       throw errors.UNEXPECTED(
         "Couldn't process Football API data to local domain model"
       );
 
     const toCache = buildCacheData(result, body);
+    if(!toCache)
+      throw errors.UNEXPECTED("Couldn't generate file content to save in server")
     if (!toCache)
       throw errors.UNEXPECTED(
         "Couldn't generate file content to save in server"
