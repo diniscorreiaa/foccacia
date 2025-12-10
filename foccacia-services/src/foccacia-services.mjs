@@ -3,6 +3,7 @@
 // TODO : Francisco => eliminar código repetido e modularizar ( Todas as funcoes estao com a seguinte estrutura : verificar parametros, buscar dados na dataMem, verificar dados, retornar dados)
 
 // TODO : ALL => Todos as funções vai ter de ser async para evitar que alguns devolvam promisses e outros nao
+// TODO : Dinis => userId and groupId can be numbers or strings, change the verification to accept both
 
 export function initServices({ data, fapiTeams, utils, errors }) {
   // Competitions
@@ -76,12 +77,12 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return user;
   }
 
-  function getGroups(userId) {
+  async function getGroups(userId) {
     if (!userId) {
       throw errors.INVALID_DATA("You must provide user Id for getting groups");
     }
 
-    const groups = data.listGroups(userId);
+    const groups = await data.listGroups(userId);
 
     if (!groups) {
       throw errors.UNEXPECTED("Unexpected error at getting groups");
@@ -124,7 +125,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
   // TODO : Francisco => verificar se podemos fazer um wrapper para reduzir repetição de código
 
-  function getGroup(userId, groupId) {
+  async function getGroup(userId, groupId) {
     const id = parseInt(groupId);
 
     if (!userId)
@@ -138,7 +139,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = data.getGroup(id);
+    const group = await data.getGroup(id);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -150,7 +151,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return group;
   }
 
-  function updateGroup(userId, groupId, changes) {
+  async function updateGroup(userId, groupId, changes) {
     if (!userId)
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before updating groups"
@@ -180,7 +181,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = data.getGroup(id);
+    const group = await data.getGroup(id);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -190,7 +191,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    const updated = data.updateGroup(id, {
+    const updated = await data.updateGroup(id, {
       name: name.trim(),
       description: description.trim(),
     });
@@ -202,7 +203,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return updated;
   }
 
-  function deleteGroup(userId, groupId) {
+  async function deleteGroup(userId, groupId) {
     const id = parseInt(groupId);
 
     if (Number.isNaN(userId))
@@ -216,7 +217,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = data.getGroup(id);
+    const group = await data.getGroup(id);
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
     }
@@ -224,7 +225,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    const deleted = data.deleteGroup(id);
+    const deleted = await data.deleteGroup(id);
 
     if (!deleted) {
       throw errors.NOT_FOUND("Group not found");

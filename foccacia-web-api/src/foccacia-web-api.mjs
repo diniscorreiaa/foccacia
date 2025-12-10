@@ -101,8 +101,8 @@ export function initWebApi({ services, dto, errors, utils }) {
   });
 
   // TODO : Tiago => Verificar se o deleteGroup deve ser async
-  const deleteGroup = wrapAsync((req, res) => {
-    const result = services.deleteGroup(req.userId, req.params.groupId);
+  const deleteGroup = wrapAsync(async (req, res) => {
+    const result = await services.deleteGroup(req.userId, req.params.groupId);
     if (!result) {
       throw errors.UNEXPECTED("Unexpected internal error");
     }
