@@ -2,7 +2,7 @@
 // TODO : Dinis & Francisco => Criar uma funcao que verifica todos os dados returnados e se estao no estado correcto, verificar quando faz sentido o tipo de cada parametro (exemplos isNumber)
 // TODO : Francisco => eliminar código repetido e modularizar ( Todas as funcoes estao com a seguinte estrutura : verificar parametros, buscar dados na dataMem, verificar dados, retornar dados)
 
-// TODO : ALL => Todos as funções vai ter de ser async para evitar que alguns devolvam promisses e outros nao
+// TODO : PROFESSOR => Todos as funções vai ter de ser async para evitar que alguns devolvam promisses e outros nao
 // TODO : Dinis => userId and groupId can be numbers or strings, change the verification to accept both
 
 export function initServices({ data, fapiTeams, utils, errors }) {
@@ -54,7 +54,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
     return Promise.resolve(user.id);
   }
-  // TODO : Tiago, Franciso e Dinis => verificar de dataMem precisa de await devido ao writeJson
+  // TODO : PROFESSOR => verificar de dataMem precisa de await devido ao writeJson
   async function createUser(username) {
     if (!username || !username.trim()) {
       throw errors.INVALID_DATA("Username is required");
@@ -299,7 +299,6 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.UNEXPECTED("Unexpected error processing given player");
     }
 
-    // TODO : ALL => verificar se em vez de reconstruir o objeto, passar o próprio fapiPlayer
     const added = data.addPlayerToGroup(id, player);
 
     if (!added) {

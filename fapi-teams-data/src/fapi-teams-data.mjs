@@ -120,7 +120,7 @@ export function initFapiTeams({ domainModel, utils, errors }) {
     if (!cachePath)
       throw errors.UNEXPECTED(
         "Couldn't process path to cache for Football API competitions"
-      ); // TODO: Mudar quando for com DB
+      ); // TODO: Tiago => Mudar quando for com DB ?
     const url = `${FOOTBALL_API_URI}/competitions`;
     if (!url)
       throw errors.UNEXPECTED(
@@ -153,7 +153,7 @@ export function initFapiTeams({ domainModel, utils, errors }) {
     if (!cachePath)
       throw errors.UNEXPECTED(
         "Couldn't process path to cache for Football API teams"
-      ); // TODO: Mudar quando for com DB
+      ); // TODO: Tiago => Mudar quando for com DB ?
 
     const url = `${FOOTBALL_API_URI}/competitions/${code}/teams?season=${season}`;
     if (!url)

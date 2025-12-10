@@ -1,4 +1,4 @@
-// TODO : ALL change Domain Functions to receive single object parameters
+// TODO : ALL => change Domain Functions to receive single object parameters
 import { randomUUID } from "node:crypto";
 
 export function initDomainModel() {

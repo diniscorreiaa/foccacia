@@ -54,13 +54,10 @@ export function initDataElasticSearch({ domainModel, utils }) {
       createdAt: new Date().toISOString(),
     };
 
-    const response = await elasticSearchRequest(
-      `${USERS_INDEX}/_doc?refresh=wait_for`,
-      {
-        method: "POST",
-        body,
-      }
-    );
+    const response = await elasticSearchRequest(`${USERS_INDEX}/_doc`, {
+      method: "POST",
+      body,
+    });
 
     const id = response._id;
     if (!id) {
@@ -71,7 +68,6 @@ export function initDataElasticSearch({ domainModel, utils }) {
     return user;
   }
 
-  // TODO : Tiago => Fix Bug nao esta encontrar o user pela token
   async function getUserByToken(token) {
     if (!token) {
       return null;
@@ -130,13 +126,10 @@ export function initDataElasticSearch({ domainModel, utils }) {
       createdAt: new Date().toISOString(),
     };
 
-    const response = await elasticSearchRequest(
-      `${GROUPS_INDEX}/_doc?refresh=wait_for`,
-      {
-        method: "POST",
-        body,
-      }
-    );
+    const response = await elasticSearchRequest(`${GROUPS_INDEX}/_doc`, {
+      method: "POST",
+      body,
+    });
 
     const id = response._id;
     if (!id) {
@@ -206,10 +199,10 @@ export function initDataElasticSearch({ domainModel, utils }) {
       players: existing.players,
     };
 
-    await elasticSearchRequest(
-      `${GROUPS_INDEX}/_doc/${groupId}?refresh=wait_for`,
-      { method: "PUT", body }
-    );
+    await elasticSearchRequest(`${GROUPS_INDEX}/_doc/${groupId}`, {
+      method: "PUT",
+      body,
+    });
 
     return existing;
   }
@@ -217,10 +210,9 @@ export function initDataElasticSearch({ domainModel, utils }) {
   async function deleteGroup(groupId) {
     if (!groupId) return false;
 
-    await elasticSearchRequest(
-      `${GROUPS_INDEX}/_doc/${groupId}?refresh=wait_for`,
-      { method: "DELETE" }
-    );
+    await elasticSearchRequest(`${GROUPS_INDEX}/_doc/${groupId}`, {
+      method: "DELETE",
+    });
 
     return true;
   }

@@ -100,7 +100,6 @@ export function initWebApi({ services, dto, errors, utils }) {
     });
   });
 
-  // TODO : Tiago => Verificar se o deleteGroup deve ser async
   const deleteGroup = wrapAsync(async (req, res) => {
     const result = await services.deleteGroup(req.userId, req.params.groupId);
     if (!result) {
@@ -145,4 +144,4 @@ export function initWebApi({ services, dto, errors, utils }) {
   };
 }
 
-// TODO : ALL => Exemplo de modularizacao das funncoes em vez cada uma ter o wrapAsync, fazer o wrap aqui no return
+// TODO : ALL => Exemplo de modularizacao das funcoes em vez cada uma ter o wrapAsync, fazer o wrap aqui no return
