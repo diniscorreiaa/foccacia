@@ -1,8 +1,8 @@
 // TODO : Dinis => verifica todos os erros e se faz sentido return null ou throw
 
-const ELASTIC_SEARCH_BASE_URI = "http://localhost:9200";
-const USERS_INDEX = "foccacia-users";
-const GROUPS_INDEX = "foccacia-groups";
+const ELASTIC_SEARCH_BASE_URI = "http://localhost:9200/";
+const USERS_INDEX = "foccacia-users/";
+const GROUPS_INDEX = "foccacia-groups/";
 
 export function initDataElasticSearch({ domainModel, utils }) {
   if (!domainModel || !utils) {
@@ -16,7 +16,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
       // TODO : Dinis => proper error handling, !method, !body with defaults values (maybe we should do this in other functions)
     }
 
-    const url = `${ELASTIC_SEARCH_BASE_URI}/${path}`;
+    const url = `${ELASTIC_SEARCH_BASE_URI}${path}`;
     const request = {
       method,
       headers: { "Content-Type": "application/json" },

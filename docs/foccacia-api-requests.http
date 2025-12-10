@@ -1,4 +1,4 @@
-@api = http://localhost:1904
+@api = http://localhost:1904/api/
 @accept-content = application/json
 
 @season = 2025
