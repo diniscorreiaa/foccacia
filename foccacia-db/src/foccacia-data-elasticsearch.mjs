@@ -57,7 +57,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
       return null;
     }
 
-    const response = await elasticSearchRequest(`${USERS_INDEX}/_doc`, {
+    const response = await elasticSearchRequest(`${USERS_INDEX}_doc`, {
       method: "POST",
       body,
     });
@@ -85,15 +85,12 @@ export function initDataElasticSearch({ domainModel, utils }) {
 
     const query = {
       query: {
-        term: { token },
+        term: { "token.keyword": token },
       },
       size: 1,
     };
-    if (!query) {
-      return null;
-    }
 
-    const response = await elasticSearchRequest(`${USERS_INDEX}/_search`, {
+    const response = await elasticSearchRequest(`${USERS_INDEX}_search`, {
       method: "POST",
       body: query,
     });
