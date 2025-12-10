@@ -1,4 +1,5 @@
 // TODO : Francisco => modular codigo para evitar duplicação
+// TODO : Dinis => Nao usar throw mas null/false/undifined (Service e que mappeia o erro)
 const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 
 export function initFapiTeams({ domainModel, utils, errors }) {
