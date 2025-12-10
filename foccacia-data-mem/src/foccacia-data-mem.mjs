@@ -8,7 +8,7 @@ export function initDataMem({ domainModel, utils, errors }) {
 
   // USERS
   // TODO : Tiago => read persisted users from file on startup
-  // TODO : PROFESSOR => Confirmar sendo o writeJson async todo depende dele tambem deve ser async?
+  // TODO : PROFESSOR SIM! => Confirmar sendo o writeJson async todo depende dele tambem deve ser async?
   function persistUsers() {
     utils.writeJson(users, USERS_CACHE_PATH).catch((err) => {
       utils.logError("Error writing users cache", err);
