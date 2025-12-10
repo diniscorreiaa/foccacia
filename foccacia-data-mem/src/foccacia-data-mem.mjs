@@ -8,7 +8,7 @@ export function initDataMem({ domainModel, utils, errors }) {
 
   // USERS
   // TODO : Tiago => read persisted users from file on startup
-  // TODO : Confirmar com Professor sendo o writeJson async todo depende dele tambem deve ser async?
+  // TODO : PROFESSOR => Confirmar sendo o writeJson async todo depende dele tambem deve ser async?
   function persistUsers() {
     utils.writeJson(users, USERS_CACHE_PATH).catch((err) => {
       utils.logError("Error writing users cache", err);
@@ -19,7 +19,7 @@ export function initDataMem({ domainModel, utils, errors }) {
     if (!username) {
       throw errors.UNEXPECTED("Unhandled error validating username");
     }
-    const user = new domainModel.User(nextUserId++, username);
+    const user = new domainModel.User({ id: nextUserId++, username });
     if (!user) {
       throw errors.UNEXPECTED("Unhandled error at user creation");
     }
@@ -30,39 +30,39 @@ export function initDataMem({ domainModel, utils, errors }) {
 
   function getUserByToken(token) {
     if (!token) {
-      return UNEXPECTED("Unhandled error at token detection");
+      return errors.UNEXPECTED("Unhandled error at token detection");
     }
-    return users.find((u) => u.token === token) || null;
+    return users.find((user) => user.token === token) || null;
   }
 
   // GROUPS
   // TODO : Tiago => Create groups persistence on file
   // TODO : Tiago =>  read persisted groups from file on startup
-  function createGroup(userId, name, description, competition, year) {
+  async function createGroup({ userId, name, description, competition, year }) {
     if (!userId || !name || !description || !competition || !year)
       throw errors.UNEXPECTED(
         "Unhandled error verifying requirements for group creation"
       );
-    const group = new domainModel.Group(
+    const group = new domainModel.Group({
+      id: nextGroupId++,
       userId,
-      nextGroupId++,
       name,
       description,
       competition,
-      year
-    );
+      year,
+    });
     if (!group) {
       throw errors.UNEXPECTED("Unhandled error at group creation");
     }
     groups.push(group);
-    return group;
+    return Promise.resolve(group);
   }
 
   function listGroups(userId) {
     if (!userId) {
       throw errors.UNEXPECTED("Unhandled error at verification of user Id");
     }
-    return groups.filter((g) => g.ownerId === userId);
+    return groups.filter((group) => group.ownerId === userId);
   }
 
   // TODO : Tiago => persist group changes on file
@@ -71,7 +71,7 @@ export function initDataMem({ domainModel, utils, errors }) {
       throw errors.UNEXPECTED(
         "Unhandled error verifying requirements for group update"
       );
-    const group = groups.find((g) => g.id === groupId);
+    const group = groups.find((group) => group.id === groupId);
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
     }
@@ -89,7 +89,7 @@ export function initDataMem({ domainModel, utils, errors }) {
   // TODO : Tiago => persist group deletion on file
   function deleteGroup(groupId) {
     if (!groupId) return false;
-    const idx = groups.findIndex((g) => g.id === groupId);
+    const idx = groups.findIndex((group) => group.id === groupId);
     if (idx === -1) return false;
     groups.splice(idx, 1);
     return true;
@@ -99,7 +99,7 @@ export function initDataMem({ domainModel, utils, errors }) {
     if (!groupId) {
       return null;
     }
-    return groups.find((g) => g.id === groupId) || null;
+    return groups.find((group) => group.id === groupId) || null;
   }
 
   // GROUP PLAYERS

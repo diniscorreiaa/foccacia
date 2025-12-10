@@ -10,13 +10,13 @@ app.use(express.json());
 
 // TODO : Francisco => Make routes dynamic based on available resources
 const ROUTES = {
-  COMPETITIONS: "/competitions",
-  TEAMS: "/competitions/:competitionCode/seasons/:seasonYear/teams",
-  USERS: "/users",
-  GROUPS: "/groups",
-  GROUP: "/groups/:groupId",
-  GROUP_PLAYERS: "/groups/:groupId/players",
-  GROUP_PLAYER: "/groups/:groupId/players/:playerId",
+  COMPETITIONS: "/api/competitions",
+  TEAMS: "/api/competitions/:competitionCode/seasons/:seasonYear/teams",
+  USERS: "/api/users",
+  GROUPS: "/api/groups",
+  GROUP: "/api/groups/:groupId",
+  GROUP_PLAYERS: "/api/groups/:groupId/players",
+  GROUP_PLAYER: "/api/groups/:groupId/players/:playerId",
 };
 
 //Rotas Públicas

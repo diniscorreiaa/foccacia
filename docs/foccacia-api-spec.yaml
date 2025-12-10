@@ -14,7 +14,7 @@ info:
 
 servers:
   - description: Servidor local para testes da API
-    url: http://localhost:1904
+    url: http://localhost:1904/api
 
 tags:
   - name: Competitions

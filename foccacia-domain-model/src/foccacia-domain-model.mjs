@@ -1,3 +1,4 @@
+// TODO : ALL => change Domain Functions to receive single object parameters
 import { randomUUID } from "node:crypto";
 
 export function initDomainModel() {
@@ -33,23 +34,23 @@ export function initDomainModel() {
     this.age = age;
   }
 
-  function User(userId, username, token = randomUUID()) {
-    this.id = userId;
+  function User({ id = null, username, token = randomUUID() }) {
+    this.id = id;
     this.username = username;
     this.token = token;
   }
 
-  function Group(
+  function Group({
+    id = null,
     userId,
-    groupId,
     name,
     description,
     competition,
     year,
-    players = []
-  ) {
+    players = [],
+  }) {
+    this.id = id;
     this.ownerId = userId;
-    this.id = groupId;
     this.name = name;
     this.description = description;
     this.competition = competition;

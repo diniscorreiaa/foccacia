@@ -15,6 +15,10 @@ import { initWebApi } from "foccacia-web-api";
 import { initDto } from "foccacia-web-api/src/foccacia-dto.mjs";
 import { initSendApplicationError } from "foccacia-web-api/src/application-to-http-errors.mjs";
 
+// TODO : ALL => create select/create/init  Data layer based on config
+// TODO : PROFESSOR => Data layer return null or throw ?
+// TODO : PROFESSOR => Persistencia ? Carregar users e groups at startup ?
+
 export function createFoccaciaApp() {
   const logUtils = initLogUtils();
   const ioUtils = initIoUtils();
@@ -44,7 +48,7 @@ export function createFoccaciaApp() {
     utils,
   });
 
-  // TODO : app.use(express.urlencoded()); Leitura de forms
+  // TODO : ALL => app.use(express.urlencoded()); Leitura de forms
 
   const sendApplicationError = initSendApplicationError({
     ERROR_CODES,

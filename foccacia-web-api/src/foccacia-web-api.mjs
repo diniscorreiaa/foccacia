@@ -73,15 +73,15 @@ export function initWebApi({ services, dto, errors, utils }) {
     })
   );
 
-  const createGroup = wrapAsync((req, res) => {
+  const createGroup = wrapAsync(async (req, res) => {
     const { name, description, competition, year } = req.body ?? {};
-    const group = services.createGroup(
-      req.userId,
+    const group = await services.createGroup({
+      userId: req.userId,
       name,
       description,
       competition,
-      year
-    );
+      year,
+    });
     return res.status(201).json(dto.groupToDto(group));
   });
 
@@ -100,9 +100,8 @@ export function initWebApi({ services, dto, errors, utils }) {
     });
   });
 
-  // TODO : Tiago => Verificar se o deleteGroup deve ser async
-  const deleteGroup = wrapAsync((req, res) => {
-    const result = services.deleteGroup(req.userId, req.params.groupId);
+  const deleteGroup = wrapAsync(async (req, res) => {
+    const result = await services.deleteGroup(req.userId, req.params.groupId);
     if (!result) {
       throw errors.UNEXPECTED("Unexpected internal error");
     }
@@ -129,6 +128,7 @@ export function initWebApi({ services, dto, errors, utils }) {
     return res.sendStatus(204);
   });
 
+  // TODO : Francisco => warpers before return to clean functions
   return {
     verifyToken,
     getCompetitions,
@@ -144,4 +144,4 @@ export function initWebApi({ services, dto, errors, utils }) {
   };
 }
 
-// TODO : ALL => Exemplo de modularizacao das funncoes em vez cada uma ter o wrapAsync, fazer o wrap aqui no return
+// TODO : ALL => Exemplo de modularizacao das funcoes em vez cada uma ter o wrapAsync, fazer o wrap aqui no return

@@ -1,6 +1,10 @@
 // TODO : Dinis & Francisco => Criar uma funcao que verifica todos os parametros obrigatorios e se estao no estado correcto, verificar quando faz sentido o tipo de cada parametro (exemplos isNumber)
 // TODO : Dinis & Francisco => Criar uma funcao que verifica todos os dados returnados e se estao no estado correcto, verificar quando faz sentido o tipo de cada parametro (exemplos isNumber)
 // TODO : Francisco => eliminar código repetido e modularizar ( Todas as funcoes estao com a seguinte estrutura : verificar parametros, buscar dados na dataMem, verificar dados, retornar dados)
+
+// TODO : PROFESSOR => Todos as funções vai ter de ser async para evitar que alguns devolvam promisses e outros nao
+// TODO : Dinis => userId and groupId can be numbers or strings, change the verification to accept both
+
 export function initServices({ data, fapiTeams, utils, errors }) {
   // Competitions
   async function getCompetitions() {
@@ -42,24 +46,24 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.UNAUTHORIZED("Invalid token");
     }
 
-    const user = data.getUserByToken(token);
+    const user = await data.getUserByToken(token);
 
     if (!user || Number.isNaN(user.id)) {
       throw errors.UNAUTHORIZED("Invalid token");
     }
 
-    return user.id;
+    return Promise.resolve(user.id);
   }
-  // TODO : Tiago, Franciso e Dinis => verificar de dataMem precisa de await devido ao writeJson
+  // TODO : PROFESSOR => verificar de dataMem precisa de await devido ao writeJson
   async function createUser(username) {
-    if (!username.trim()) {
+    if (!username || !username.trim()) {
       throw errors.INVALID_DATA("Username is required");
     }
     if (typeof username !== "string" || username.trim().length < 3)
       // Tinha de verificar que não era string vazia acrescentei logo regras de negocio
       throw errors.INVALID_DATA("Username must contain at least 3 characters");
 
-    const user = data.createUser(username.trim());
+    const user = await data.createUser(username.trim());
 
     if (!user) {
       throw errors.UNEXPECTED("Unexpected error at user creation");
@@ -73,12 +77,12 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return user;
   }
 
-  function getGroups(userId) {
+  async function getGroups(userId) {
     if (!userId) {
       throw errors.INVALID_DATA("You must provide user Id for getting groups");
     }
 
-    const groups = data.listGroups(userId);
+    const groups = await data.listGroups(userId);
 
     if (!groups) {
       throw errors.UNEXPECTED("Unexpected error at getting groups");
@@ -92,7 +96,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return groups;
   }
 
-  function createGroup(userId, name, description, competition, year) {
+  async function createGroup({ userId, name, description, competition, year }) {
     if (!userId)
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself for group creation"
@@ -104,13 +108,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = data.createGroup(
+    const group = await data.createGroup({
       userId,
       name,
       description,
       competition,
-      year
-    );
+      year,
+    });
 
     if (!group) {
       throw errors.UNEXPECTED("Unexpected error at group creation");
@@ -121,7 +125,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
   // TODO : Francisco => verificar se podemos fazer um wrapper para reduzir repetição de código
 
-  function getGroup(userId, groupId) {
+  async function getGroup(userId, groupId) {
     const id = parseInt(groupId);
 
     if (!userId)
@@ -135,7 +139,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = data.getGroup(id);
+    const group = await data.getGroup(id);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -147,7 +151,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return group;
   }
 
-  function updateGroup(userId, groupId, changes) {
+  async function updateGroup(userId, groupId, changes) {
     if (!userId)
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before updating groups"
@@ -177,7 +181,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = data.getGroup(id);
+    const group = await data.getGroup(id);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -187,7 +191,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    const updated = data.updateGroup(id, {
+    const updated = await data.updateGroup(id, {
       name: name.trim(),
       description: description.trim(),
     });
@@ -199,7 +203,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return updated;
   }
 
-  function deleteGroup(userId, groupId) {
+  async function deleteGroup(userId, groupId) {
     const id = parseInt(groupId);
 
     if (Number.isNaN(userId))
@@ -213,7 +217,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = data.getGroup(id);
+    const group = await data.getGroup(id);
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
     }
@@ -221,7 +225,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    const deleted = data.deleteGroup(id);
+    const deleted = await data.deleteGroup(id);
 
     if (!deleted) {
       throw errors.NOT_FOUND("Group not found");
@@ -295,7 +299,6 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.UNEXPECTED("Unexpected error processing given player");
     }
 
-    // TODO : ALL => verificar se em vez de reconstruir o objeto, passar o próprio fapiPlayer
     const added = data.addPlayerToGroup(id, player);
 
     if (!added) {
