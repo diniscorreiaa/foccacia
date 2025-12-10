@@ -1,6 +1,9 @@
 // TODO : Dinis & Francisco => Criar uma funcao que verifica todos os parametros obrigatorios e se estao no estado correcto, verificar quando faz sentido o tipo de cada parametro (exemplos isNumber)
 // TODO : Dinis & Francisco => Criar uma funcao que verifica todos os dados returnados e se estao no estado correcto, verificar quando faz sentido o tipo de cada parametro (exemplos isNumber)
 // TODO : Francisco => eliminar código repetido e modularizar ( Todas as funcoes estao com a seguinte estrutura : verificar parametros, buscar dados na dataMem, verificar dados, retornar dados)
+
+// TODO : ALL => Todos as funções vai ter de ser async para evitar que alguns devolvam promisses e outros nao
+
 export function initServices({ data, fapiTeams, utils, errors }) {
   // Competitions
   async function getCompetitions() {
@@ -48,7 +51,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.UNAUTHORIZED("Invalid token");
     }
 
-    return user.id;
+    return Promise.resolve(user.id);
   }
   // TODO : Tiago, Franciso e Dinis => verificar de dataMem precisa de await devido ao writeJson
   async function createUser(username) {

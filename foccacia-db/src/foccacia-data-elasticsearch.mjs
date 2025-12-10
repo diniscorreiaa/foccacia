@@ -75,6 +75,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     return user;
   }
 
+  // TODO : Tiago => Fix Bug nao esta encontrar o user pela token
   async function getUserByToken(token) {
     if (!token) {
       return null;
@@ -112,7 +113,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     const user = new domainModel.User({
       id,
       username: src.username,
-      toker: src.token,
+      token: src.token,
     });
     if (!user) {
       return null;
@@ -162,8 +163,6 @@ export function initDataElasticSearch({ domainModel, utils }) {
     }
 
     group.id = id;
-
-    return user;
 
     // TODO : Tiago => push group in elasticsearch
 

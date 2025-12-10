@@ -129,6 +129,7 @@ export function initWebApi({ services, dto, errors, utils }) {
     return res.sendStatus(204);
   });
 
+  // TODO : Francisco => warpers before return to clean functions
   return {
     verifyToken,
     getCompetitions,

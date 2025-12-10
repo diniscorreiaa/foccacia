@@ -15,6 +15,10 @@ import { initWebApi } from "foccacia-web-api";
 import { initDto } from "foccacia-web-api/src/foccacia-dto.mjs";
 import { initSendApplicationError } from "foccacia-web-api/src/application-to-http-errors.mjs";
 
+// TODO : ALL => create select/create/init  Data layer based on config
+// TODO : ALL DECIDE => Data layer return null or throw ?
+// TODO : ALL DECIDE => Persistencia ? Carregar users e groups at startup ?
+
 export function createFoccaciaApp() {
   const logUtils = initLogUtils();
   const ioUtils = initIoUtils();
@@ -30,7 +34,7 @@ export function createFoccaciaApp() {
   const fapiTeams = initFapiTeams({ domainModel, utils, errors: errorsLib });
 
   const services = initServices({
-    data: dataMem,
+    data: dataElasticSearch,
     fapiTeams,
     utils,
     errors: errorsLib,
