@@ -1,57 +1,89 @@
-// TODO : Dinis => verifica todos os erros e se faz sentido return null ou throw
-
 const ELASTIC_SEARCH_BASE_URI = "http://localhost:9200";
 const USERS_INDEX = "/foccacia-users";
 const GROUPS_INDEX = "/foccacia-groups";
 
 export function initDataElasticSearch({ domainModel, utils }) {
-  if (!domainModel || !utils) {
-    // TODO : Dinis => proper error handling
-  }
-
   // TODO : Tiago => At init PUT USERS_INDEX and GROUPS_INDEX on elasticsearch if not exists
 
-  async function elasticSearchRequest(path, { method = "GET", body } = {}) {
-    if (!path) {
-      // TODO : Dinis => proper error handling, !method, !body with defaults values (maybe we should do this in other functions)
-    }
+  function mapHit(hit, mapFn) {
+    if (!hit || !hit._source) return null;
+    return mapFn(hit._id, hit._source);
+  }
 
+  function mapHitToUser(hit) {
+    return mapHit(
+      hit,
+      (id, src) =>
+        new domainModel.User({
+          id,
+          username: src.username,
+          token: src.token,
+        })
+    );
+  }
+
+  function mapHitToGroup(hit) {
+    return mapHit(
+      hit,
+      (id, src) =>
+        new domainModel.Group({
+          id,
+          userId: src.ownerId,
+          name: src.name,
+          description: src.description,
+          competition: src.competition,
+          year: src.year,
+          players: src.players ?? [],
+        })
+    );
+  }
+
+  function mapSearchResponse(response, mapFn) {
+    const hits = response?.hits?.hits ?? [];
+    return hits.map((hit) => mapFn(hit)).filter((entity) => entity !== null);
+  }
+
+  function groupToBody(group) {
+    return {
+      ownerId: group.ownerId,
+      name: group.name,
+      description: group.description,
+      competition: group.competition,
+      year: group.year,
+      players: group.players,
+    };
+  }
+
+  async function elasticSearchRequest(path, { method = "GET", body } = {}) {
     const url = `${ELASTIC_SEARCH_BASE_URI}${path}`;
     const request = {
       method,
       headers: { "Content-Type": "application/json" },
     };
-    // TODO : Dinis => ve se faz sentido manter a logica das outras funcoes de testar !body (caso negativo)
-    if (body !== undefined) {
-      request.body = JSON.stringify(body);
+
+    if (body !== undefined) request.body = JSON.stringify(body);
+
+    try {
+      const response = await fetch(url, request);
+      if (!response.ok) {
+        utils.logError(`ElasticSearch ${method} ${url} -> ${response.status}`);
+        return null;
+      }
+
+      return await response.json();
+    } catch (err) {
+      utils.logError(`ElasticSearch fetch error ${method} ${url}`, err);
+      return null;
     }
-
-    const response = await fetch(url, request);
-
-    if (!response.ok) {
-      const text = await response.text().catch(() => null);
-      utils.logError(
-        `ElasticSearch error ${method} ${url}: ${response.status} ${text}`
-      );
-      // TODO : Dinis => Aqui podemos decidir: mappear erro como no fapi ou devolver null.
-      throw new Error("ElasticSearch request failed");
-    }
-
-    return response.json();
   }
 
   // USERS
   async function createUser(username) {
-    if (!username) {
-      return null;
-    }
-
     const user = new domainModel.User({ username: username.trim() });
 
     const body = {
       username: user.username,
       token: user.token,
-      createdAt: new Date().toISOString(),
     };
 
     const response = await elasticSearchRequest(`${USERS_INDEX}/_doc`, {
@@ -59,25 +91,16 @@ export function initDataElasticSearch({ domainModel, utils }) {
       body,
     });
 
-    const id = response._id;
-    if (!id) {
-      return null;
-    }
+    if (!response || !response._id) return null;
 
-    user.id = id;
+    user.id = response._id;
     return user;
   }
 
   async function getUserByToken(token) {
-    if (!token) {
-      return null;
-    }
-
-    // TODO : Tiago => get user from elasticsearch by token
-
     const query = {
       query: {
-        term: { "token.keyword": token },
+        term: { "token.keyword": String(token) },
       },
       size: 1,
     };
@@ -87,27 +110,15 @@ export function initDataElasticSearch({ domainModel, utils }) {
       body: query,
     });
 
-    const hits = response.hits?.hits ?? [];
-    if (hits.length === 0) {
-      return null;
-    }
+    const hits = response?.hits?.hits ?? [];
+    if (hits.length === 0) return null;
 
-    const hit = hits[0];
-    const src = hit._source;
-
-    return new domainModel.User({
-      id: hit._id,
-      username: src.username,
-      token: src.token,
-    });
+    const user = mapHitToUser(hits[0]);
+    return user;
   }
 
   // GROUPS
   async function createGroup({ userId, name, description, competition, year }) {
-    if (!userId || !name || !description || !competition || !year) {
-      return null;
-    }
-
     const group = new domainModel.Group({
       userId,
       name,
@@ -116,40 +127,25 @@ export function initDataElasticSearch({ domainModel, utils }) {
       year,
     });
 
-    const body = {
-      ownerId: group.ownerId,
-      name: group.name,
-      description: group.description,
-      competition: group.competition,
-      year: group.year,
-      players: group.players,
-      createdAt: new Date().toISOString(),
-    };
+    const body = groupToBody(group);
 
     const response = await elasticSearchRequest(`${GROUPS_INDEX}/_doc`, {
       method: "POST",
       body,
     });
 
-    const id = response._id;
-    if (!id) {
-      return null;
-    }
+    if (!response || !response._id) return null;
 
-    group.id = id;
+    group.id = response._id;
     return group;
   }
 
   async function listGroups(userId) {
-    if (!userId) {
-      return [];
-    }
-
     const query = {
       query: {
-        term: { "ownerId.keyword": userId },
+        term: { "ownerId.keyword": String(userId) },
       },
-      size: 1000,
+      size: 25,
     };
 
     const response = await elasticSearchRequest(`${GROUPS_INDEX}/_search`, {
@@ -157,117 +153,70 @@ export function initDataElasticSearch({ domainModel, utils }) {
       body: query,
     });
 
-    const hits = response.hits?.hits ?? [];
+    const groups = mapSearchResponse(response, mapHitToGroup);
 
-    return hits.map((hit) => {
-      const src = hit._source;
-      return new domainModel.Group({
-        id: hit._id,
-        userId: src.ownerId,
-        name: src.name,
-        description: src.description,
-        competition: src.competition,
-        year: src.year,
-        players: src.players ?? [],
-      });
-    });
+    return groups;
   }
 
   async function updateGroup(groupId, changes) {
-    if (!groupId || !changes) {
-      return null;
-    }
+    const group = await getGroup(groupId);
+    if (!group) return null;
 
-    const existing = await getGroup(groupId);
-    if (!existing) {
-      return null;
-    }
+    group.name = changes.name;
+    group.description = changes.description;
 
-    if (changes.name !== undefined) existing.name = changes.name;
-    if (changes.description !== undefined)
-      existing.description = changes.description;
-    if (changes.competition !== undefined)
-      existing.competition = changes.competition;
-    if (changes.year !== undefined) existing.year = changes.year;
+    const body = groupToBody(group);
 
-    const body = {
-      ownerId: existing.ownerId,
-      name: existing.name,
-      description: existing.description,
-      competition: existing.competition,
-      year: existing.year,
-      players: existing.players,
-    };
+    const response = await elasticSearchRequest(
+      `${GROUPS_INDEX}/_doc/${groupId}`,
+      {
+        method: "PUT",
+        body,
+      }
+    );
+    if (!response || response.result !== "updated") return null;
 
-    await elasticSearchRequest(`${GROUPS_INDEX}/_doc/${groupId}`, {
-      method: "PUT",
-      body,
-    });
-
-    return existing;
+    return group;
   }
 
   async function deleteGroup(groupId) {
-    if (!groupId) return false;
+    const response = await elasticSearchRequest(
+      `${GROUPS_INDEX}/_doc/${groupId}`,
+      {
+        method: "DELETE",
+      }
+    );
 
-    await elasticSearchRequest(`${GROUPS_INDEX}/_doc/${groupId}`, {
-      method: "DELETE",
-    });
-
-    return true;
+    return response && response.result === "deleted";
   }
 
   async function getGroup(groupId) {
-    if (!groupId) {
-      return null;
-    }
-
     const response = await elasticSearchRequest(
       `${GROUPS_INDEX}/_doc/${groupId}`,
       { method: "GET" }
     );
 
-    if (!response.found) {
-      return null;
-    }
+    if (!response || !response.found) return null;
 
-    const src = response._source;
+    const group = mapHitToGroup(response);
 
-    return new domainModel.Group({
-      id: response._id,
-      userId: src.ownerId, // idem
-      name: src.name,
-      description: src.description,
-      competition: src.competition,
-      year: src.year,
-      players: src.players ?? [],
-    });
+    return group;
   }
 
   // GROUP PLAYERS
-  function addPlayerToGroup(groupId, player) {
-    if (!groupId || !player) {
-      return null;
-    }
-
-    const group = getGroup(groupId);
-    if (!group) {
-      return null;
-    }
+  async function addPlayerToGroup(groupId, player) {
+    const group = await getGroup(groupId);
+    if (!group) return null;
 
     // TODO : Tiago => update group pushing player to players on elasticsearch
     return player;
   }
 
-  function deletePlayerFromGroup(groupId, playerId) {
-    if (!groupId || !playerId) return false;
-
-    const group = getGroup(groupId);
+  async function deletePlayerFromGroup(groupId, playerId) {
+    const group = await getGroup(groupId);
     if (!group) return false;
 
     // TODO : Tiago => get player from elasticsearch by playerId
-    const idx = group.players.findIndex((player) => player.id === playerId);
-    if (idx === -1) return false;
 
     // TODO : Tiago => update group removing player from players on elasticsearch
     return true;
