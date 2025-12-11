@@ -6,15 +6,15 @@
 @compCL = CL
 
 # IDs usados nos exemplos
-@groupId = HC1qCJsB71Jeo9i5QnH6
+@groupId = pGodC5sBR6xeAStHcS9m
 @otherGroupId = 2
 @playerId = 67299
 
 # Tokens:
 # 1) Cria primeiro 1 utilizador e copia o token devolvido para @token
 # 2) Cria um 2º utilizador e copia o token para @otherToken (para testar 403)
-@token = Bearer 2de3879b-6354-40b5-b2b8-df14821ba233
-@otherToken = Bearer bf29ddb2-cc03-4d56-b6c7-ab85f30569ec
+@token = Bearer 1a298507-1c2e-494f-97eb-f7b74f1c128c
+@otherToken = Bearer 35c30799-f79c-4132-803c-7fad2dc7a05f
 @invalidToken = Bearer invalid-token
 
 ### GET - Todas as Competições Disponíveis (200)

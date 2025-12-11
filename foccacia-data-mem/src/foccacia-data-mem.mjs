@@ -9,40 +9,30 @@ export function initDataMem({ domainModel, utils, errors }) {
   // USERS
   // TODO : Tiago => read persisted users from file on startup
   // TODO : PROFESSOR SIM! => Confirmar sendo o writeJson async todo depende dele tambem deve ser async?
-  function persistUsers() {
-    utils.writeJson(users, USERS_CACHE_PATH).catch((err) => {
-      utils.logError("Error writing users cache", err);
-    });
-  }
-
-  function createUser(username) {
+  async function createUser(username) {
     if (!username) {
-      throw errors.UNEXPECTED("Unhandled error validating username");
+      return null;
     }
     const user = new domainModel.User({ id: nextUserId++, username });
     if (!user) {
-      throw errors.UNEXPECTED("Unhandled error at user creation");
+      return null;
     }
     users.push(user);
-    persistUsers();
-    return user;
+    return Promise.resolve(user);
   }
 
-  function getUserByToken(token) {
+  async function getUserByToken(token) {
     if (!token) {
-      return errors.UNEXPECTED("Unhandled error at token detection");
+      return null;
     }
-    return users.find((user) => user.token === token) || null;
+    return Promise.resolve(users.find((user) => user.token === token) || null);
   }
 
   // GROUPS
   // TODO : Tiago => Create groups persistence on file
   // TODO : Tiago =>  read persisted groups from file on startup
   async function createGroup({ userId, name, description, competition, year }) {
-    if (!userId || !name || !description || !competition || !year)
-      throw errors.UNEXPECTED(
-        "Unhandled error verifying requirements for group creation"
-      );
+    if (!userId || !name || !description || !competition || !year) return null;
     const group = new domainModel.Group({
       id: nextGroupId++,
       userId,
@@ -52,7 +42,7 @@ export function initDataMem({ domainModel, utils, errors }) {
       year,
     });
     if (!group) {
-      throw errors.UNEXPECTED("Unhandled error at group creation");
+      return null;
     }
     groups.push(group);
     return Promise.resolve(group);
@@ -60,20 +50,17 @@ export function initDataMem({ domainModel, utils, errors }) {
 
   function listGroups(userId) {
     if (!userId) {
-      throw errors.UNEXPECTED("Unhandled error at verification of user Id");
+      return null;
     }
     return groups.filter((group) => group.ownerId === userId);
   }
 
   // TODO : Tiago => persist group changes on file
-  function updateGroup(groupId, changes) {
-    if (!groupId || !changes)
-      throw errors.UNEXPECTED(
-        "Unhandled error verifying requirements for group update"
-      );
+  function updateGroup({ groupId, changes }) {
+    if (!groupId || !changes) return null;
     const group = groups.find((group) => group.id === groupId);
     if (!group) {
-      throw errors.NOT_FOUND("Group not found");
+      return null;
     }
 
     if (utils.isString(changes.name)) {
@@ -87,7 +74,7 @@ export function initDataMem({ domainModel, utils, errors }) {
   }
 
   // TODO : Tiago => persist group deletion on file
-  function deleteGroup(groupId) {
+  function deleteGroup({ groupId }) {
     if (!groupId) return false;
     const idx = groups.findIndex((group) => group.id === groupId);
     if (idx === -1) return false;
@@ -95,7 +82,7 @@ export function initDataMem({ domainModel, utils, errors }) {
     return true;
   }
 
-  function getGroup(groupId) {
+  function getGroup({ groupId }) {
     if (!groupId) {
       return null;
     }
@@ -104,7 +91,7 @@ export function initDataMem({ domainModel, utils, errors }) {
 
   // GROUP PLAYERS
   // TODO : Tiago => persist group players changes on file
-  function addPlayerToGroup(groupId, player) {
+  function addPlayerToGroup({ groupId, player }) {
     if (!groupId || !player) {
       return null;
     }
@@ -118,7 +105,7 @@ export function initDataMem({ domainModel, utils, errors }) {
   }
 
   // TODO : Tiago => persist group players changes on file
-  function deletePlayerFromGroup(groupId, playerId) {
+  function deletePlayerFromGroup({ groupId, playerId }) {
     if (!groupId || !playerId) return false;
 
     const group = getGroup(groupId);
