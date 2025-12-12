@@ -6,15 +6,15 @@
 @compCL = CL
 
 # IDs usados nos exemplos
-@groupId = HC1qCJsB71Jeo9i5QnH6
+@groupId = a09rE5sBGL925hXNC4R4
 @otherGroupId = 2
 @playerId = 67299
 
 # Tokens:
 # 1) Cria primeiro 1 utilizador e copia o token devolvido para @token
 # 2) Cria um 2º utilizador e copia o token para @otherToken (para testar 403)
-@token = Bearer 2de3879b-6354-40b5-b2b8-df14821ba233
-@otherToken = Bearer bf29ddb2-cc03-4d56-b6c7-ab85f30569ec
+@token = Bearer 574a2833-acc1-4378-88c1-95d56faeb06a
+@otherToken = Bearer f968cd88-4a24-43a5-9586-53d2d2b5d740
 @invalidToken = Bearer invalid-token
 
 ### GET - Todas as Competições Disponíveis (200)
@@ -87,10 +87,6 @@ Authorization: {{token}}
 
 ### NEGATIVO - 404 (Grupo não encontrado)
 GET {{api}}/groups/99999
-Authorization: {{token}}
-
-### NEGATIVO - 400 (groupId não numérico)
-GET {{api}}/groups/abc
 Authorization: {{token}}
 
 ### PUT - Edita Nome e Descrição de um Grupo (200)

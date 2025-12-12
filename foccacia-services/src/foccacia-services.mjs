@@ -5,6 +5,8 @@
 // TODO : PROFESSOR SIM! => Todos as funções vai ter de ser async para evitar que alguns devolvam promises e outros nao
 // TODO : Dinis => userId and groupId can be numbers or strings, change the verification to accept both
 
+// TODO : TIAGO => Verificar as calls e as funcoes async que nao estao a usar await ou que nao estao async
+
 export function initServices({ data, fapiTeams, utils, errors }) {
   // Competitions
   async function getCompetitions() {
@@ -48,7 +50,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
     const user = await data.getUserByToken(token);
 
-    if (!user || Number.isNaN(user.id)) {
+    if (!user || !user.id) {
       throw errors.UNAUTHORIZED("Invalid token");
     }
 
@@ -125,14 +127,14 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   // TODO : Francisco => verificar se podemos fazer um wrapper para reduzir repetição de código
 
   async function getGroup(userId, groupId) {
-    const id = parseInt(groupId);
+    const id = groupId;
 
-    if (!userId)
+    if (!userId) {
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself for getting group details"
       );
-
-    if (Number.isNaN(id)) {
+    }
+    if (!id) {
       throw errors.INVALID_DATA(
         "Make sure you provide the group id for this operation"
       );
@@ -172,9 +174,9 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const id = parseInt(groupId);
+    const id = groupId;
 
-    if (Number.isNaN(id)) {
+    if (!id) {
       throw errors.INVALID_DATA(
         "Make sure you provide a valid numeric group id for this operation"
       );
@@ -203,14 +205,14 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
 
   async function deleteGroup(userId, groupId) {
-    const id = parseInt(groupId);
+    const id = groupId;
 
-    if (Number.isNaN(userId))
+    if (userId)
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before deleting groups"
       );
 
-    if (Number.isNaN(id)) {
+    if (id) {
       throw errors.INVALID_DATA(
         "Make sure you provide a valid numeric group id for this operation"
       );
@@ -240,16 +242,16 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const id = parseInt(groupId);
+    const id = groupId;
     const { playerId, playerName, teamCode, teamName } = playerData;
 
-    if (Number.isNaN(userId))
+    if (!userId)
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before adding players to a group"
       );
 
     if (
-      Number.isNaN(id) ||
+      !id ||
       Number.isNaN(playerId) ||
       typeof playerName !== "string" ||
       playerName.trim() === 0 ||
@@ -266,7 +268,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const group = data.getGroup(id);
+    const group = await data.getGroup(id);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -275,7 +277,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    if (group.players.some((p) => p.id === playerId)) {
+    if (group.players.some((player) => player.id === playerId)) {
       throw errors.UNPROCESSABLE("Player is already in this group");
     }
 
@@ -283,7 +285,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.UNPROCESSABLE("Group already has 11 players");
     }
 
-    const { competition, year } = group; // Isto ta aqui por engano?
+    const { competition, year } = group;
 
     const player = await fapiTeams.getPlayerForCompetition({
       competition,
@@ -298,6 +300,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.UNEXPECTED("Unexpected error processing given player");
     }
 
+    // TODO : Tiago => Porque nao passar logo o grupo?
     const added = data.addPlayerToGroup(id, player);
 
     if (!added) {
@@ -307,8 +310,8 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return added;
   }
 
-  function deletePlayerFromGroup(userId, groupId, playerId) {
-    const gId = parseInt(groupId);
+  async function deletePlayerFromGroup(userId, groupId, playerId) {
+    const gId = groupId;
     const pId = parseInt(playerId);
 
     if (!userId)
@@ -316,13 +319,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
         "You must authenticate yourself before deleting players from a group"
       );
 
-    if (Number.isNaN(gId) || Number.isNaN(pId)) {
+    if (!gId || Number.isNaN(pId)) {
       throw errors.INVALID_DATA(
         "Make sure you provide valid numeric ids for group and player"
       );
     }
 
-    const group = data.getGroup(gId);
+    const group = await data.getGroup(gId);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -331,8 +334,10 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    const removed = data.deletePlayerFromGroup(gId, pId);
+    // TODO : Tiago => Porque nao passar logo o grupo?
+    const removed = await data.deletePlayerFromGroup(gId, pId);
 
+    // TODO : TIAGO => Algo esta errado aqui
     if (!removed) {
       throw errors.NOT_FOUND("Player not found in group");
     }

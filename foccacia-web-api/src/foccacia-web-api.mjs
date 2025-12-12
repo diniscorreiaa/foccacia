@@ -1,3 +1,5 @@
+// TODO : TIAGO => Verificar as calls a funcoes async que nao estao a usar await
+
 const wrapAsync = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
 
@@ -116,8 +118,8 @@ export function initWebApi({ services, dto, errors, utils }) {
   );
 
   // TODO : Tiago => Verificar se o deletePlayerFromGroup deve ser async
-  const deletePlayerFromGroup = wrapAsync((req, res) => {
-    const result = services.deletePlayerFromGroup(
+  const deletePlayerFromGroup = wrapAsync(async (req, res) => {
+    const result = await services.deletePlayerFromGroup(
       req.userId,
       req.params.groupId,
       req.params.playerId

@@ -3,7 +3,31 @@ const USERS_INDEX = "/foccacia-users";
 const GROUPS_INDEX = "/foccacia-groups";
 
 export function initDataElasticSearch({ domainModel, utils }) {
-  // TODO : Tiago => At init PUT USERS_INDEX and GROUPS_INDEX on elasticsearch if not exists
+  async function createIndexIfMissing(indexPath) {
+    const url = `${ELASTIC_SEARCH_BASE_URI}${indexPath}`;
+
+    try {
+      const headResponse = await fetch(url, { method: "HEAD" });
+
+      if (headResponse.ok) {
+        return;
+      }
+
+      const createResponse = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}), // mapping dinâmico, simples
+      });
+
+      if (!createResponse.ok) {
+        utils.logError(
+          `ElasticSearch create index ${indexPath} -> ${createResponse.status}`
+        );
+      }
+    } catch (err) {
+      utils.logError(`ElasticSearch error creating index ${indexPath}`, err);
+    }
+  }
 
   function mapHit(hit, mapFn) {
     if (!hit || !hit._source) return null;
@@ -54,6 +78,31 @@ export function initDataElasticSearch({ domainModel, utils }) {
     };
   }
 
+  async function createDocument(indexPath, body) {
+    const response = await elasticSearchRequest(`${indexPath}/_doc`, {
+      method: "POST",
+      body,
+    });
+
+    return response?._id ?? null;
+  }
+
+  async function persistGroup(group) {
+    if (!group || !group.id) return false;
+
+    const body = groupToBody(group);
+
+    const response = await elasticSearchRequest(
+      `${GROUPS_INDEX}/_doc/${group.id}`,
+      {
+        method: "PUT",
+        body,
+      }
+    );
+
+    return !!response && response.result === "updated";
+  }
+
   async function elasticSearchRequest(path, { method = "GET", body } = {}) {
     const url = `${ELASTIC_SEARCH_BASE_URI}${path}`;
     const request = {
@@ -86,14 +135,10 @@ export function initDataElasticSearch({ domainModel, utils }) {
       token: user.token,
     };
 
-    const response = await elasticSearchRequest(`${USERS_INDEX}/_doc`, {
-      method: "POST",
-      body,
-    });
+    const id = await createDocument(USERS_INDEX, body);
+    if (!id) return null;
 
-    if (!response || !response._id) return null;
-
-    user.id = response._id;
+    user.id = id;
     return user;
   }
 
@@ -110,10 +155,8 @@ export function initDataElasticSearch({ domainModel, utils }) {
       body: query,
     });
 
-    const hits = response?.hits?.hits ?? [];
-    if (hits.length === 0) return null;
-
-    const user = mapHitToUser(hits[0]);
+    const users = mapSearchResponse(response, mapHitToUser);
+    const user = users[0] ?? null;
     return user;
   }
 
@@ -129,14 +172,10 @@ export function initDataElasticSearch({ domainModel, utils }) {
 
     const body = groupToBody(group);
 
-    const response = await elasticSearchRequest(`${GROUPS_INDEX}/_doc`, {
-      method: "POST",
-      body,
-    });
+    const id = await createDocument(GROUPS_INDEX, body);
+    if (!id) return null;
 
-    if (!response || !response._id) return null;
-
-    group.id = response._id;
+    group.id = id;
     return group;
   }
 
@@ -165,16 +204,8 @@ export function initDataElasticSearch({ domainModel, utils }) {
     group.name = changes.name;
     group.description = changes.description;
 
-    const body = groupToBody(group);
-
-    const response = await elasticSearchRequest(
-      `${GROUPS_INDEX}/_doc/${groupId}`,
-      {
-        method: "PUT",
-        body,
-      }
-    );
-    if (!response || response.result !== "updated") return null;
+    const updated = await persistGroup(group);
+    if (!updated) return null;
 
     return group;
   }
@@ -204,23 +235,37 @@ export function initDataElasticSearch({ domainModel, utils }) {
   }
 
   // GROUP PLAYERS
+  // TODO : Tiago => Porque nao recebe logo o grupo?
   async function addPlayerToGroup(groupId, player) {
     const group = await getGroup(groupId);
     if (!group) return null;
 
-    // TODO : Tiago => update group pushing player to players on elasticsearch
+    group.players.push(player);
+
+    const updated = await persistGroup(group);
+    if (!updated) return null;
+
     return player;
   }
 
+  // TODO : Tiago => Porque nao recebe logo o grupo?
   async function deletePlayerFromGroup(groupId, playerId) {
     const group = await getGroup(groupId);
     if (!group) return false;
 
-    // TODO : Tiago => get player from elasticsearch by playerId
+    const idx = group.players.findIndex(
+      (player) => String(player.id) === String(playerId)
+    );
+    if (idx === -1) return false;
 
-    // TODO : Tiago => update group removing player from players on elasticsearch
+    group.players.splice(idx, 1);
+
+    const updated = await persistGroup(group);
+    if (!updated) return false;
+
     return true;
   }
+
   return {
     createUser,
     getUserByToken,
