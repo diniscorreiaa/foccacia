@@ -164,7 +164,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       !groupId ||
       !changes ||
       typeof name !== "string" ||
-      name.trim().length < 3 || // Regras de negocio
+      name.trim().length < 3 ||
       typeof description !== "string" ||
       description.length < 3
     ) {
@@ -207,12 +207,12 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   async function deleteGroup(userId, groupId) {
     const id = groupId;
 
-    if (userId)
+    if (!userId) {
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before deleting groups"
       );
-
-    if (id) {
+    }
+    if (!id) {
       throw errors.INVALID_DATA(
         "Make sure you provide a valid numeric group id for this operation"
       );
@@ -301,7 +301,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     }
 
     // TODO : Tiago => Porque nao passar logo o grupo?
-    const added = data.addPlayerToGroup(id, player);
+    const added = await data.addPlayerToGroup(id, player);
 
     if (!added) {
       throw errors.UNEXPECTED("Could not add player to group");
