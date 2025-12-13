@@ -84,7 +84,7 @@ export function initDataMem({ domainModel, utils, errors }) {
     return Promise.resolve(true);
   }
 
-  async function getGroup({ groupId }) {
+  async function getGroup(groupId) {
     if (!groupId) {
       return Promise.resolve(null);
     }
