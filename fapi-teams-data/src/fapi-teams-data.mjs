@@ -75,7 +75,7 @@ export function initFapiTeams({ domainModel, utils, errors }) {
       const cached = await utils.readJson(cachePath);
       if (!cached) {
         utils.logError(`Couldnt read JSON at ${cachePath}`);
-        return;
+        return null;
       }
       return fromCache(cached);
     }
