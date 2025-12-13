@@ -1,7 +1,7 @@
 import express from "express";
 import { createFoccaciaApp } from "./foccacia-module-resolver.mjs";
-
-const { api, errors, sendApplicationError, utils } = createFoccaciaApp();
+const { apiRouter, siteRouter, errors, sendApplicationError, utils } =
+  createFoccaciaApp();
 
 const PORT = 1904;
 
@@ -9,32 +9,9 @@ const app = express();
 app.use(express.json());
 
 // TODO : Francisco => Make routes dynamic based on available resources
-const ROUTES = {
-  COMPETITIONS: "/api/competitions",
-  TEAMS: "/api/competitions/:competitionCode/seasons/:seasonYear/teams",
-  USERS: "/api/users",
-  GROUPS: "/api/groups",
-  GROUP: "/api/groups/:groupId",
-  GROUP_PLAYERS: "/api/groups/:groupId/players",
-  GROUP_PLAYER: "/api/groups/:groupId/players/:playerId",
-};
 
-//Rotas Públicas
-app.get(ROUTES.COMPETITIONS, api.getCompetitions);
-app.get(ROUTES.TEAMS, api.getTeams);
-app.post(ROUTES.USERS, api.createUser);
-
-// Middleware de Autenticação
-app.use(api.verifyToken);
-
-// Rotas Privadas
-app.get(ROUTES.GROUPS, api.getGroups);
-app.get(ROUTES.GROUP, api.getGroup);
-app.post(ROUTES.GROUPS, api.createGroup);
-app.put(ROUTES.GROUP, api.updateGroup);
-app.delete(ROUTES.GROUP, api.deleteGroup);
-app.post(ROUTES.GROUP_PLAYERS, api.addPlayerToGroup);
-app.delete(ROUTES.GROUP_PLAYER, api.deletePlayerFromGroup);
+app.use("/api", apiRouter);
+app.use(siteRouter);
 
 // Quando nenhuma rota anterior corresponde ao pedido
 app.use((req, res, next) => {

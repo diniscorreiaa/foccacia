@@ -134,19 +134,26 @@ export function initWebApi({ services, dto, errors, utils }) {
   });
 
   // TODO : Francisco => warpers before return to clean functions
-  return {
-    verifyToken,
-    getCompetitions,
-    getTeams,
-    createUser,
-    getGroups,
-    createGroup,
-    getGroup,
-    updateGroup,
-    deleteGroup,
-    addPlayerToGroup,
-    deletePlayerFromGroup,
-  };
+  const router = express.Router();
+
+  //Rotas Públicas
+  router.get(ROUTES.COMPETITIONS, getCompetitions);
+  router.get(ROUTES.TEAMS, getTeams);
+  router.post(ROUTES.USERS, createUser);
+
+  // Middleware de Autenticação
+  router.use(verifyToken);
+
+  // Rotas Privadas
+  router.get(ROUTES.GROUPS, getGroups);
+  router.get(ROUTES.GROUP, getGroup);
+  router.post(ROUTES.GROUPS, createGroup);
+  router.put(ROUTES.GROUP, updateGroup);
+  router.delete(ROUTES.GROUP, deleteGroup);
+  router.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
+  router.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
+
+  return router;
 }
 
 // TODO : ALL => Exemplo de modularizacao das funcoes em vez cada uma ter o wrapAsync, fazer o wrap aqui no return
