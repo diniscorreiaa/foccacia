@@ -25,10 +25,11 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       typeof code !== "string" ||
       code.trim().length === 0 ||
       Number.isNaN(season)
-    )
+    ) {
       throw errors.INVALID_DATA(
         "You must provide both competition code and season for this operation"
       );
+    }
 
     const teams = await fapiTeams.getTeamsWithSquads(code, season);
 
@@ -208,10 +209,11 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   async function deleteGroup(userId, groupId) {
     const id = groupId;
 
-    if (!userId)
+    if (!userId) {
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before deleting groups"
       );
+    }
 
     if (!id) {
       throw errors.INVALID_DATA(
@@ -246,10 +248,11 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     const id = groupId;
     const { playerId, playerName, teamCode, teamName } = playerData;
 
-    if (!userId)
+    if (!userId) {
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before adding players to a group"
       );
+    }
 
     if (
       !id ||
