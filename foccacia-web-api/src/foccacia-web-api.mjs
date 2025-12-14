@@ -1,5 +1,16 @@
-// TODO : TIAGO => Verificar as calls a funcoes async que nao estao a usar await
+import express from "express";
 
+const ROUTES = {
+  COMPETITIONS: "/competitions",
+  TEAMS: "/competitions/:competitionCode/seasons/:seasonYear/teams",
+  USERS: "/users",
+  GROUPS: "/groups",
+  GROUP: "/groups/:groupId",
+  GROUP_PLAYERS: "/groups/:groupId/players",
+  GROUP_PLAYER: "/groups/:groupId/players/:playerId",
+};
+
+// TODO : TIAGO => Verificar as calls a funcoes async que nao estao a usar await
 const wrapAsync = (fn) => (request, response, next) =>
   Promise.resolve(fn(request, response, next)).catch(next);
 

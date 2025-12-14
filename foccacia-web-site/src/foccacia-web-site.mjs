@@ -1,6 +1,7 @@
-import express from "express/lib/express.js";
+import express from "express";
 
 const ROUTES = {
+  HOME: "/",
   COMPETITIONS: "/competitions",
   TEAMS: "/competitions/:competitionCode/seasons/:seasonYear/teams",
   USERS: "/users",
@@ -12,10 +13,11 @@ const ROUTES = {
 
 export function initWebSite({ services, dto, errors, utils }) {
   async function home(req, res) {
-    /* TODO : Fransisco & Dinis */
+    res.render("home");
   }
   async function listCompetitions(req, res) {
-    /* TODO : Fransisco & Dinis */
+    const competitions = await services.getCompetitions();
+    res.render("competitions", { competitions });
   }
   async function listTeams(req, res) {
     /* TODO : Fransisco & Dinis */
@@ -33,7 +35,6 @@ export function initWebSite({ services, dto, errors, utils }) {
     /* TODO : Fransisco & Dinis */
   }
 
-  const getCompetitions = (req, res) => {};
   const getTeams = (req, res) => {};
   const createUser = (req, res) => {};
   const getGroups = (req, res) => {};
@@ -46,8 +47,10 @@ export function initWebSite({ services, dto, errors, utils }) {
 
   const router = express.Router();
 
+  router.get(ROUTES.HOME, home);
+
   //Rotas Públicas
-  router.get(ROUTES.COMPETITIONS, getCompetitions);
+  router.get(ROUTES.COMPETITIONS, listCompetitions);
   router.get(ROUTES.TEAMS, getTeams);
   router.post(ROUTES.USERS, createUser);
 
