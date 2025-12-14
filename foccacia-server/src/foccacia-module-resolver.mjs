@@ -31,7 +31,7 @@ export function createFoccaciaApp() {
   const domainModel = initDomainModel();
   const dataMem = initDataMem({ domainModel, utils, errors: errorsLib });
   const dataElasticSearch = initDataElasticSearch({ domainModel, utils });
-  const fapiTeams = initFapiTeams({ domainModel, utils, errors: errorsLib });
+  const fapiTeams = initFapiTeams({ domainModel, utils });
 
   const services = initServices({
     data: dataElasticSearch,

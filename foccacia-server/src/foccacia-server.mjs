@@ -17,8 +17,6 @@ app.engine(".hbs", engine({ extname: ".hbs" }));
 app.set("view engine", ".hbs");
 app.set("views", viewsPath);
 
-// TODO : Francisco => Make routes dynamic based on available resources
-
 app.use("/api", apiRouter);
 app.use(siteRouter);
 
