@@ -3,8 +3,6 @@ const USERS_INDEX = "/foccacia-users";
 const GROUPS_INDEX = "/foccacia-groups";
 
 export function initDataElasticSearch({ domainModel, utils }) {
-  // TODO : Tiago => At init PUT USERS_INDEX and GROUPS_INDEX on elasticsearch if not exists
-
   function mapHit(hit, mapFn) {
     if (!hit || !hit._source) return null;
     return mapFn(hit._id, hit._source);
@@ -54,6 +52,26 @@ export function initDataElasticSearch({ domainModel, utils }) {
     };
   }
 
+  async function ensureIndex(indexName) {
+    const url = `${ELASTIC_SEARCH_BASE_URI}${indexName}`;
+
+    try {
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok && response.status !== 400) {
+        utils.logError(
+          `ElasticSearch create index ${indexName} -> ${response.status}`
+        );
+      }
+    } catch (err) {
+      utils.logError(`ElasticSearch error creating index ${indexName}`, err);
+    }
+  }
+
   async function elasticSearchRequest(path, { method = "GET", body } = {}) {
     const url = `${ELASTIC_SEARCH_BASE_URI}${path}`;
     const request = {
@@ -77,6 +95,34 @@ export function initDataElasticSearch({ domainModel, utils }) {
     }
   }
 
+  async function createDocument(indexBasePath, body) {
+    const response = await elasticSearchRequest(
+      `${indexBasePath}/_doc?refresh=wait_for`,
+      {
+        method: "POST",
+        body,
+      }
+    );
+
+    return response?._id ?? null;
+  }
+
+  async function persistGroup(group) {
+    if (!group || !group.id) return false;
+
+    const body = groupToBody(group);
+
+    const response = await elasticSearchRequest(
+      `${GROUPS_INDEX}/_doc/${group.id}?refresh=wait_for`,
+      {
+        method: "PUT",
+        body,
+      }
+    );
+
+    return !!response && response.result === "updated";
+  }
+
   // USERS
   async function createUser(username) {
     const user = new domainModel.User({ username: username.trim() });
@@ -86,14 +132,10 @@ export function initDataElasticSearch({ domainModel, utils }) {
       token: user.token,
     };
 
-    const response = await elasticSearchRequest(`${USERS_INDEX}/_doc`, {
-      method: "POST",
-      body,
-    });
+    const id = await createDocument(USERS_INDEX, body);
+    if (!id) return null;
 
-    if (!response || !response._id) return null;
-
-    user.id = response._id;
+    user.id = id;
     return user;
   }
 
@@ -110,10 +152,8 @@ export function initDataElasticSearch({ domainModel, utils }) {
       body: query,
     });
 
-    const hits = response?.hits?.hits ?? [];
-    if (hits.length === 0) return null;
-
-    const user = mapHitToUser(hits[0]);
+    const users = mapSearchResponse(response, mapHitToUser);
+    const user = users[0] ?? null;
     return user;
   }
 
@@ -129,14 +169,23 @@ export function initDataElasticSearch({ domainModel, utils }) {
 
     const body = groupToBody(group);
 
-    const response = await elasticSearchRequest(`${GROUPS_INDEX}/_doc`, {
-      method: "POST",
-      body,
-    });
+    const id = await createDocument(GROUPS_INDEX, body);
+    if (!id) return null;
 
-    if (!response || !response._id) return null;
+    group.id = id;
+    return group;
+  }
 
-    group.id = response._id;
+  async function getGroup(groupId) {
+    const response = await elasticSearchRequest(
+      `${GROUPS_INDEX}/_doc/${groupId}`,
+      { method: "GET" }
+    );
+
+    if (!response || !response.found) return null;
+
+    const group = mapHitToGroup(response);
+
     return group;
   }
 
@@ -165,23 +214,15 @@ export function initDataElasticSearch({ domainModel, utils }) {
     group.name = changes.name;
     group.description = changes.description;
 
-    const body = groupToBody(group);
-
-    const response = await elasticSearchRequest(
-      `${GROUPS_INDEX}/_doc/${groupId}`,
-      {
-        method: "PUT",
-        body,
-      }
-    );
-    if (!response || response.result !== "updated") return null;
+    const updated = await persistGroup(group);
+    if (!updated) return null;
 
     return group;
   }
 
   async function deleteGroup(groupId) {
     const response = await elasticSearchRequest(
-      `${GROUPS_INDEX}/_doc/${groupId}`,
+      `${GROUPS_INDEX}/_doc/${groupId}?refresh=wait_for`,
       {
         method: "DELETE",
       }
@@ -190,45 +231,47 @@ export function initDataElasticSearch({ domainModel, utils }) {
     return response && response.result === "deleted";
   }
 
-  async function getGroup(groupId) {
-    const response = await elasticSearchRequest(
-      `${GROUPS_INDEX}/_doc/${groupId}`,
-      { method: "GET" }
-    );
-
-    if (!response || !response.found) return null;
-
-    const group = mapHitToGroup(response);
-
-    return group;
-  }
-
   // GROUP PLAYERS
   async function addPlayerToGroup(groupId, player) {
     const group = await getGroup(groupId);
     if (!group) return null;
 
-    // TODO : Tiago => update group pushing player to players on elasticsearch
+    group.players.push(player);
+
+    const updated = await persistGroup(group);
+    if (!updated) return null;
+
     return player;
   }
 
   async function deletePlayerFromGroup(groupId, playerId) {
     const group = await getGroup(groupId);
-    if (!group) return false;
+    if (!group) return false; // group inexistente
 
-    // TODO : Tiago => get player from elasticsearch by playerId
+    const idx = group.players.findIndex(
+      (player) => String(player.id) === String(playerId)
+    );
+    if (idx === -1) return false; // player não está no grupo
 
-    // TODO : Tiago => update group removing player from players on elasticsearch
+    group.players.splice(idx, 1);
+
+    const updated = await persistGroup(group);
+    if (!updated) return false; // falha de persistência
+
     return true;
   }
+
+  void ensureIndex(USERS_INDEX);
+  void ensureIndex(GROUPS_INDEX);
+
   return {
     createUser,
     getUserByToken,
     createGroup,
+    getGroup,
     listGroups,
     updateGroup,
     deleteGroup,
-    getGroup,
     addPlayerToGroup,
     deletePlayerFromGroup,
   };

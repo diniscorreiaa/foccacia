@@ -20,6 +20,7 @@
   "scripts": {
     "docker:up": "docker compose up -d elasticsearch",
     "docker:down": "docker compose down",
+    "docker:down:clean": "docker compose down -v",
     "prestart": "npm run docker:up",
     "start": "node foccacia-server/src/foccacia-server.mjs",
     "test:web-api": "npm --workspace=foccacia-web-api run test",

@@ -1,8 +1,10 @@
-const wrapAsync = (fn) => (req, res, next) =>
-  Promise.resolve(fn(req, res, next)).catch(next);
+// TODO : TIAGO => Verificar as calls a funcoes async que nao estao a usar await
 
-function getToken(req) {
-  const auth = req.get("Authorization");
+const wrapAsync = (fn) => (request, response, next) =>
+  Promise.resolve(fn(request, response, next)).catch(next);
+
+async function getToken(request) {
+  const auth = await request.get("Authorization");
   if (!auth) return "";
 
   const [type, value] = auth.split(" ");
@@ -12,8 +14,8 @@ function getToken(req) {
 
 export function initWebApi({ services, dto, errors, utils }) {
   async function genericApiRoute(
-    req,
-    res,
+    request,
+    response,
     servicesFunc,
     { transformObj = (obj) => obj, servicesFuncArgs = [] } = {}
   ) {
@@ -21,24 +23,24 @@ export function initWebApi({ services, dto, errors, utils }) {
     const size = Array.isArray(obj) ? obj.length : 1;
 
     utils.logInfo(
-      `API: responding with ${size} item(s) for path ${req.path}`,
+      `API: responding with ${size} item(s) for path ${request.path}`,
       ""
     );
-    res.json(transformObj(obj));
+    response.json(transformObj(obj));
   }
 
   // TODO : ALL => Em modular ainda mais as funcoes para evitar duplicacao de codigo, os middlewares, etc, podem ser chamados no return para nao contaminar visualmente as funcoes
-  const verifyToken = wrapAsync(async (req, res, next) => {
-    const token = getToken(req);
+  const verifyToken = wrapAsync(async (request, response, next) => {
+    const token = await getToken(request);
     if (!token) {
       throw errors.UNAUTHORIZED("Missing or invalid Bearer token");
     }
 
     const userId = await services.getUserIdFromToken(token);
-    req.token = token;
-    req.userId = userId;
+    request.token = token;
+    request.userId = userId;
     utils.logInfo(
-      `Request authorized for user ${userId} ${req.method} ${req.path}`,
+      `Request authorized for user ${userId} ${request.method} ${request.path}`,
       ""
     );
 
@@ -116,8 +118,8 @@ export function initWebApi({ services, dto, errors, utils }) {
   );
 
   // TODO : Tiago => Verificar se o deletePlayerFromGroup deve ser async
-  const deletePlayerFromGroup = wrapAsync((req, res) => {
-    const result = services.deletePlayerFromGroup(
+  const deletePlayerFromGroup = wrapAsync(async (req, res) => {
+    const result = await services.deletePlayerFromGroup(
       req.userId,
       req.params.groupId,
       req.params.playerId

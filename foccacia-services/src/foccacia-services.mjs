@@ -5,6 +5,8 @@
 // TODO : PROFESSOR SIM! => Todos as funções vai ter de ser async para evitar que alguns devolvam promises e outros nao
 // TODO : Dinis => userId and groupId can be numbers or strings, change the verification to accept both
 
+// TODO : TIAGO => Verificar as calls e as funcoes async que nao estao a usar await ou que nao estao async
+
 export function initServices({ data, fapiTeams, utils, errors }) {
   // Competitions
   async function getCompetitions() {
@@ -175,7 +177,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     }
 
     const group = await data.getGroup(groupId);
-
+    
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
     }
@@ -197,12 +199,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
 
   async function deleteGroup({ userId, groupId }) {
+
     if (!userId) {
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before deleting groups"
       );
     }
-
+    
     if (!groupId) {
       throw errors.INVALID_DATA(
         "Make sure you provide a valid numeric group id for this operation"
@@ -258,9 +261,8 @@ export function initServices({ data, fapiTeams, utils, errors }) {
           "and non empty and teamCode must be an acronym between 2 and 4 characters"
       );
     }
-
     const group = await data.getGroup(groupId);
-
+    
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
     }
@@ -322,9 +324,9 @@ export function initServices({ data, fapiTeams, utils, errors }) {
         "You must authenticate yourself before deleting players from a group"
       );
 
-    if (!groupId || Number.isNaN(playerId)) {
+    if (!groupId || !playerId || Number.isNaN(playerId)) {
       throw errors.INVALID_DATA(
-        "Make sure you provide valid numeric ids for group and player"
+        "Make sure you provide valid ids for group and player"
       );
     }
 
@@ -336,9 +338,11 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     if (group.ownerId !== userId) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
-
+    
+    // TODO : Tiago => Porque nao passar logo o grupo?
     const removed = await data.deletePlayerFromGroup(groupId, playerId);
 
+    // TODO : TIAGO => Algo esta errado aqui
     if (!removed) {
       throw errors.NOT_FOUND("Player not found in group");
     }
