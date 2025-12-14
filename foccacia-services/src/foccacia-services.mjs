@@ -22,7 +22,8 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
 
   // Teams
-  async function getTeams({ code, season }) {
+  // TODO : Dinis => para receber os parametros como objecto { code, season } temos alterar a chamada na api que envia como ...servicesFuncArgs
+  async function getTeams(code, season) {
     if (
       typeof code !== "string" ||
       code.trim().length === 0 ||
@@ -33,7 +34,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const teams = await fapiTeams.getTeamsWithSquads({ code, season });
+    const teams = await fapiTeams.getTeamsWithSquads(code, season);
 
     if (!teams) {
       throw errors.UNEXPECTED("Unhandled error for get teams operation");
@@ -177,7 +178,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     }
 
     const group = await data.getGroup(groupId);
-    
+
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
     }
@@ -198,14 +199,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return updated;
   }
 
-  async function deleteGroup({ userId, groupId }) {
-
+  async function deleteGroup(userId, groupId) {
     if (!userId) {
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before deleting groups"
       );
     }
-    
+
     if (!groupId) {
       throw errors.INVALID_DATA(
         "Make sure you provide a valid numeric group id for this operation"
@@ -262,7 +262,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
     const group = await data.getGroup(groupId);
-    
+
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
     }
@@ -338,7 +338,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     if (group.ownerId !== userId) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
-    
+
     // TODO : Tiago => Porque nao passar logo o grupo?
     const removed = await data.deletePlayerFromGroup(groupId, playerId);
 
