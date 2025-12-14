@@ -45,7 +45,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return teams;
   }
 
-  async function getUserIdFromToken({ token }) {
+  async function getUserIdFromToken(token) {
     if (!token) {
       throw errors.UNAUTHORIZED("Invalid token");
     }
