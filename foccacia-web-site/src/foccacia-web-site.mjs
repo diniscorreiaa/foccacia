@@ -17,10 +17,21 @@ export function initWebSite({ services, dto, errors, utils }) {
   }
   async function listCompetitions(req, res) {
     const competitions = await services.getCompetitions();
-    res.render("competitions", { competitions });
+
+    // TODO: this is business logic, likely belongs in services. not gonna do it now not to cause conflicts
+    const seasons = [];
+    for (let i = new Date().getFullYear(); i >= 2000; i--) {
+      seasons.push(i);
+    }
+
+    res.render("competitions", { competitions, seasons });
   }
   async function listTeams(req, res) {
-    /* TODO : Fransisco & Dinis */
+    const teams = await services.getTeams(
+      req.params.competitionCode,
+      req.params.seasonYear
+    );
+    res.render("teams", { teams });
   }
   async function listGroups(req, res) {
     /* TODO : Fransisco & Dinis */
@@ -47,11 +58,9 @@ export function initWebSite({ services, dto, errors, utils }) {
 
   const router = express.Router();
 
-  router.get(ROUTES.HOME, home);
-
   //Rotas Públicas
   router.get(ROUTES.COMPETITIONS, listCompetitions);
-  router.get(ROUTES.TEAMS, getTeams);
+  router.get(ROUTES.TEAMS, listTeams);
   router.post(ROUTES.USERS, createUser);
 
   // Middleware de Autenticação
@@ -65,6 +74,9 @@ export function initWebSite({ services, dto, errors, utils }) {
   router.delete(ROUTES.GROUP, deleteGroup);
   router.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
   router.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
+
+  // Precisa estar em último
+  router.get(ROUTES.HOME, home);
 
   return router;
 }

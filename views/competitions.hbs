@@ -4,8 +4,29 @@
         <th></th>
     </tr>
     {{#each competitions}}
-        <tr>
-            <th>{{name}}</th>
-        </tr>
+    <tr>
+        <th>{{name}}</th>
+        <th>
+            <label for="season">Season:
+                <select name="season" class="select">
+                    {{#each ../seasons}}
+                        <option>{{this}}</option>
+                    {{/each}}
+                </select>
+            </label>
+            <a class="getTeamsRef" href="#" data-base-url="/competitions/{{code}}/seasons/" data-append-to-url="/teams">View Teams</a>
+        </th>
+    </tr>
     {{/each}}
 </table>
+
+<script>
+    [...document.getElementsByClassName("getTeamsRef")].forEach(
+            (ref, idx) => {
+                ref.onclick = () => {
+                    const availableOptions = document.getElementsByClassName("select")[idx]
+                    const selectedOptionValue = availableOptions.value
+                    ref.href = ref.dataset.baseUrl + selectedOptionValue + ref.dataset.appendToUrl
+                }}
+    )
+</script>
