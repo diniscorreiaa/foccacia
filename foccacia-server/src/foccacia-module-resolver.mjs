@@ -12,6 +12,7 @@ import { initDataElasticSearch } from "foccacia-db";
 import { initServices } from "foccacia-services";
 
 import { initWebApi } from "foccacia-web-api";
+import { initWebSite } from "foccacia-web-site";
 import { initDto } from "foccacia-web-api/src/foccacia-dto.mjs";
 import { initSendApplicationError } from "foccacia-web-api/src/application-to-http-errors.mjs";
 
@@ -41,7 +42,14 @@ export function createFoccaciaApp() {
   });
 
   const dto = initDto();
-  const api = initWebApi({
+  const apiRouter = initWebApi({
+    services,
+    dto,
+    errors: errorsLib,
+    utils,
+  });
+
+  const siteRouter = initWebSite({
     services,
     dto,
     errors: errorsLib,
@@ -56,7 +64,8 @@ export function createFoccaciaApp() {
   });
 
   return {
-    api,
+    apiRouter,
+    siteRouter,
     sendApplicationError,
     errors: errorsLib,
     utils,

@@ -1,5 +1,16 @@
-// TODO : TIAGO => Verificar as calls a funcoes async que nao estao a usar await
+import express from "express";
 
+const ROUTES = {
+  COMPETITIONS: "/competitions",
+  TEAMS: "/competitions/:competitionCode/seasons/:seasonYear/teams",
+  USERS: "/users",
+  GROUPS: "/groups",
+  GROUP: "/groups/:groupId",
+  GROUP_PLAYERS: "/groups/:groupId/players",
+  GROUP_PLAYER: "/groups/:groupId/players/:playerId",
+};
+
+// TODO : TIAGO => Verificar as calls a funcoes async que nao estao a usar await
 const wrapAsync = (fn) => (request, response, next) =>
   Promise.resolve(fn(request, response, next)).catch(next);
 
@@ -134,19 +145,26 @@ export function initWebApi({ services, dto, errors, utils }) {
   });
 
   // TODO : Francisco => warpers before return to clean functions
-  return {
-    verifyToken,
-    getCompetitions,
-    getTeams,
-    createUser,
-    getGroups,
-    createGroup,
-    getGroup,
-    updateGroup,
-    deleteGroup,
-    addPlayerToGroup,
-    deletePlayerFromGroup,
-  };
+  const router = express.Router();
+
+  //Rotas Públicas
+  router.get(ROUTES.COMPETITIONS, getCompetitions);
+  router.get(ROUTES.TEAMS, getTeams);
+  router.post(ROUTES.USERS, createUser);
+
+  // Middleware de Autenticação
+  router.use(verifyToken);
+
+  // Rotas Privadas
+  router.get(ROUTES.GROUPS, getGroups);
+  router.get(ROUTES.GROUP, getGroup);
+  router.post(ROUTES.GROUPS, createGroup);
+  router.put(ROUTES.GROUP, updateGroup);
+  router.delete(ROUTES.GROUP, deleteGroup);
+  router.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
+  router.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
+
+  return router;
 }
 
 // TODO : ALL => Exemplo de modularizacao das funcoes em vez cada uma ter o wrapAsync, fazer o wrap aqui no return
