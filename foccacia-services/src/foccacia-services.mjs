@@ -22,14 +22,18 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
 
   // Teams
-  async function getTeams(code, season) {
-    if (!code || !season) {
+  async function getTeams({ code, season }) {
+    if (
+      typeof code !== "string" ||
+      code.trim().length === 0 ||
+      Number.isNaN(season)
+    ) {
       throw errors.INVALID_DATA(
-        "Make sure you specify a correct competition code and season"
+        "You must provide both competition code and season for this operation"
       );
     }
 
-    const teams = await fapiTeams.getTeamsWithSquads(code, season);
+    const teams = await fapiTeams.getTeamsWithSquads({ code, season });
 
     if (!teams) {
       throw errors.UNEXPECTED("Unhandled error for get teams operation");
@@ -127,20 +131,18 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   // TODO : Francisco => verificar se podemos fazer um wrapper para reduzir repetição de código
 
   async function getGroup(userId, groupId) {
-    const id = groupId;
-
-    if (!userId) {
+    if (!userId)
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself for getting group details"
       );
-    }
-    if (!id) {
+
+    if (!groupId) {
       throw errors.INVALID_DATA(
         "Make sure you provide the group id for this operation"
       );
     }
 
-    const group = await data.getGroup(id);
+    const group = await data.getGroup(groupId);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -174,16 +176,8 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const id = groupId;
-
-    if (!id) {
-      throw errors.INVALID_DATA(
-        "Make sure you provide a valid numeric group id for this operation"
-      );
-    }
-
-    const group = await data.getGroup(id);
-
+    const group = await data.getGroup(groupId);
+    
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
     }
@@ -192,7 +186,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    const updated = await data.updateGroup(id, {
+    const updated = await data.updateGroup(groupId, {
       name: name.trim(),
       description: description.trim(),
     });
@@ -204,21 +198,21 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return updated;
   }
 
-  async function deleteGroup(userId, groupId) {
-    const id = groupId;
+  async function deleteGroup({ userId, groupId }) {
 
     if (!userId) {
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before deleting groups"
       );
     }
-    if (!id) {
+    
+    if (!groupId) {
       throw errors.INVALID_DATA(
         "Make sure you provide a valid numeric group id for this operation"
       );
     }
 
-    const group = await data.getGroup(id);
+    const group = await data.getGroup(groupId);
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
     }
@@ -226,7 +220,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
 
-    const deleted = await data.deleteGroup(id);
+    const deleted = await data.deleteGroup(groupId);
 
     if (!deleted) {
       throw errors.NOT_FOUND("Group not found");
@@ -242,16 +236,16 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const id = groupId;
     const { playerId, playerName, teamCode, teamName } = playerData;
 
-    if (!userId)
+    if (!userId) {
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before adding players to a group"
       );
+    }
 
     if (
-      !id ||
+      !groupId ||
       Number.isNaN(playerId) ||
       typeof playerName !== "string" ||
       playerName.trim() === 0 ||
@@ -263,13 +257,12 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     ) {
       throw errors.INVALID_DATA(
         "Make sure you provide a valid numeric group id for this operation\nPlayer data must have" +
-          "Valid numeric playerId, playerName, teamName and teamCode\n playerName and teamName must be valid" +
+          "valid numeric playerId, playerName, teamName and teamCode\n playerName and teamName must be valid" +
           "and non empty and teamCode must be an acronym between 2 and 4 characters"
       );
     }
-
-    const group = await data.getGroup(id);
-
+    const group = await data.getGroup(groupId);
+    
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
     }
@@ -295,13 +288,28 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       teamCode,
       teamName,
     });
-
+    if (
+      typeof competition !== "string" ||
+      competition.trim().length === 0 ||
+      Number.isNaN(year) ||
+      year.toString().length !== 4 ||
+      Number.isNaN(playerId) ||
+      typeof playerName !== "string" ||
+      playerName.trim().length === 0 ||
+      typeof teamCode != "string" ||
+      teamCode.trim().length < 2 ||
+      teamCode.trim().length > 4 ||
+      typeof teamName != "string"
+    ) {
+      throw errors.INVALID_DATA(
+        "Make sure you provide competition, year, playerId, playerName, teamCode and teamName for this operation"
+      );
+    }
     if (!player) {
       throw errors.UNEXPECTED("Unexpected error processing given player");
     }
 
-    // TODO : Tiago => Porque nao passar logo o grupo?
-    const added = await data.addPlayerToGroup(id, player);
+    const added = await data.addPlayerToGroup(groupId, player);
 
     if (!added) {
       throw errors.UNEXPECTED("Could not add player to group");
@@ -311,21 +319,18 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
 
   async function deletePlayerFromGroup(userId, groupId, playerId) {
-    const gId = groupId;
-    const pId = parseInt(playerId);
-
     if (!userId)
       throw errors.UNAUTHORIZED(
         "You must authenticate yourself before deleting players from a group"
       );
 
-    if (!gId || Number.isNaN(pId)) {
+    if (!groupId || !playerId || Number.isNaN(playerId)) {
       throw errors.INVALID_DATA(
-        "Make sure you provide valid numeric ids for group and player"
+        "Make sure you provide valid ids for group and player"
       );
     }
 
-    const group = await data.getGroup(gId);
+    const group = await data.getGroup(groupId);
 
     if (!group) {
       throw errors.NOT_FOUND("Group not found");
@@ -333,9 +338,9 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     if (group.ownerId !== userId) {
       throw errors.FORBIDDEN("You do not have access to this group");
     }
-
+    
     // TODO : Tiago => Porque nao passar logo o grupo?
-    const removed = await data.deletePlayerFromGroup(gId, pId);
+    const removed = await data.deletePlayerFromGroup(groupId, playerId);
 
     // TODO : TIAGO => Algo esta errado aqui
     if (!removed) {
