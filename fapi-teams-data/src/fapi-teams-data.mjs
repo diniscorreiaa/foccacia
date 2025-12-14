@@ -1,5 +1,7 @@
 // TODO : Francisco => modular codigo para evitar duplicação
 
+// TODO : Tiago => Resolver undifined logError possivelmente precisa de await
+
 const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 
 export function initFapiTeams({ domainModel, utils, errors }) {
@@ -40,7 +42,7 @@ export function initFapiTeams({ domainModel, utils, errors }) {
 
   async function fetchJsonFromFootballApi(url, logContext) {
     const headers = await loadAuthHeaders();
-    if (!headers || headers["X-Auth-Token"] == undefined) {
+    if (!headers || headers["X-Auth-Token"] === undefined) {
       utils.utils.logError(
         `Missing or invalid X-Auth-Token while fetching ${logContext}`,
         ""

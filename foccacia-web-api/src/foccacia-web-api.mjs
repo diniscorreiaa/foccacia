@@ -48,14 +48,17 @@ export function initWebApi({ services, dto, errors, utils }) {
   });
 
   // Competitions
-  const getCompetitions = wrapAsync((req, res) =>
-    genericApiRoute(req, res, services.getCompetitions)
+  const getCompetitions = wrapAsync((request, response) =>
+    genericApiRoute(request, response, services.getCompetitions)
   );
 
   // Teams
-  const getTeams = wrapAsync((req, res) =>
-    genericApiRoute(req, res, services.getTeams, {
-      servicesFuncArgs: [req.params.competitionCode, req.params.seasonYear],
+  const getTeams = wrapAsync((request, response) =>
+    genericApiRoute(request, response, services.getTeams, {
+      servicesFuncArgs: [
+        request.params.competitionCode,
+        request.params.seasonYear,
+      ],
       transformObj: (teamsArr) => teamsArr.map(dto.teamToDto),
     })
   );
