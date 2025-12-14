@@ -9,40 +9,32 @@ export function initDataMem({ domainModel, utils, errors }) {
   // USERS
   // TODO : Tiago => read persisted users from file on startup
   // TODO : PROFESSOR SIM! => Confirmar sendo o writeJson async todo depende dele tambem deve ser async?
-  function persistUsers() {
-    utils.writeJson(users, USERS_CACHE_PATH).catch((err) => {
-      utils.logError("Error writing users cache", err);
-    });
-  }
-
-  function createUser(username) {
+  async function createUser(username) {
     if (!username) {
-      throw errors.UNEXPECTED("Unhandled error validating username");
+      return Promise.resolve(null);
     }
     const user = new domainModel.User({ id: nextUserId++, username });
     if (!user) {
-      throw errors.UNEXPECTED("Unhandled error at user creation");
+      return Promise.resolve(null);
     }
     users.push(user);
-    persistUsers();
-    return user;
+    return Promise.resolve(user);
   }
 
-  function getUserByToken(token) {
+  async function getUserByToken(token) {
     if (!token) {
-      return errors.UNEXPECTED("Unhandled error at token detection");
+      return Promise.resolve(null);
     }
-    return users.find((user) => user.token === token) || null;
+    return Promise.resolve(users.find((user) => user.token === token) || null);
   }
 
   // GROUPS
   // TODO : Tiago => Create groups persistence on file
   // TODO : Tiago =>  read persisted groups from file on startup
   async function createGroup({ userId, name, description, competition, year }) {
-    if (!userId || !name || !description || !competition || !year)
-      throw errors.UNEXPECTED(
-        "Unhandled error verifying requirements for group creation"
-      );
+    if (!userId || !name || !description || !competition || !year) {
+      return Promise.resolve(null);
+    }
     const group = new domainModel.Group({
       id: nextGroupId++,
       userId,
@@ -52,28 +44,25 @@ export function initDataMem({ domainModel, utils, errors }) {
       year,
     });
     if (!group) {
-      throw errors.UNEXPECTED("Unhandled error at group creation");
+      return Promise.resolve(null);
     }
     groups.push(group);
     return Promise.resolve(group);
   }
 
-  function listGroups(userId) {
+  async function listGroups(userId) {
     if (!userId) {
-      throw errors.UNEXPECTED("Unhandled error at verification of user Id");
+      return Promise.resolve(null);
     }
-    return groups.filter((group) => group.ownerId === userId);
+    return Promise.resolve(groups.filter((group) => group.ownerId === userId));
   }
 
   // TODO : Tiago => persist group changes on file
-  function updateGroup(groupId, changes) {
-    if (!groupId || !changes)
-      throw errors.UNEXPECTED(
-        "Unhandled error verifying requirements for group update"
-      );
+  async function updateGroup({ groupId, changes }) {
+    if (!groupId || !changes) return Promise.resolve(null);
     const group = groups.find((group) => group.id === groupId);
     if (!group) {
-      throw errors.NOT_FOUND("Group not found");
+      return Promise.resolve(null);
     }
 
     if (utils.isString(changes.name)) {
@@ -83,52 +72,54 @@ export function initDataMem({ domainModel, utils, errors }) {
       group.description = changes.description;
     }
 
-    return group;
+    return Promise.resolve(group);
   }
 
   // TODO : Tiago => persist group deletion on file
-  function deleteGroup(groupId) {
-    if (!groupId) return false;
+  async function deleteGroup({ groupId }) {
+    if (!groupId) return Promise.resolve(false);
     const idx = groups.findIndex((group) => group.id === groupId);
-    if (idx === -1) return false;
+    if (idx === -1) return Promise.resolve(false);
     groups.splice(idx, 1);
-    return true;
+    return Promise.resolve(true);
   }
 
-  function getGroup(groupId) {
+  async function getGroup(groupId) {
     if (!groupId) {
-      return null;
+      return Promise.resolve(null);
     }
-    return groups.find((group) => group.id === groupId) || null;
+    return Promise.resolve(
+      groups.find((group) => group.id === groupId) || null
+    );
   }
 
   // GROUP PLAYERS
   // TODO : Tiago => persist group players changes on file
-  function addPlayerToGroup(groupId, player) {
+  async function addPlayerToGroup({ groupId, player }) {
     if (!groupId || !player) {
-      return null;
+      return Promise.resolve(null);
     }
     const group = getGroup(groupId);
     if (!group) {
-      return null;
+      return Promise.resolve(null);
     }
 
     group.players.push(player);
-    return player;
+    return Promise.resolve(player);
   }
 
   // TODO : Tiago => persist group players changes on file
-  function deletePlayerFromGroup(groupId, playerId) {
-    if (!groupId || !playerId) return false;
+  async function deletePlayerFromGroup({ groupId, playerId }) {
+    if (!groupId || !playerId) return Promise.resolve(false);
 
-    const group = getGroup(groupId);
-    if (!group) return false;
+    const group = await getGroup(groupId);
+    if (!group) return Promise.resolve(false);
 
     const idx = group.players.findIndex((player) => player.id === playerId);
-    if (idx === -1) return false;
+    if (idx === -1) return Promise.resolve(false);
 
     group.players.splice(idx, 1);
-    return true;
+    return Promise.resolve(true);
   }
   return {
     createUser,
