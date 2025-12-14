@@ -7,6 +7,7 @@ export function initUtils({ logUtils, ioUtils, jsonUtils }) {
     getCompetitionTeamsFilePath,
     getTeamPlayersFilePath,
     getUsersFilePath,
+    getViewsDirPath,
   } = ioUtils;
   const { readJson, writeJson } = jsonUtils;
 
@@ -52,6 +53,7 @@ export function initUtils({ logUtils, ioUtils, jsonUtils }) {
     readJson,
     writeJson,
     getHeadersFilePath,
+    getViewsDirPath,
     getCompetitionsFilePath,
     getCompetitionTeamsFilePath,
     getTeamPlayersFilePath,

@@ -43,7 +43,7 @@ export function initFapiTeams({ domainModel, utils, errors }) {
   async function fetchJsonFromFootballApi(url, logContext) {
     const headers = await loadAuthHeaders();
     if (!headers || headers["X-Auth-Token"] === undefined) {
-      utils.utils.logError(
+      utils.logError(
         `Missing or invalid X-Auth-Token while fetching ${logContext}`,
         ""
       );
@@ -53,10 +53,7 @@ export function initFapiTeams({ domainModel, utils, errors }) {
 
     if (!response.ok) {
       const err = buildFootballApiError(url, response.status);
-      utils.utils.logError(
-        `Error fetching ${logContext} from Football API`,
-        err
-      );
+      utils.logError(`Error fetching ${logContext} from Football API`, err);
       return null;
     }
 

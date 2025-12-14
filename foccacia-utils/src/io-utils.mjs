@@ -16,8 +16,21 @@ export function initIoUtils() {
     }
   }
 
+  function getDirName(filePath) {
+    return path.dirname(filePath);
+  }
+
   function getInputFilePath(fileName = "") {
     return path.join(ROOT_DIR, "docs", "input", fileName);
+  }
+
+  function getViewsDirPath(fileName = "") {
+    return path.join(ROOT_DIR, "views", fileName);
+  }
+
+  function getHeadersFilePath() {
+    const fileName = `headers.json`;
+    return getInputFilePath(fileName);
   }
 
   function getOutputFootballApiFilePath(fileName = "") {
@@ -45,15 +58,6 @@ export function initIoUtils() {
     return getOutputFootballApiFilePath(fileName);
   }
 
-  function getHeadersFilePath() {
-    const fileName = `headers.json`;
-    return getInputFilePath(fileName);
-  }
-
-  function getDirName(filePath) {
-    return path.dirname(filePath);
-  }
-
   function getCompetitionsFilePath() {
     const fileName = "competitions.json";
     return getOutputFootballApiFilePath(fileName);
@@ -76,5 +80,6 @@ export function initIoUtils() {
     getCompetitionsFilePath,
     getCompetitionTeamsFilePath,
     getUsersFilePath,
+    getViewsDirPath,
   };
 }
