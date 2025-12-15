@@ -1,1 +1,10 @@
-// TODO : Fransisco & Dinis => lista equipas de uma competição/época.
+{{#each teams}}
+<h2>{{teamName}}</h2>
+<h3>{{country}}</h3>
+<h3>Players: </h3>
+<ul>
+{{#each players}}
+    <li>{{playerName}} ({{position}})</li>
+{{/each}}
+</ul>
+{{/each}}

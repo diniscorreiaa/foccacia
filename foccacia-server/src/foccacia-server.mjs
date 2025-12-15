@@ -43,5 +43,5 @@ utils.logSuccess(
 
 app.listen(PORT, () => {
   utils.logSuccess(`Server listening on port ${PORT}`, "");
-  utils.logSuccess(`Website available at http://localhost:${PORT}/`, "");
+  utils.logInfo(`Website available at http://localhost:${PORT}/`, "");
 });
