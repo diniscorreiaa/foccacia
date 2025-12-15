@@ -1,5 +1,6 @@
 import express from "express";
 
+// TODO : Francisco => Fazer Routes dinâmicas
 const ROUTES = {
   COMPETITIONS: "/competitions",
   TEAMS: "/competitions/:competitionCode/seasons/:seasonYear/teams",
@@ -10,7 +11,8 @@ const ROUTES = {
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
 
-// TODO : TIAGO => Verificar as calls a funcoes async que nao estao a usar await
+// TODO : TIAGO => Verificar as calls a funções async que nao estao a usar await
+// TODO : ALL => Refatorar para evitar duplicação de código, melhorar e modular
 const wrapAsync = (fn) => (request, response, next) =>
   Promise.resolve(fn(request, response, next)).catch(next);
 
@@ -58,12 +60,10 @@ export function initWebApi({ services, dto, errors, utils }) {
     next();
   });
 
-  // Competitions
   const getCompetitions = wrapAsync((request, response) =>
     genericApiRoute(request, response, services.getCompetitions)
   );
 
-  // Teams
   const getTeams = wrapAsync((request, response) =>
     genericApiRoute(request, response, services.getTeams, {
       servicesFuncArgs: [
@@ -74,14 +74,12 @@ export function initWebApi({ services, dto, errors, utils }) {
     })
   );
 
-  // Users
   const createUser = wrapAsync(async (req, res) => {
     const username = req.body?.username;
     const user = await services.createUser(username);
     return res.status(201).json(dto.userToDto(user));
   });
 
-  // Groups
   const getGroups = wrapAsync((req, res) =>
     genericApiRoute(req, res, services.getGroups, {
       servicesFuncArgs: [req.userId],
@@ -131,7 +129,6 @@ export function initWebApi({ services, dto, errors, utils }) {
     })
   );
 
-  // TODO : Tiago => Verificar se o deletePlayerFromGroup deve ser async
   const deletePlayerFromGroup = wrapAsync(async (req, res) => {
     const result = await services.deletePlayerFromGroup(
       req.userId,
@@ -144,7 +141,6 @@ export function initWebApi({ services, dto, errors, utils }) {
     return res.sendStatus(204);
   });
 
-  // TODO : Francisco => warpers before return to clean functions
   const router = express.Router();
 
   //Rotas Públicas
@@ -166,5 +162,3 @@ export function initWebApi({ services, dto, errors, utils }) {
 
   return router;
 }
-
-// TODO : ALL => Exemplo de modularizacao das funcoes em vez cada uma ter o wrapAsync, fazer o wrap aqui no return
