@@ -64,7 +64,8 @@ export function initDataElasticSearch({ domainModel, utils }) {
 
       if (!response.ok && response.status !== 400) {
         utils.logError(
-          `ElasticSearch create index ${indexName} -> ${response.status}`
+          `ElasticSearch create index ${indexName} -> ${response.status}`,
+          ""
         );
       }
     } catch (err) {
@@ -83,12 +84,20 @@ export function initDataElasticSearch({ domainModel, utils }) {
 
     try {
       const response = await fetch(url, request);
+
       if (!response.ok) {
-        utils.logError(`ElasticSearch ${method} ${url} -> ${response.status}`);
+        utils.logError(
+          `ElasticSearch ${method} ${url} -> ${response.status}`,
+          ""
+        );
         return null;
       }
 
-      return await response.json();
+      try {
+        return await response.json();
+      } catch {
+        return { result: "ok" };
+      }
     } catch (err) {
       utils.logError(`ElasticSearch fetch error ${method} ${url}`, err);
       return null;
@@ -108,23 +117,22 @@ export function initDataElasticSearch({ domainModel, utils }) {
   }
 
   async function persistGroup(group) {
-    if (!group || !group.id) return false;
-
-    const body = groupToBody(group);
+    if (!group?.id) return false;
 
     const response = await elasticSearchRequest(
       `${GROUPS_INDEX}/_doc/${group.id}?refresh=wait_for`,
       {
         method: "PUT",
-        body,
+        body: groupToBody(group),
       }
     );
 
-    return !!response && response.result === "updated";
+    return response?.result === "updated" || response?.result === "created";
   }
 
-  // USERS
   async function createUser(username) {
+    if (typeof username !== "string") return null;
+
     const user = new domainModel.User({ username: username.trim() });
 
     const body = {
@@ -140,6 +148,8 @@ export function initDataElasticSearch({ domainModel, utils }) {
   }
 
   async function getUserByToken(token) {
+    if (!token) return null;
+
     const query = {
       query: {
         term: { "token.keyword": String(token) },
@@ -157,7 +167,6 @@ export function initDataElasticSearch({ domainModel, utils }) {
     return user;
   }
 
-  // GROUPS
   async function createGroup({ userId, name, description, competition, year }) {
     const group = new domainModel.Group({
       userId,
@@ -167,9 +176,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
       year,
     });
 
-    const body = groupToBody(group);
-
-    const id = await createDocument(GROUPS_INDEX, body);
+    const id = await createDocument(GROUPS_INDEX, groupToBody(group));
     if (!id) return null;
 
     group.id = id;
@@ -177,12 +184,16 @@ export function initDataElasticSearch({ domainModel, utils }) {
   }
 
   async function getGroup(groupId) {
+    if (!groupId) return null;
+
     const response = await elasticSearchRequest(
       `${GROUPS_INDEX}/_doc/${groupId}`,
-      { method: "GET" }
+      {
+        method: "GET",
+      }
     );
 
-    if (!response || !response.found) return null;
+    if (!response?.found) return null;
 
     const group = mapHitToGroup(response);
 
@@ -190,6 +201,8 @@ export function initDataElasticSearch({ domainModel, utils }) {
   }
 
   async function listGroups(userId) {
+    if (!userId) return [];
+
     const query = {
       query: {
         term: { "ownerId.keyword": String(userId) },
@@ -211,8 +224,9 @@ export function initDataElasticSearch({ domainModel, utils }) {
     const group = await getGroup(groupId);
     if (!group) return null;
 
-    group.name = changes.name;
-    group.description = changes.description;
+    if (typeof changes?.name === "string") group.name = changes.name;
+    if (typeof changes?.description === "string")
+      group.description = changes.description;
 
     const updated = await persistGroup(group);
     if (!updated) return null;
@@ -221,6 +235,8 @@ export function initDataElasticSearch({ domainModel, utils }) {
   }
 
   async function deleteGroup(groupId) {
+    if (!groupId) return false;
+
     const response = await elasticSearchRequest(
       `${GROUPS_INDEX}/_doc/${groupId}?refresh=wait_for`,
       {
@@ -228,10 +244,9 @@ export function initDataElasticSearch({ domainModel, utils }) {
       }
     );
 
-    return response && response.result === "deleted";
+    return response?.result === "deleted";
   }
 
-  // GROUP PLAYERS
   async function addPlayerToGroup(groupId, player) {
     const group = await getGroup(groupId);
     if (!group) return null;
@@ -246,19 +261,17 @@ export function initDataElasticSearch({ domainModel, utils }) {
 
   async function deletePlayerFromGroup(groupId, playerId) {
     const group = await getGroup(groupId);
-    if (!group) return false; // group inexistente
+    if (!group) return false;
 
     const idx = group.players.findIndex(
       (player) => String(player.id) === String(playerId)
     );
-    if (idx === -1) return false; // player não está no grupo
+    if (idx === -1) return false;
 
     group.players.splice(idx, 1);
 
     const updated = await persistGroup(group);
-    if (!updated) return false; // falha de persistência
-
-    return true;
+    return updated;
   }
 
   void ensureIndex(USERS_INDEX);

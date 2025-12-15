@@ -16,7 +16,6 @@ import { initWebSite } from "foccacia-web-site";
 import { initDto } from "foccacia-web-api/src/foccacia-dto.mjs";
 import { initSendApplicationError } from "foccacia-web-api/src/application-to-http-errors.mjs";
 
-// TODO : ALL => create select/create/init  Data layer based on config
 // TODO : PROFESSOR ONLY ES => Data layer  return null or throw ?
 // TODO : PROFESSOR SIM! => Persistência ? Carregar users e groups at startup ?
 
@@ -32,7 +31,7 @@ export function createFoccaciaApp() {
   const domainModel = initDomainModel();
   const dataMem = initDataMem({ domainModel, utils, errors: errorsLib });
   const dataElasticSearch = initDataElasticSearch({ domainModel, utils });
-  const fapiTeams = initFapiTeams({ domainModel, utils, errors: errorsLib });
+  const fapiTeams = initFapiTeams({ domainModel, utils });
 
   const services = initServices({
     data: dataElasticSearch,
@@ -55,8 +54,6 @@ export function createFoccaciaApp() {
     errors: errorsLib,
     utils,
   });
-
-  // TODO : ALL => app.use(express.urlencoded()); Leitura de forms
 
   const sendApplicationError = initSendApplicationError({
     ERROR_CODES,
