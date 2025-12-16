@@ -1,4 +1,5 @@
 <h1>Groups</h1>
+{{!--TODO: Move styles to a seperate .css file, inline css is not recommended --}}
 <fieldset style="border: 5px solid #020202; max-width: fit-content; margin: 50px">
         <legend>Create Group</legend>
         <form method="post">
@@ -23,32 +24,66 @@
 </fieldset>
 {{#each groups}}
 <fieldset style="border: 5px solid #ccc; max-width: fit-content; margin: 50px">
-        <legend>{{name}}</legend>
-        <p>{{description}}</p>
+        <legend class="name" contenteditable="true" data-actual-name="{{name}}">{{name}}</legend>
+        <p class="description" contenteditable="true" data-actual-description="{{description}}">{{description}}</p>
+
         <form action="groups/{{id}}">
                 <input type="submit" value ="Check group details">
         </form>
-        <form action="groups/{{id}}/update" method="post">
+
+        {{!--TODO: the update logic and structure is way too complex for such a simple problem, refactor if we have time--}}
+        <button type="button" class="cancelUpdate" style="background-color: yellow" disabled>Cancel</button>
+        <form action="/groups/{{id}}/update" method="post">
                 <input type="hidden" name="groupId" value="{{id}}">
-                <input type="hidden" name="name" value="{{name}}">
-                <input type="hidden" name="description" value="{{description}}">
-                <input class="update" type="submit" value="Update Group" style="background-color:yellow" onclick="">
+                <input class="updateNameForm" type="hidden" name="name" value="">
+                <input class="updateDescriptionForm" type="hidden" name="description" value="">
+                <input class="update" type="submit" value="Update Group" style="background-color:yellow">
         </form>
-        <form action="groups/{{id}}" method="post">
+
+        <form action="/groups/{{id}}" method="post">
                 <input type="hidden" name="groupId" value="{{id}}">
                 <input type="submit" value="Delete group" style="background-color: red;">
         </form>
 </fieldset>
 {{/each}}
-<!--- FAZER COM QUE BUTAO UPDATE GERE CAIXA PARA ESCREVER NAME E DESCRIPTION
-<script>
-    document.getElementsByClassName("update")].forEach(
+<script> {{!--TODO: Do not rely on idx --}}
+    [...document.getElementsByClassName("cancelUpdate")].forEach(
             (node, idx) =>
                 node.onclick = () => {
-                    const availableOptions = document.getElementsByClassName("select")[idx]
-                    const selectedOptionValue = availableOptions.value
-                    node.href = node.dataset.baseUrl + selectedOptionValue + node.dataset.appendToUrl
+                    const currentName = document.getElementsByClassName("name")[idx]
+                    const currentDescription = document.getElementsByClassName("description")[idx]
+
+                    currentName.innerHTML = currentName.dataset.actualName
+                    currentDescription.innerHTML = currentDescription.dataset.actualDescription
+
+                    node.disabled = true
                 }
+    );
+
+    [...document.getElementsByClassName("name")].forEach(
+            (node, idx) =>
+                    node.oninput = () => {document.getElementsByClassName("cancelUpdate")[idx].disabled = false}
+    );
+
+    [...document.getElementsByClassName("description")].forEach(
+            (node, idx) =>
+                    node.oninput = () => {document.getElementsByClassName("cancelUpdate")[idx].disabled = false}
+    );
+
+    [...document.getElementsByClassName("update")].forEach(
+            (node, idx) => {
+                node.onclick = () => {
+                    document.getElementsByClassName("cancelUpdate")[idx].disabled = false
+
+                    const currentName = document.getElementsByClassName("name")[idx]
+                    const currentDescription = document.getElementsByClassName("description")[idx]
+
+                    currentName.dataset.actualName = currentName.innerHTML
+                    currentDescription.dataset.actualDescription = currentDescription.innerHTML
+
+                    document.getElementsByClassName("updateNameForm")[idx].value = currentName.innerHTML
+                    document.getElementsByClassName("updateDescriptionForm")[idx].value = currentDescription.innerHTML
+                }
+            }
     )
 </script>
---->
