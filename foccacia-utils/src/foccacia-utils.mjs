@@ -1,5 +1,6 @@
 export function initUtils({ logUtils, ioUtils, jsonUtils }) {
   const { logInfo, logSuccess, logError } = logUtils;
+
   const {
     fileExists,
     getHeadersFilePath,
@@ -9,42 +10,66 @@ export function initUtils({ logUtils, ioUtils, jsonUtils }) {
     getUsersFilePath,
     getViewsDirPath,
   } = ioUtils;
+
   const { readJson, writeJson } = jsonUtils;
 
-  // TODO : Dinis => requireNonEmptyString, requirePositiveInt, and other to validate inputs no services
-
-  function isString(value) {
-    return typeof value === "string" || value instanceof String;
+  function isString(input) {
+    return typeof input === "string" || input instanceof String;
   }
 
-  function isNonEmptyString(value) {
-    return typeof value === "string" && value.trim().length > 0;
+  function isNonEmptyString(input) {
+    return typeof input === "string" && input.trim().length > 0;
   }
 
-  function getAgeFromDate(dateOfBirthStr) {
-    if (!dateOfBirthStr) {
-      return null;
-    }
+  function toTrimmedString(input) {
+    if (input === null || input === undefined) return null;
 
-    const birth = new Date(dateOfBirthStr);
+    const trimmedText = String(input).trim();
+    return trimmedText.length ? trimmedText : null;
+  }
 
-    if (Number.isNaN(birth.getTime())) {
+  function toTrimmedStringMinLen(input, minLen) {
+    const trimmedText = toTrimmedString(input);
+    if (!trimmedText || trimmedText.length < minLen) return null;
+    return trimmedText;
+  }
+
+  function toId(input) {
+    return toTrimmedString(input);
+  }
+
+  function areSameId(idA, idB) {
+    const normalizedA = toId(idA);
+    const normalizedB = toId(idB);
+
+    if (!normalizedA || !normalizedB) return false;
+    return normalizedA === normalizedB;
+  }
+
+  function toYear(input) {
+    const yearNumber = Number(input);
+    if (!Number.isInteger(yearNumber) || String(yearNumber).length !== 4)
       return null;
-    }
+    return yearNumber;
+  }
+
+  function getAgeFromDate(birthDateText) {
+    if (!birthDateText) return null;
+
+    const birthDate = new Date(birthDateText);
+    if (Number.isNaN(birthDate.getTime())) return null;
 
     const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
 
-    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
 
-    const monthDiff = today.getMonth() - birth.getMonth();
-    const dayDiff = today.getDate() - birth.getDate();
-
-    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-      age--;
-    }
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) age--;
 
     return age;
   }
+
   return {
     logInfo,
     logSuccess,
@@ -61,5 +86,10 @@ export function initUtils({ logUtils, ioUtils, jsonUtils }) {
     isString,
     isNonEmptyString,
     getAgeFromDate,
+    toTrimmedString,
+    toTrimmedStringMinLen,
+    toId,
+    areSameId,
+    toYear,
   };
 }
