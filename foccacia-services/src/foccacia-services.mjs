@@ -122,7 +122,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     );
     return groups;
   }
-
+  // TODO : DINIS => Verificar os parametros
   async function createGroup({ userId, name, description, competition, year }) {
     const uid = mustAuthUserId(
       userId,

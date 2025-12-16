@@ -1,1 +1,54 @@
-// TODO : Fransisco & Dinis => lista grupos do user
+<h1>Groups</h1>
+<fieldset style="border: 5px solid #020202; max-width: fit-content; margin: 50px">
+        <legend>Create Group</legend>
+        <form method="post">
+                <label>Name</label>
+                <input type="text" name="name"><br>
+                <label>Description</label><br>
+                <textarea name="description" rows="4" cols="50"></textarea><br>
+                <label>Competition</label>
+                <select name="competitions">
+                        {{#each competitions}}
+                                <option value="{{code}}">{{name}}</option>
+                        {{/each}}
+                </select><br>
+                <label>Season</label>
+                <select name="seasons">
+                        {{#each seasons}}
+                                <option>{{this}}</option>
+                        {{/each}}
+                </select><br>
+                <input type="submit" value ="Create group">
+        </form>
+</fieldset>
+{{#each groups}}
+<fieldset style="border: 5px solid #ccc; max-width: fit-content; margin: 50px">
+        <legend>{{name}}</legend>
+        <p>{{description}}</p>
+        <form action="groups/{{id}}">
+                <input type="submit" value ="Check group details">
+        </form>
+        <form action="groups/{{id}}/update" method="post">
+                <input type="hidden" name="groupId" value="{{id}}">
+                <input type="hidden" name="name" value="{{name}}">
+                <input type="hidden" name="description" value="{{description}}">
+                <input class="update" type="submit" value="Update Group" style="background-color:yellow" onclick="">
+        </form>
+        <form action="groups/{{id}}" method="post">
+                <input type="hidden" name="groupId" value="{{id}}">
+                <input type="submit" value="Delete group" style="background-color: red;">
+        </form>
+</fieldset>
+{{/each}}
+<!--- FAZER COM QUE BUTAO UPDATE GERE CAIXA PARA ESCREVER NAME E DESCRIPTION
+<script>
+    document.getElementsByClassName("update")].forEach(
+            (node, idx) =>
+                node.onclick = () => {
+                    const availableOptions = document.getElementsByClassName("select")[idx]
+                    const selectedOptionValue = availableOptions.value
+                    node.href = node.dataset.baseUrl + selectedOptionValue + node.dataset.appendToUrl
+                }
+    )
+</script>
+--->

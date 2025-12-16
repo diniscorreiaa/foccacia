@@ -11,6 +11,7 @@ const PORT = 1904;
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded());
 
 // Registering handlebars view engine
 app.engine(".hbs", engine({ extname: ".hbs" }));
