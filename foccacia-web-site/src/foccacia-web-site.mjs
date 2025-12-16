@@ -56,7 +56,7 @@ export function initWebSite({ services, dto, errors, utils }) {
   }
   async function showGroup(req, res) {
     const groupId = req.params.groupId;
-    const group = await services.getGroup(req.userId, groupId);
+    const group = await services.getGroup({ userId: req.userId, groupId });
     res.render("group-detail", { group });
   }
   async function showCreateGroupForm(req, res) {
@@ -74,12 +74,23 @@ export function initWebSite({ services, dto, errors, utils }) {
   }
 
   async function showDeleteGroupForm(req, res) {
-    await services.deleteGroup(req.userId, req.body.groupId);
+    await services.deleteGroup({
+      userId: req.userId,
+      groupId: req.body.groupId,
+    });
     res.redirect("/groups");
   }
 
   async function showUpdateGroupForm(req, res) {
-    await services.updateGroup(req.userId, req.body.groupId);
+    console.log(req.body);
+    await services.updateGroup({
+      userId: req.userId,
+      groupId: req.body.groupId,
+      changes: {
+        name: req.body.name,
+        description: req.body.description,
+      },
+    });
     res.redirect("/groups");
   }
 
@@ -99,7 +110,7 @@ export function initWebSite({ services, dto, errors, utils }) {
   router.get(ROUTES.GROUPS, listGroups);
   router.get(ROUTES.GROUP, showGroup);
   router.post(ROUTES.GROUPS, showCreateGroupForm);
-  //router.post(ROUTES.GROUP, updateGroup); // PUT
+  router.post(ROUTES.GROUP_UPDATE, showUpdateGroupForm); // PUT
   router.post(ROUTES.GROUP, showDeleteGroupForm); // DELETE
   /*
   router.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
