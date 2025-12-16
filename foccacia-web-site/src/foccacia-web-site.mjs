@@ -1,5 +1,6 @@
 import express from "express";
 
+// TODO : Francisco => Fazer Routes dinâmicas
 const ROUTES = {
   HOME: "/",
   COMPETITIONS: "/competitions",
@@ -10,6 +11,8 @@ const ROUTES = {
   GROUP_PLAYERS: "/groups/:groupId/players",
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
+
+// TODO : ALL => Confirmar a necessidade de todos os parâmetros das funções
 
 export function initWebSite({ services, dto, errors, utils }) {
   async function home(req, res) {
@@ -27,10 +30,10 @@ export function initWebSite({ services, dto, errors, utils }) {
     res.render("competitions", { competitions, seasons });
   }
   async function listTeams(req, res) {
-    const teams = await services.getTeams(
-      req.params.competitionCode,
-      req.params.seasonYear
-    );
+    const teams = await services.getTeams({
+      code: req.params.competitionCode,
+      season: req.params.seasonYear,
+    });
     res.render("teams", { teams });
   }
   async function listGroups(req, res) {

@@ -1,5 +1,6 @@
 import express from "express";
 
+// TODO : Francisco => Fazer Routes dinâmicas
 const ROUTES = {
   COMPETITIONS: "/competitions",
   TEAMS: "/competitions/:competitionCode/seasons/:seasonYear/teams",
@@ -10,7 +11,8 @@ const ROUTES = {
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
 
-// TODO : TIAGO => Verificar as calls a funcoes async que nao estao a usar await
+// TODO : TIAGO => Verificar as calls a funções async que nao estao a usar await
+// TODO : ALL => Refatorar para evitar duplicação de código, melhorar e modular
 const wrapAsync = (fn) => (request, response, next) =>
   Promise.resolve(fn(request, response, next)).catch(next);
 
@@ -58,93 +60,106 @@ export function initWebApi({ services, dto, errors, utils }) {
     next();
   });
 
-  // Competitions
   const getCompetitions = wrapAsync((request, response) =>
     genericApiRoute(request, response, services.getCompetitions)
   );
 
-  // Teams
   const getTeams = wrapAsync((request, response) =>
     genericApiRoute(request, response, services.getTeams, {
       servicesFuncArgs: [
-        request.params.competitionCode,
-        request.params.seasonYear,
+        {
+          code: request.params.competitionCode,
+          season: request.params.seasonYear,
+        },
       ],
       transformObj: (teamsArr) => teamsArr.map(dto.teamToDto),
     })
   );
 
-  // Users
-  const createUser = wrapAsync(async (req, res) => {
-    const username = req.body?.username;
+  const createUser = wrapAsync(async (request, response) => {
+    const username = request.body?.username;
     const user = await services.createUser(username);
-    return res.status(201).json(dto.userToDto(user));
+    return response.status(201).json(dto.userToDto(user));
   });
 
-  // Groups
-  const getGroups = wrapAsync((req, res) =>
-    genericApiRoute(req, res, services.getGroups, {
-      servicesFuncArgs: [req.userId],
+  const getGroups = wrapAsync((request, response) =>
+    genericApiRoute(request, response, services.getGroups, {
+      servicesFuncArgs: [request.userId],
       transformObj: (groups) => groups.map(dto.groupToDto),
     })
   );
 
-  const createGroup = wrapAsync(async (req, res) => {
-    const { name, description, competition, year } = req.body ?? {};
+  const createGroup = wrapAsync(async (request, response) => {
+    const { name, description, competition, year } = request.body ?? {};
     const group = await services.createGroup({
-      userId: req.userId,
+      userId: request.userId,
       name,
       description,
       competition,
       year,
     });
-    return res.status(201).json(dto.groupToDto(group));
+    return response.status(201).json(dto.groupToDto(group));
   });
 
-  const getGroup = wrapAsync((req, res) =>
-    genericApiRoute(req, res, services.getGroup, {
-      servicesFuncArgs: [req.userId, req.params.groupId],
+  const getGroup = wrapAsync((request, response) =>
+    genericApiRoute(request, response, services.getGroup, {
+      servicesFuncArgs: [
+        { userId: request.userId, groupId: request.params.groupId },
+      ],
       transformObj: dto.groupToDto,
     })
   );
 
-  const updateGroup = wrapAsync((req, res) => {
-    const { name, description } = req.body ?? {};
-    return genericApiRoute(req, res, services.updateGroup, {
-      servicesFuncArgs: [req.userId, req.params.groupId, { name, description }],
+  const updateGroup = wrapAsync((request, response) => {
+    const { name, description } = request.body ?? {};
+    return genericApiRoute(request, response, services.updateGroup, {
+      servicesFuncArgs: [
+        {
+          userId: request.userId,
+          groupId: request.params.groupId,
+          changes: request.body,
+        },
+      ],
       transformObj: dto.groupToDto,
     });
   });
 
-  const deleteGroup = wrapAsync(async (req, res) => {
-    const result = await services.deleteGroup(req.userId, req.params.groupId);
+  const deleteGroup = wrapAsync(async (request, response) => {
+    const result = await services.deleteGroup({
+      userId: request.userId,
+      groupId: request.params.groupId,
+    });
     if (!result) {
       throw errors.UNEXPECTED("Unexpected internal error");
     }
-    return res.sendStatus(204);
+    return response.sendStatus(204);
   });
 
-  const addPlayerToGroup = wrapAsync((req, res) =>
-    genericApiRoute(req, res, services.addPlayerToGroup, {
-      servicesFuncArgs: [req.userId, req.params.groupId, req.body],
+  const addPlayerToGroup = wrapAsync((request, response) =>
+    genericApiRoute(request, response, services.addPlayerToGroup, {
+      servicesFuncArgs: [
+        {
+          userId: request.userId,
+          groupId: request.params.groupId,
+          playerData: request.body,
+        },
+      ],
       transformObj: dto.playerToGroupDto,
     })
   );
 
-  // TODO : Tiago => Verificar se o deletePlayerFromGroup deve ser async
-  const deletePlayerFromGroup = wrapAsync(async (req, res) => {
-    const result = await services.deletePlayerFromGroup(
-      req.userId,
-      req.params.groupId,
-      req.params.playerId
-    );
+  const deletePlayerFromGroup = wrapAsync(async (request, response) => {
+    const result = await services.deletePlayerFromGroup({
+      userId: request.userId,
+      groupId: request.params.groupId,
+      playerId: request.params.playerId,
+    });
     if (!result) {
       throw errors.UNEXPECTED("Unexpected internal error");
     }
-    return res.sendStatus(204);
+    return response.sendStatus(204);
   });
 
-  // TODO : Francisco => warpers before return to clean functions
   const router = express.Router();
 
   //Rotas Públicas
@@ -166,5 +181,3 @@ export function initWebApi({ services, dto, errors, utils }) {
 
   return router;
 }
-
-// TODO : ALL => Exemplo de modularizacao das funcoes em vez cada uma ter o wrapAsync, fazer o wrap aqui no return

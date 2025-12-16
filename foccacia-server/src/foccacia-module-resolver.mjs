@@ -16,7 +16,6 @@ import { initWebSite } from "foccacia-web-site";
 import { initDto } from "foccacia-web-api/src/foccacia-dto.mjs";
 import { initSendApplicationError } from "foccacia-web-api/src/application-to-http-errors.mjs";
 
-// TODO : PROFESSOR ONLY ES => Data layer  return null or throw ?
 // TODO : PROFESSOR SIM! => Persistência ? Carregar users e groups at startup ?
 
 export function createFoccaciaApp() {
@@ -24,7 +23,6 @@ export function createFoccaciaApp() {
   const ioUtils = initIoUtils();
   const jsonUtils = initJsonUtils({
     ioUtils,
-    errors: errorsLib,
   });
   const utils = initUtils({ logUtils, ioUtils, jsonUtils });
 

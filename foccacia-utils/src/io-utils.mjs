@@ -63,7 +63,7 @@ export function initIoUtils() {
     return getOutputFootballApiFilePath(fileName);
   }
 
-  function getCompetitionTeamsFilePath(code, season) {
+  function getCompetitionTeamsFilePath({ code, season }) {
     const fileName = `competition-${code}-${season}-teams.json`;
     return getOutputFootballApiFilePath(fileName);
   }

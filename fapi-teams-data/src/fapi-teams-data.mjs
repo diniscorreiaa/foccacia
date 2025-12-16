@@ -7,6 +7,8 @@ export function initFapiTeams({ domainModel, utils }) {
     if (cachedHeaders) return cachedHeaders;
 
     const headersJson = await utils.readJson(utils.getHeadersFilePath());
+    if (!headersJson) return null;
+
     const token = headersJson?.["X-Auth-Token"];
     if (!token) return null;
 
@@ -14,9 +16,8 @@ export function initFapiTeams({ domainModel, utils }) {
     return cachedHeaders;
   }
 
-  async function fetchJsonFromFootballApi(url, logContext) {
+  async function fetchJsonFromApi({ url, logContext }) {
     const headers = await loadAuthHeaders();
-
     if (!headers?.["X-Auth-Token"]) {
       utils.logError(
         `Missing or invalid X-Auth-Token while fetching ${logContext}`,
@@ -43,162 +44,144 @@ export function initFapiTeams({ domainModel, utils }) {
     }
   }
 
-  async function fetchWithCache({
+  async function fetchFromCacheOrApi({
     cachePath,
     url,
     logContext,
-    fromCache = (x) => x,
-    buildResult = (body) => body,
-    buildCacheData = (result) => result,
+    parse = (json) => json,
+    buildCache = (parsed) => parsed,
   }) {
     const cacheExists = await utils.fileExists(cachePath);
 
     if (cacheExists) {
       utils.logInfo(`Using cache for ${logContext} at ${cachePath}`, "");
-      const cached = await utils.readJson(cachePath);
-      if (!cached) {
-        utils.logError(`Couldn't read JSON at ${cachePath}`, "");
-        return null;
-      }
-      return fromCache(cached);
+      const cachedJson = await utils.readJson(cachePath);
+
+      if (cachedJson) return parse(cachedJson);
+
+      utils.logError(
+        `Invalid cache JSON at ${cachePath} (treating as miss)`,
+        ""
+      );
     }
 
     utils.logInfo(`Fetching ${logContext} from Football Data API`, "");
-    const body = await fetchJsonFromFootballApi(url, logContext);
-    if (!body) return null;
+    const apiJson = await fetchJsonFromApi({ url, logContext });
+    if (!apiJson) return null;
 
-    const result = buildResult(body);
-    if (result == null) return null;
+    const parsedValue = parse(apiJson);
+    if (parsedValue == null) return null;
 
-    const toCache = buildCacheData(result, body);
-    if (toCache == null) {
-      utils.logError("Couldn't generate file content to save in server", "");
-      return null;
-    }
+    const cacheJson = buildCache(parsedValue, apiJson);
+    if (cacheJson == null) return null;
 
-    const saved = await utils.writeJson(toCache, cachePath);
+    const saved = await utils.writeJson({
+      data: cacheJson,
+      filePath: cachePath,
+    });
     if (!saved) {
-      utils.logError("Couldn't save data in server", "");
-      return null;
+      utils.logError(
+        `Couldn't save cache for ${logContext} at ${cachePath}`,
+        ""
+      );
+      return parsedValue;
     }
 
     utils.logSuccess(`Saved ${logContext} cache to ${cachePath}`, "");
-    return result;
+    return parsedValue;
   }
 
-  async function fetchCompetitions() {
+  function parseCompetitions(json) {
+    const competitions = json?.competitions ?? json ?? [];
+    return competitions.map((c) => ({ code: c.code, name: c.name }));
+  }
+
+  async function fetchCompetitionsRaw() {
     const cachePath = utils.getCompetitionsFilePath();
     if (!cachePath) return null;
 
     const url = `${FOOTBALL_API_URI}/competitions`;
 
-    return fetchWithCache({
+    return fetchFromCacheOrApi({
       cachePath,
       url,
       logContext: "competitions",
-      buildResult: (body) =>
-        (body.competitions ?? []).map((c) => ({ code: c.code, name: c.name })),
+      parse: parseCompetitions,
+      buildCache: (list) => list, // cache simples
     });
   }
 
-  async function fetchCompetitionTeams(code, season) {
+  function parseTeams(json) {
+    return json?.teams ?? [];
+  }
+
+  async function fetchCompetitionTeamsRaw({ code, season }) {
     if (!code || !season) return null;
 
-    const cachePath = utils.getCompetitionTeamsFilePath(code, season);
+    const cachePath = utils.getCompetitionTeamsFilePath({ code, season });
     if (!cachePath) return null;
 
     const url = `${FOOTBALL_API_URI}/competitions/${code}/teams?season=${season}`;
 
-    return fetchWithCache({
+    return fetchFromCacheOrApi({
       cachePath,
       url,
       logContext: `teams for competition ${code} season ${season}`,
-      fromCache: (cached) => cached.teams ?? [],
-      buildResult: (body) => body.teams ?? [],
-      buildCacheData: (result) => ({ teams: result }),
+      parse: parseTeams,
+      buildCache: (teams) => ({ teams }), // mantém formato antigo
     });
   }
 
-  async function fetchTeamWithSquad(teamId) {
-    if (!teamId) return null;
-
-    const cachePath = utils.getTeamPlayersFilePath(teamId);
-    if (!cachePath) return null;
-
-    const url = `${FOOTBALL_API_URI}/teams/${teamId}`;
-
-    return fetchWithCache({
-      cachePath,
-      url,
-      logContext: `team ${teamId}`,
-    });
-  }
-
-  function toPlayer(player, teamJson) {
-    return new domainModel.Player(
-      player.id,
-      player.name,
-      teamJson.id,
-      teamJson.tla,
-      teamJson.name,
-      player.position,
-      player.nationality,
-      utils.getAgeFromDate(player.dateOfBirth)
+  function toCompetitionDomain(rawCompetition) {
+    return new domainModel.Competition(
+      rawCompetition.code,
+      rawCompetition.name
     );
   }
 
-  function toTeam(teamJson) {
+  function toPlayerDomain({ playerJson, teamJson }) {
+    return new domainModel.Player({
+      playerId: playerJson.id,
+      playerName: playerJson.name,
+      teamId: teamJson.id,
+      teamCode: teamJson.tla,
+      teamName: teamJson.shortName ?? teamJson.name,
+      position: playerJson.position ?? null,
+      nationality: playerJson.nationality ?? null,
+      age: utils.getAgeFromDate(playerJson.dateOfBirth),
+    });
+  }
+
+  function toTeamDomain(teamJson) {
     const squad = Array.isArray(teamJson.squad) ? teamJson.squad : [];
-    const players = squad.map((p) => toPlayer(p, teamJson));
-
-    return new domainModel.Team(
-      teamJson.id,
-      teamJson.name,
-      teamJson.area?.name ?? null,
-      players
+    const players = squad.map((p) =>
+      toPlayerDomain({ playerJson: p, teamJson })
     );
+
+    return new domainModel.Team({
+      teamId: teamJson.id,
+      teamName: teamJson.name,
+      country: teamJson.area?.name ?? null,
+      players,
+    });
   }
 
-  async function getCompetitionsDomainMapper() {
-    const raw = await fetchCompetitions();
+  async function getCompetitions() {
+    const raw = await fetchCompetitionsRaw();
     if (!raw) return null;
-
-    return raw.map((c) => new domainModel.Competition(c.code, c.name));
+    return raw.map(toCompetitionDomain);
   }
 
-  async function getTeamsWithSquadsDomainMapper(code, season) {
+  async function getTeamsWithSquads({ code, season }) {
     if (!code || !season) return null;
 
-    const teams = await fetchCompetitionTeams(code, season);
-    if (!Array.isArray(teams) || teams.length === 0) return null;
+    const teamsRaw = await fetchCompetitionTeamsRaw({ code, season });
+    if (!teamsRaw) return null;
 
-    const squads = await Promise.all(
-      teams.map((t) => fetchTeamWithSquad(t.id))
-    );
-    const okSquads = squads.filter(Boolean);
-
-    if (okSquads.length === 0) return null;
-
-    if (okSquads.length !== squads.length) {
-      utils.logError(
-        `Fapi: failed to load ${
-          squads.length - okSquads.length
-        } team detail(s) for ${code} ${season}`,
-        ""
-      );
-    }
-
-    const result = okSquads.map(toTeam);
-
-    utils.logInfo(
-      `Fapi: built ${result.length} Team objects for competition ${code} season ${season}`,
-      ""
-    );
-
-    return result;
+    return teamsRaw.map(toTeamDomain);
   }
 
-  async function getPlayerForCompetitionDomainMapper({
+  async function getPlayerForCompetition({
     competition,
     year,
     playerId,
@@ -217,43 +200,32 @@ export function initFapiTeams({ domainModel, utils }) {
       return null;
     }
 
-    const teams = await fetchCompetitionTeams(competition, year);
-    if (!Array.isArray(teams) || teams.length === 0) return null;
+    const teamsRaw = await fetchCompetitionTeamsRaw({
+      code: competition,
+      season: year,
+    });
+    if (!Array.isArray(teamsRaw) || teamsRaw.length === 0) return null;
 
-    const teamHeader = teams.find(
+    const team = teamsRaw.find(
       (team) =>
-        team.tla === teamCode &&
+        team?.tla === teamCode &&
         (team.shortName === teamName || team.name === teamName)
     );
-    if (!teamHeader?.id) return null;
+    if (!team) return null;
 
-    const teamDetails = await fetchTeamWithSquad(teamHeader.id);
-    if (!teamDetails) return null;
-
-    const squad = teamDetails.squad;
-    if (!Array.isArray(squad) || squad.length === 0) return null;
-
-    const squadPlayer = squad.find(
+    const squad = Array.isArray(team.squad) ? team.squad : [];
+    const found = squad.find(
       (player) =>
         String(player.id) === String(playerId) && player.name === playerName
     );
-    if (!squadPlayer) return null;
+    if (!found) return null;
 
-    return new domainModel.Player(
-      squadPlayer.id,
-      squadPlayer.name,
-      teamDetails.id,
-      teamDetails.tla,
-      teamDetails.shortName ?? teamDetails.name,
-      squadPlayer.position,
-      squadPlayer.nationality,
-      utils.getAgeFromDate(squadPlayer.dateOfBirth)
-    );
+    return toPlayerDomain({ playerJson: found, teamJson: team });
   }
 
   return {
-    getCompetitions: getCompetitionsDomainMapper,
-    getTeamsWithSquads: getTeamsWithSquadsDomainMapper,
-    getPlayerForCompetition: getPlayerForCompetitionDomainMapper,
+    getCompetitions,
+    getTeamsWithSquads,
+    getPlayerForCompetition,
   };
 }
