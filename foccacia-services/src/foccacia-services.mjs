@@ -49,72 +49,11 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return group;
   }
 
-  async function getCompetitionTeamsOrThrow({ code, season }) {
-    const teams = await fapiTeams.getCompetitionTeams({ code, season });
-    if (!teams)
-      throw errors.UNEXPECTED("Unhandled error for get teams operation");
-    return teams;
-  }
-
-  function toPlayerDetails(playerJson, teamJson) {
-    return {
-      id: playerJson.id,
-      playerName: playerJson.name,
-      teamId: teamJson.id,
-      teamCode: teamJson.tla,
-      teamName: teamJson.shortName ?? teamJson.name,
-      position: playerJson.position ?? null,
-      nationality: playerJson.nationality ?? null,
-      age: utils.getAgeFromDate(playerJson.dateOfBirth),
-    };
-  }
-
-  function toTeamWithPlayers(teamJson) {
-    const squad = Array.isArray(teamJson.squad) ? teamJson.squad : [];
-    const players = squad.map((player) => toPlayerDetails(player, teamJson));
-
-    return {
-      id: teamJson.id,
-      teamName: teamJson.name,
-      country: teamJson.area?.name ?? null,
-      players,
-    };
-  }
-
-  function findPlayerInCompetitionSeason({
-    teams,
-    playerId,
-    playerName,
-    teamCode,
-    teamName,
-  }) {
-    const normalizedTeamCode = String(teamCode).trim();
-    const normalizedTeamName = String(teamName).trim();
-    const normalizedPlayerName = String(playerName).trim();
-
-    const team = teams.find(
-      (t) =>
-        t?.tla === normalizedTeamCode &&
-        (t.shortName === normalizedTeamName || t.name === normalizedTeamName)
-    );
-    if (!team) return null;
-
-    const squad = Array.isArray(team.squad) ? team.squad : [];
-    const player = squad.find(
-      (p) =>
-        String(p.id) === String(playerId) && p.name === normalizedPlayerName
-    );
-    if (!player) return null;
-
-    return toPlayerDetails(player, team);
-  }
-
   async function getCompetitions() {
     const competitions = await fapiTeams.getCompetitions();
     if (!competitions) {
       throw errors.UNEXPECTED("Unhandled error for get competitions operation");
     }
-
     utils.logInfo(`Service: loaded ${competitions.length} competitions`, "");
     return competitions;
   }
@@ -129,17 +68,20 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       "You must provide both competition code and season for this operation"
     );
 
-    const teams = await getCompetitionTeamsOrThrow({
+    const teams = await fapiTeams.getTeamsWithSquads({
       code: competitionCode,
       season: seasonYear,
     });
 
+    if (!teams) {
+      throw errors.UNEXPECTED("Unhandled error for get teams operation");
+    }
+
     utils.logInfo(
-      `Service: built ${teams.length} Team objects for competition ${competitionCode} season ${seasonYear}`,
+      `Service: loaded ${teams.length} teams for competition ${competitionCode} season ${seasonYear}`,
       ""
     );
-
-    return teams.map(toTeamWithPlayers);
+    return teams;
   }
 
   async function getUserIdFromToken(token) {
@@ -168,7 +110,6 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     );
     return user;
   }
-
   async function getGroups(userId) {
     const uid = mustId(userId, "You must provide user Id for getting groups");
 
@@ -231,8 +172,8 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       "Invalid group description"
     );
 
-    const updated = await data.updateGroup(groupId, { name, description });
-    if (!updated) throw errors.NOT_FOUND("Group not found");
+    const updated = await data.updateGroup({ groupId, name, description });
+    if (!updated) throw errors.UNEXPECTED("Unexpected error at group update");
 
     return updated;
   }
@@ -264,23 +205,19 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     const teamCode = mustString(playerData.teamCode, "Invalid teamCode");
     const teamName = mustString(playerData.teamName, "Invalid teamName");
 
-    const groupPlayers = group.players ?? [];
+    const players = group.players ?? [];
 
-    if (groupPlayers.some((p) => utils.areSameId(p.id, playerId))) {
+    if (players.some((p) => utils.areSameId(p.id, playerId))) {
       throw errors.UNPROCESSABLE("Player is already in this group");
     }
 
-    if (groupPlayers.length >= 11) {
+    if (players.length >= 11) {
       throw errors.UNPROCESSABLE("Group already has 11 players");
     }
 
-    const teams = await getCompetitionTeamsOrThrow({
-      code: group.competition,
-      season: group.year,
-    });
-
-    const player = findPlayerInCompetitionSeason({
-      teams,
+    const player = await fapiTeams.getPlayerForCompetition({
+      competition: group.competition,
+      year: group.year,
       playerId,
       playerName,
       teamCode,
@@ -293,7 +230,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       );
     }
 
-    const added = await data.addPlayerToGroup(groupId, player);
+    const added = await data.addPlayerToGroup({ groupId, player });
     if (!added) throw errors.UNEXPECTED("Could not add player to group");
 
     return added;
@@ -308,7 +245,10 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
     const pid = mustId(playerId, "Make sure you provide a valid player id");
 
-    const removed = await data.deletePlayerFromGroup(groupId, pid);
+    const removed = await data.deletePlayerFromGroup({
+      groupId,
+      playerId: pid,
+    });
     if (!removed) throw errors.NOT_FOUND("Player not found in group");
 
     return removed;

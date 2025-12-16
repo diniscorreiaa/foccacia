@@ -1,6 +1,6 @@
 const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 
-export function initFapiTeams({ utils }) {
+export function initFapiTeams({ domainModel, utils }) {
   let cachedHeaders = null;
 
   async function loadAuthHeaders() {
@@ -49,7 +49,7 @@ export function initFapiTeams({ utils }) {
     url,
     logContext,
     parse = (json) => json,
-    buildCache = (parsedValue) => parsedValue,
+    buildCache = (parsed) => parsed,
   }) {
     const cacheExists = await utils.fileExists(cachePath);
 
@@ -91,12 +91,12 @@ export function initFapiTeams({ utils }) {
     return parsedValue;
   }
 
-  function parseCompetitions(apiJson) {
-    const competitions = apiJson?.competitions ?? apiJson ?? [];
+  function parseCompetitions(json) {
+    const competitions = json?.competitions ?? json ?? [];
     return competitions.map((c) => ({ code: c.code, name: c.name }));
   }
 
-  async function getCompetitions() {
+  async function fetchCompetitionsRaw() {
     const cachePath = utils.getCompetitionsFilePath();
     if (!cachePath) return null;
 
@@ -107,14 +107,15 @@ export function initFapiTeams({ utils }) {
       url,
       logContext: "competitions",
       parse: parseCompetitions,
+      buildCache: (list) => list, // cache simples
     });
   }
 
-  function parseTeams(apiOrCacheJson) {
-    return apiOrCacheJson?.teams ?? [];
+  function parseTeams(json) {
+    return json?.teams ?? [];
   }
 
-  async function getCompetitionTeams({ code, season }) {
+  async function fetchCompetitionTeamsRaw({ code, season }) {
     if (!code || !season) return null;
 
     const cachePath = utils.getCompetitionTeamsFilePath({ code, season });
@@ -127,9 +128,104 @@ export function initFapiTeams({ utils }) {
       url,
       logContext: `teams for competition ${code} season ${season}`,
       parse: parseTeams,
-      buildCache: (teams) => ({ teams }),
+      buildCache: (teams) => ({ teams }), // mantém formato antigo
     });
   }
 
-  return { getCompetitions, getCompetitionTeams };
+  function toCompetitionDomain(rawCompetition) {
+    return new domainModel.Competition(
+      rawCompetition.code,
+      rawCompetition.name
+    );
+  }
+
+  function toPlayerDomain({ playerJson, teamJson }) {
+    return new domainModel.Player({
+      playerId: playerJson.id,
+      playerName: playerJson.name,
+      teamId: teamJson.id,
+      teamCode: teamJson.tla,
+      teamName: teamJson.shortName ?? teamJson.name,
+      position: playerJson.position ?? null,
+      nationality: playerJson.nationality ?? null,
+      age: utils.getAgeFromDate(playerJson.dateOfBirth),
+    });
+  }
+
+  function toTeamDomain(teamJson) {
+    const squad = Array.isArray(teamJson.squad) ? teamJson.squad : [];
+    const players = squad.map((p) =>
+      toPlayerDomain({ playerJson: p, teamJson })
+    );
+
+    return new domainModel.Team({
+      teamId: teamJson.id,
+      teamName: teamJson.name,
+      country: teamJson.area?.name ?? null,
+      players,
+    });
+  }
+
+  async function getCompetitions() {
+    const raw = await fetchCompetitionsRaw();
+    if (!raw) return null;
+    return raw.map(toCompetitionDomain);
+  }
+
+  async function getTeamsWithSquads({ code, season }) {
+    if (!code || !season) return null;
+
+    const teamsRaw = await fetchCompetitionTeamsRaw({ code, season });
+    if (!teamsRaw) return null;
+
+    return teamsRaw.map(toTeamDomain);
+  }
+
+  async function getPlayerForCompetition({
+    competition,
+    year,
+    playerId,
+    playerName,
+    teamCode,
+    teamName,
+  }) {
+    if (
+      !competition ||
+      !year ||
+      !playerId ||
+      !playerName ||
+      !teamCode ||
+      !teamName
+    ) {
+      return null;
+    }
+
+    const teamsRaw = await fetchCompetitionTeamsRaw({
+      code: competition,
+      season: year,
+    });
+    if (!Array.isArray(teamsRaw) || teamsRaw.length === 0) return null;
+
+    const team = teamsRaw.find(
+      (team) =>
+        team?.tla === teamCode &&
+        (team.shortName === teamName || team.name === teamName)
+    );
+    if (!team) return null;
+
+    const squad = Array.isArray(team.squad) ? team.squad : [];
+    const found = squad.find(
+      (player) =>
+        String(player.id) === String(playerId) && player.name === playerName
+    );
+    if (!found) return null;
+
+    return toPlayerDomain({ playerJson: found, teamJson: team });
+  }
+
+  return {
+    getCompetitions,
+    getTeamsWithSquads,
+    getPlayerForCompetition,
+  };
 }

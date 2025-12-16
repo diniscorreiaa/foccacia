@@ -3,6 +3,57 @@ const USERS_INDEX = "/foccacia-users";
 const GROUPS_INDEX = "/foccacia-groups";
 
 export function initDataElasticSearch({ domainModel, utils }) {
+  function toPlayerBody(player) {
+    if (!player) return null;
+
+    const playerId = utils.toId(player.id ?? player.playerId);
+    if (!playerId) return null;
+
+    return {
+      id: playerId,
+      playerName: player.playerName ?? null,
+      teamId: utils.toId(player.teamId) ?? player.teamId ?? null,
+      teamCode: player.teamCode ?? null,
+      teamName: player.teamName ?? null,
+      position: player.position ?? null,
+      nationality: player.nationality ?? null,
+      age: player.age ?? null,
+    };
+  }
+
+  function toPlayerDomain(playerBody) {
+    if (!playerBody) return null;
+
+    const playerId = utils.toId(playerBody.id ?? playerBody.playerId);
+    if (!playerId) return null;
+
+    return new domainModel.Player({
+      playerId,
+      playerName: playerBody.playerName,
+      teamId: playerBody.teamId,
+      teamCode: playerBody.teamCode,
+      teamName: playerBody.teamName,
+      position: playerBody.position,
+      nationality: playerBody.nationality,
+      age: playerBody.age,
+    });
+  }
+
+  function groupToBody(group) {
+    const playersBody = Array.isArray(group.players)
+      ? group.players.map(toPlayerBody).filter(Boolean)
+      : [];
+
+    return {
+      ownerId: utils.toId(group.ownerId) ?? group.ownerId,
+      name: group.name,
+      description: group.description,
+      competition: group.competition,
+      year: group.year,
+      players: playersBody,
+    };
+  }
+
   function mapHit(hit, mapFn) {
     if (!hit || !hit._source) return null;
     return mapFn(hit._id, hit._source);
@@ -21,35 +72,26 @@ export function initDataElasticSearch({ domainModel, utils }) {
   }
 
   function mapHitToGroup(hit) {
-    return mapHit(
-      hit,
-      (id, src) =>
-        new domainModel.Group({
-          id,
-          userId: src.ownerId,
-          name: src.name,
-          description: src.description,
-          competition: src.competition,
-          year: src.year,
-          players: src.players ?? [],
-        })
-    );
+    return mapHit(hit, (id, src) => {
+      const players = Array.isArray(src.players)
+        ? src.players.map(toPlayerDomain).filter(Boolean)
+        : [];
+
+      return new domainModel.Group({
+        id,
+        userId: src.ownerId,
+        name: src.name,
+        description: src.description,
+        competition: src.competition,
+        year: src.year,
+        players,
+      });
+    });
   }
 
   function mapSearchResponse(response, mapFn) {
     const hits = response?.hits?.hits ?? [];
     return hits.map((hit) => mapFn(hit)).filter((entity) => entity !== null);
-  }
-
-  function groupToBody(group) {
-    return {
-      ownerId: group.ownerId,
-      name: group.name,
-      description: group.description,
-      competition: group.competition,
-      year: group.year,
-      players: group.players,
-    };
   }
 
   async function ensureIndex(indexName) {
@@ -107,40 +149,41 @@ export function initDataElasticSearch({ domainModel, utils }) {
   async function createDocument(indexBasePath, body) {
     const response = await elasticSearchRequest(
       `${indexBasePath}/_doc?refresh=wait_for`,
-      {
-        method: "POST",
-        body,
-      }
+      { method: "POST", body }
     );
-
     return response?._id ?? null;
   }
 
   async function persistGroup(group) {
-    if (!group?.id) return false;
+    const groupId = utils.toId(group?.id);
+    if (!groupId) return false;
 
     const response = await elasticSearchRequest(
-      `${GROUPS_INDEX}/_doc/${group.id}?refresh=wait_for`,
-      {
-        method: "PUT",
-        body: groupToBody(group),
-      }
+      `${GROUPS_INDEX}/_doc/${groupId}?refresh=wait_for`,
+      { method: "PUT", body: groupToBody(group) }
     );
+    if (!response) return false;
 
-    return response?.result === "updated" || response?.result === "created";
+    const result = response.result;
+    if (result === "updated" || result === "created" || result === "ok")
+      return true;
+
+    if (response._id || response._index) return true;
+
+    return false;
   }
 
   async function createUser(username) {
-    if (typeof username !== "string") return null;
+    const normalizedUsername = utils.toTrimmedString(username);
+    if (!normalizedUsername) return null;
 
-    const user = new domainModel.User({ username: username.trim() });
+    const user = new domainModel.User({ username: normalizedUsername });
 
-    const body = {
+    const id = await createDocument(USERS_INDEX, {
       username: user.username,
       token: user.token,
-    };
+    });
 
-    const id = await createDocument(USERS_INDEX, body);
     if (!id) return null;
 
     user.id = id;
@@ -148,12 +191,11 @@ export function initDataElasticSearch({ domainModel, utils }) {
   }
 
   async function getUserByToken(token) {
-    if (!token) return null;
+    const normalizedToken = utils.toTrimmedString(token);
+    if (!normalizedToken) return null;
 
     const query = {
-      query: {
-        term: { "token.keyword": String(token) },
-      },
+      query: { term: { "token.keyword": normalizedToken } },
       size: 1,
     };
 
@@ -163,13 +205,15 @@ export function initDataElasticSearch({ domainModel, utils }) {
     });
 
     const users = mapSearchResponse(response, mapHitToUser);
-    const user = users[0] ?? null;
-    return user;
+    return users[0] ?? null;
   }
 
   async function createGroup({ userId, name, description, competition, year }) {
+    const uid = utils.toId(userId);
+    if (!uid) return null;
+
     const group = new domainModel.Group({
-      userId,
+      userId: uid,
       name,
       description,
       competition,
@@ -184,29 +228,23 @@ export function initDataElasticSearch({ domainModel, utils }) {
   }
 
   async function getGroup(groupId) {
-    if (!groupId) return null;
+    const gid = utils.toId(groupId);
+    if (!gid) return null;
 
-    const response = await elasticSearchRequest(
-      `${GROUPS_INDEX}/_doc/${groupId}`,
-      {
-        method: "GET",
-      }
-    );
+    const response = await elasticSearchRequest(`${GROUPS_INDEX}/_doc/${gid}`, {
+      method: "GET",
+    });
 
     if (!response?.found) return null;
-
-    const group = mapHitToGroup(response);
-
-    return group;
+    return mapHitToGroup(response);
   }
 
   async function listGroups(userId) {
-    if (!userId) return [];
+    const uid = utils.toId(userId);
+    if (!uid) return null;
 
     const query = {
-      query: {
-        term: { "ownerId.keyword": String(userId) },
-      },
+      query: { term: { "ownerId.keyword": uid } },
       size: 25,
     };
 
@@ -215,63 +253,69 @@ export function initDataElasticSearch({ domainModel, utils }) {
       body: query,
     });
 
-    const groups = mapSearchResponse(response, mapHitToGroup);
-
-    return groups;
+    return mapSearchResponse(response, mapHitToGroup);
   }
 
-  async function updateGroup(groupId, changes) {
-    const group = await getGroup(groupId);
+  async function updateGroup({ groupId, name, description }) {
+    const gid = utils.toId(groupId);
+    if (!gid || !name || !description) return null;
+
+    const group = await getGroup(gid);
     if (!group) return null;
 
-    if (typeof changes?.name === "string") group.name = changes.name;
-    if (typeof changes?.description === "string")
-      group.description = changes.description;
+    if (utils.isString(name)) group.name = name;
+    if (utils.isString(description)) group.description = description;
 
     const updated = await persistGroup(group);
-    if (!updated) return null;
-
-    return group;
+    return updated ? group : null;
   }
 
   async function deleteGroup(groupId) {
-    if (!groupId) return false;
+    const gid = utils.toId(groupId);
+    if (!gid) return false;
 
     const response = await elasticSearchRequest(
-      `${GROUPS_INDEX}/_doc/${groupId}?refresh=wait_for`,
-      {
-        method: "DELETE",
-      }
+      `${GROUPS_INDEX}/_doc/${gid}?refresh=wait_for`,
+      { method: "DELETE" }
     );
 
     return response?.result === "deleted";
   }
 
-  async function addPlayerToGroup(groupId, player) {
-    const group = await getGroup(groupId);
+  async function addPlayerToGroup({ groupId, player }) {
+    const gid = utils.toId(groupId);
+    if (!gid || !player) return null;
+
+    const group = await getGroup(gid);
     if (!group) return null;
 
-    group.players.push(player);
+    const playerBody = toPlayerBody(player);
+    if (!playerBody) return null;
+
+    const playerDomain = toPlayerDomain(playerBody);
+    if (!playerDomain) return null;
+
+    group.players.push(playerDomain);
 
     const updated = await persistGroup(group);
-    if (!updated) return null;
-
-    return player;
+    return updated ? group : null;
   }
 
-  async function deletePlayerFromGroup(groupId, playerId) {
-    const group = await getGroup(groupId);
+  async function deletePlayerFromGroup({ groupId, playerId }) {
+    const gid = utils.toId(groupId);
+    const pid = utils.toId(playerId);
+    if (!gid || !pid) return false;
+
+    const group = await getGroup(gid);
     if (!group) return false;
 
-    const idx = group.players.findIndex(
-      (player) => String(player.id) === String(playerId)
-    );
+    const idx = group.players.findIndex((p) => utils.areSameId(p.id, pid));
     if (idx === -1) return false;
 
     group.players.splice(idx, 1);
 
     const updated = await persistGroup(group);
-    return updated;
+    return updated ? group : null;
   }
 
   void ensureIndex(USERS_INDEX);
