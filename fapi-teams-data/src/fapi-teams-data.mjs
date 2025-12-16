@@ -1,3 +1,5 @@
+import { isNumeric } from "mocha/lib/utils.js";
+
 const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 
 export function initFapiTeams({ domainModel, utils }) {
@@ -118,6 +120,10 @@ export function initFapiTeams({ domainModel, utils }) {
       ? json.seasons
       : [];
 
+    if (items.length > 0 && isNumeric(items[0])) {
+      return items;
+    }
+
     const seasons = items
       .map((item) => utils.getYearFromDate(item?.startDate))
       .filter((year) => year != null);
@@ -164,7 +170,8 @@ export function initFapiTeams({ domainModel, utils }) {
   function toCompetitionDomain(rawCompetition) {
     return new domainModel.Competition(
       rawCompetition.code,
-      rawCompetition.name
+      rawCompetition.name,
+      rawCompetition.seasons
     );
   }
 

@@ -40,8 +40,10 @@ export function initWebSite({ services, dto, errors, utils }) {
     const competitions = await services.getCompetitions();
     // TODO: this is business logic, likely belongs in services. not gonna do it now not to cause conflicts
     for (const competition of competitions) {
-      competition.seasons = await getAvailableSeasons(competition.code);
+      const seasons = await getAvailableSeasons(competition.code);
+      competitions.competition = { ...competition, seasons };
     }
+    console.log(competitions);
     res.render("competitions", { competitions });
   }
 

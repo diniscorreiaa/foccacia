@@ -58,6 +58,10 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
     for (const competition of competitions) {
       competition.seasons = await getSeasonYears(competition.code);
+      competitions.competition = {
+        ...competition,
+        seasons: competition.seasons,
+      };
     }
 
     utils.logInfo(`Service: loaded ${competitions.length} competitions`, "");
