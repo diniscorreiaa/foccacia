@@ -7,11 +7,20 @@ const ROUTES = {
   USERS: "/users",
   GROUPS: "/groups",
   GROUP: "/groups/:groupId",
+  GROUP_UPDATE: "/groups/:groupId/update",
   GROUP_PLAYERS: "/groups/:groupId/players",
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
 
 export function initWebSite({ services, dto, errors, utils }) {
+  async function insertDummyToken(req, res, next) {
+    const token = "a42bc68d-23b0-40e7-a621-f85a87c627c6";
+    const userId = await services.getUserIdFromToken(token);
+    req.token = token;
+    req.userId = userId;
+
+    next();
+  }
   async function home(req, res) {
     res.render("home");
   }
@@ -34,49 +43,65 @@ export function initWebSite({ services, dto, errors, utils }) {
     res.render("teams", { teams });
   }
   async function listGroups(req, res) {
-    /* TODO : Fransisco & Dinis */
+    const competitions = await services.getCompetitions();
+    const seasons = [];
+    for (let i = new Date().getFullYear(); i >= 2000; i--) {
+      seasons.push(i);
+    }
+    const groups = await services.getGroups(req.userId);
+    res.render("groups", { groups, competitions, seasons });
   }
   async function showGroup(req, res) {
-    /* TODO : Fransisco & Dinis */
+    const groupId = req.params.groupId;
+    const group = await services.getGroup(req.userId, groupId);
+    res.render("group-detail", { group });
   }
   async function showCreateGroupForm(req, res) {
-    /* TODO : Fransisco & Dinis */
+    await services.createGroup({
+      userId: req.userId,
+      name: req.body.name,
+      description: req.body.description,
+      competition: req.body.competitions,
+      year: req.body.seasons,
+    });
+    res.redirect("/groups");
   }
   async function postCreateGroup(req, res) {
     /* TODO : Fransisco & Dinis */
   }
 
-  const getTeams = (req, res) => {};
-  const createUser = (req, res) => {};
-  const getGroups = (req, res) => {};
-  const createGroup = (req, res) => {};
-  const getGroup = (req, res) => {};
-  const updateGroup = (req, res) => {};
-  const deleteGroup = (req, res) => {};
-  const addPlayerToGroup = (req, res) => {};
-  const deletePlayerFromGroup = (req, res) => {};
+  async function showDeleteGroupForm(req, res) {
+    await services.deleteGroup(req.userId, req.body.groupId);
+    res.redirect("/groups");
+  }
+
+  async function showUpdateGroupForm(req, res) {
+    await services.updateGroup(req.userId, req.body.groupId);
+    res.redirect("/groups");
+  }
 
   const router = express.Router();
+
+  router.get(ROUTES.HOME, home);
 
   //Rotas Públicas
   router.get(ROUTES.COMPETITIONS, listCompetitions);
   router.get(ROUTES.TEAMS, listTeams);
-  router.post(ROUTES.USERS, createUser);
+  //router.post(ROUTES.USERS, createUser);
 
   // Middleware de Autenticação
-  //router.use(verifyToken);
+  router.use(insertDummyToken);
 
   // Rotas Privadas
-  router.get(ROUTES.GROUPS, getGroups);
-  router.get(ROUTES.GROUP, getGroup);
-  router.post(ROUTES.GROUPS, createGroup);
-  router.put(ROUTES.GROUP, updateGroup);
-  router.delete(ROUTES.GROUP, deleteGroup);
+  router.get(ROUTES.GROUPS, listGroups);
+  router.get(ROUTES.GROUP, showGroup);
+  router.post(ROUTES.GROUPS, showCreateGroupForm);
+  //router.post(ROUTES.GROUP, updateGroup); // PUT
+  router.post(ROUTES.GROUP, showDeleteGroupForm); // DELETE
+  /*
   router.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
-  router.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
-
-  // Precisa estar em último
-  router.get(ROUTES.HOME, home);
+  router.post(ROUTES.GROUP_PLAYER, deletePlayerFromGroup); // DELETE
+*/
 
   return router;
 }
