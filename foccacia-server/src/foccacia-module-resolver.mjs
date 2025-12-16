@@ -23,7 +23,6 @@ export function createFoccaciaApp() {
   const ioUtils = initIoUtils();
   const jsonUtils = initJsonUtils({
     ioUtils,
-    errors: errorsLib,
   });
   const utils = initUtils({ logUtils, ioUtils, jsonUtils });
 

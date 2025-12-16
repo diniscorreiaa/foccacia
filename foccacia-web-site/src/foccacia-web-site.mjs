@@ -30,10 +30,10 @@ export function initWebSite({ services, dto, errors, utils }) {
     res.render("competitions", { competitions, seasons });
   }
   async function listTeams(req, res) {
-    const teams = await services.getTeams(
-      req.params.competitionCode,
-      req.params.seasonYear
-    );
+    const teams = await services.getTeams({
+      code: req.params.competitionCode,
+      season: req.params.seasonYear,
+    });
     res.render("teams", { teams });
   }
   async function listGroups(req, res) {

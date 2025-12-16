@@ -7,14 +7,14 @@ export function initDomainModel() {
     this.name = name;
   }
 
-  function Team(teamId, teamName, country, players) {
+  function Team({ teamId, teamName, country, players }) {
     this.id = teamId;
     this.teamName = teamName;
     this.country = country;
     this.players = players;
   }
 
-  function Player(
+  function Player({
     playerId,
     playerName,
     teamId,
@@ -22,8 +22,8 @@ export function initDomainModel() {
     teamName,
     position,
     nationality,
-    age
-  ) {
+    age,
+  }) {
     this.id = playerId;
     this.playerName = playerName;
     this.teamId = teamId;
