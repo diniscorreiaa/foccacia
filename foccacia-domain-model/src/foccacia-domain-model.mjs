@@ -2,9 +2,10 @@
 import { randomUUID } from "node:crypto";
 
 export function initDomainModel() {
-  function Competition(code, name) {
+  function Competition(code, name, seasons = []) {
     this.code = code;
     this.name = name;
+    this.seasons = seasons;
   }
 
   function Team({ teamId, teamName, country, players }) {

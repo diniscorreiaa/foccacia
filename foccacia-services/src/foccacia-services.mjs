@@ -1,4 +1,5 @@
 export function initServices({ data, fapiTeams, utils, errors }) {
+  // TODO : Francisco => Modular estes mustSomething
   function mustAuthUserId(userId, message) {
     const normalized = utils.toId(userId);
     if (!normalized) throw errors.UNAUTHORIZED(message);
@@ -24,9 +25,9 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
 
   function mustYear(value, message) {
-    const year = utils.toYear(value);
-    if (!year) throw errors.INVALID_DATA(message);
-    return year;
+    const normalized = utils.toYear(value);
+    if (!normalized) throw errors.INVALID_DATA(message);
+    return normalized;
   }
 
   async function getOwnedGroupOrThrow({ userId, groupId, action }) {
@@ -54,8 +55,28 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     if (!competitions) {
       throw errors.UNEXPECTED("Unhandled error for get competitions operation");
     }
+
+    for (const competition of competitions) {
+      competition.seasons = await getSeasonYears(competition.code);
+    }
+
     utils.logInfo(`Service: loaded ${competitions.length} competitions`, "");
     return competitions;
+  }
+
+  async function getSeasonYears(code) {
+    const competitionCode = mustString(
+      code,
+      "You must provide both competition code and season for this operation"
+    );
+
+    const seasons = await fapiTeams.getSeasonsYears(competitionCode);
+    if (!seasons) {
+      throw errors.UNEXPECTED(
+        "Unhandled error for get available seasons operation"
+      );
+    }
+    return seasons;
   }
 
   async function getTeams({ code, season }) {
@@ -266,5 +287,6 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     deleteGroup,
     addPlayerToGroup,
     deletePlayerFromGroup,
+    getSeasonYears,
   };
 }
