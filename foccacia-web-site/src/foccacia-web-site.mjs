@@ -103,6 +103,43 @@ export function initWebSite({ services, dto, errors, utils }) {
     res.redirect("/groups");
   }
 
+  async function showPlayers(req, res) {
+    const groupId = req.params.groupId;
+    const group = await services.getGroup({ userId: req.userId, groupId });
+    const teams = await services.getTeams({
+      code: group.competition,
+      season: group.year,
+    });
+    res.render("addPlayers", { group, teams });
+  }
+
+  async function addPlayerToGroup(req, res) {
+    await services.addPlayerToGroup({
+      userId: req.userId,
+      groupId: req.params.groupId,
+      playerData: {
+        playerId: req.body.playerId,
+        playerName: req.body.playerName,
+        teamId: req.body.playerTeamId,
+        teamCode: req.body.playerTeamCode,
+        teamName: req.body.playerTeamName,
+        position: req.body.playerPosition,
+        nationality: req.body.playerNationality,
+        age: req.body.playerAge,
+      },
+    });
+    res.redirect(`/groups/${req.params.groupId}/players`);
+  }
+
+  async function deletePlayerFromGroup(req, res) {
+    await services.deletePlayerFromGroup({
+      userId: req.userId,
+      groupId: req.params.groupId,
+      playerId: req.params.playerId,
+    });
+    res.redirect(`/groups/${req.params.groupId}`);
+  }
+
   const router = express.Router();
 
   router.get(ROUTES.HOME, home);
@@ -121,10 +158,9 @@ export function initWebSite({ services, dto, errors, utils }) {
   router.post(ROUTES.GROUPS, showCreateGroupForm);
   router.post(ROUTES.GROUP_UPDATE, showUpdateGroupForm); // PUT
   router.post(ROUTES.GROUP, showDeleteGroupForm); // DELETE
-  /*
+  router.get(ROUTES.GROUP_PLAYERS, showPlayers);
   router.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
   router.post(ROUTES.GROUP_PLAYER, deletePlayerFromGroup); // DELETE
-*/
 
   return router;
 }
