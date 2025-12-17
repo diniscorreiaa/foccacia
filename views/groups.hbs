@@ -31,6 +31,7 @@
                 <input type="submit" value ="Check group details">
         </form>
 
+        {{!--TODO: Maybe the content editable can be put directly in the form --}}
         {{!--TODO: the update logic and structure is way too complex for such a simple problem, refactor if we have time--}}
         <button type="button" class="cancelUpdate" style="background-color: yellow" disabled>Cancel</button>
         <form action="/groups/{{id}}/update" method="post">
@@ -53,8 +54,8 @@
                     const currentName = document.getElementsByClassName("name")[idx]
                     const currentDescription = document.getElementsByClassName("description")[idx]
 
-                    currentName.innerHTML = currentName.dataset.actualName
-                    currentDescription.innerHTML = currentDescription.dataset.actualDescription
+                    currentName.textContent = currentName.dataset.actualName
+                    currentDescription.textContent = currentDescription.dataset.actualDescription
 
                     node.disabled = true
                 }
@@ -73,16 +74,16 @@
     [...document.getElementsByClassName("update")].forEach(
             (node, idx) => {
                 node.onclick = () => {
-                    document.getElementsByClassName("cancelUpdate")[idx].disabled = false
+                    document.getElementsByClassName("cancelUpdate")[idx].disabled = true
 
                     const currentName = document.getElementsByClassName("name")[idx]
                     const currentDescription = document.getElementsByClassName("description")[idx]
 
-                    currentName.dataset.actualName = currentName.innerHTML
-                    currentDescription.dataset.actualDescription = currentDescription.innerHTML
+                    currentName.dataset.actualName = currentName.textContent
+                    currentDescription.dataset.actualDescription = currentDescription.textContent
 
-                    document.getElementsByClassName("updateNameForm")[idx].value = currentName.innerHTML
-                    document.getElementsByClassName("updateDescriptionForm")[idx].value = currentDescription.innerHTML
+                    document.getElementsByClassName("updateNameForm")[idx].value = currentName.textContent
+                    document.getElementsByClassName("updateDescriptionForm")[idx].value = currentDescription.textContent
                 }
             }
     )
