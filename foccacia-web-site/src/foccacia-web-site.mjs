@@ -27,17 +27,26 @@ export function initWebSite({ services, dto, errors, utils }) {
   async function home(req, res) {
     res.render("home");
   }
+
+  async function getAvailableSeasons(code) {
+    const seasons = await services.getSeasonYears(code);
+    if (!seasons) {
+      return [];
+    }
+    return seasons;
+  }
+
   async function listCompetitions(req, res) {
     const competitions = await services.getCompetitions();
-
     // TODO: this is business logic, likely belongs in services. not gonna do it now not to cause conflicts
-    const seasons = [];
-    for (let i = new Date().getFullYear(); i >= 2000; i--) {
-      seasons.push(i);
+    for (const competition of competitions) {
+      const seasons = await getAvailableSeasons(competition.code);
+      competitions.competition = { ...competition, seasons };
     }
-
-    res.render("competitions", { competitions, seasons });
+    console.log(competitions);
+    res.render("competitions", { competitions });
   }
+
   async function listTeams(req, res) {
     const teams = await services.getTeams({
       code: req.params.competitionCode,

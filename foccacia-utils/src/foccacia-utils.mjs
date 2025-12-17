@@ -9,6 +9,7 @@ export function initUtils({ logUtils, ioUtils, jsonUtils }) {
     getTeamPlayersFilePath,
     getUsersFilePath,
     getViewsDirPath,
+    getSeasonsYearsFilePath,
   } = ioUtils;
 
   const { readJson, writeJson } = jsonUtils;
@@ -53,6 +54,15 @@ export function initUtils({ logUtils, ioUtils, jsonUtils }) {
     return yearNumber;
   }
 
+  function getYearFromDate(dateText) {
+    if (!dateText) return null;
+
+    const date = new Date(dateText);
+    if (Number.isNaN(date.getTime())) return null;
+
+    return date.getFullYear();
+  }
+
   function getAgeFromDate(birthDateText) {
     if (!birthDateText) return null;
 
@@ -86,10 +96,12 @@ export function initUtils({ logUtils, ioUtils, jsonUtils }) {
     isString,
     isNonEmptyString,
     getAgeFromDate,
+    getYearFromDate,
     toTrimmedString,
     toTrimmedStringMinLen,
     toId,
     areSameId,
     toYear,
+    getSeasonsYearsFilePath,
   };
 }

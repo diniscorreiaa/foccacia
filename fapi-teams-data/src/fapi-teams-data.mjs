@@ -1,3 +1,5 @@
+import { isNumeric } from "mocha/lib/utils.js";
+
 const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 
 export function initFapiTeams({ domainModel, utils }) {
@@ -107,7 +109,40 @@ export function initFapiTeams({ domainModel, utils }) {
       url,
       logContext: "competitions",
       parse: parseCompetitions,
-      buildCache: (list) => list, // cache simples
+      buildCache: (list) => list,
+    });
+  }
+
+  function parseSeasonsYears(json) {
+    const items = Array.isArray(json)
+      ? json
+      : Array.isArray(json?.seasons)
+      ? json.seasons
+      : [];
+
+    if (items.length > 0 && isNumeric(items[0])) {
+      return items;
+    }
+
+    const seasons = items
+      .map((item) => utils.getYearFromDate(item?.startDate))
+      .filter((year) => year != null);
+
+    return seasons;
+  }
+
+  async function fetchSeasonsYearsRaw(code) {
+    const cachePath = utils.getSeasonsYearsFilePath(code);
+    if (!cachePath) return null;
+
+    const url = `${FOOTBALL_API_URI}/competitions/${code}`;
+
+    return fetchFromCacheOrApi({
+      cachePath,
+      url,
+      logContext: `seasons for competition ${code}`,
+      parse: parseSeasonsYears,
+      buildCache: (seasons) => seasons,
     });
   }
 
@@ -128,14 +163,15 @@ export function initFapiTeams({ domainModel, utils }) {
       url,
       logContext: `teams for competition ${code} season ${season}`,
       parse: parseTeams,
-      buildCache: (teams) => ({ teams }), // mantém formato antigo
+      buildCache: (teams) => ({ teams }),
     });
   }
 
   function toCompetitionDomain(rawCompetition) {
     return new domainModel.Competition(
       rawCompetition.code,
-      rawCompetition.name
+      rawCompetition.name,
+      rawCompetition.seasons
     );
   }
 
@@ -170,6 +206,15 @@ export function initFapiTeams({ domainModel, utils }) {
     const raw = await fetchCompetitionsRaw();
     if (!raw) return null;
     return raw.map(toCompetitionDomain);
+  }
+
+  async function getSeasonsYears(code) {
+    if (!code) return null;
+
+    const raw = await fetchSeasonsYearsRaw(code);
+    if (!raw) return null;
+
+    return raw;
   }
 
   async function getTeamsWithSquads({ code, season }) {
@@ -227,5 +272,6 @@ export function initFapiTeams({ domainModel, utils }) {
     getCompetitions,
     getTeamsWithSquads,
     getPlayerForCompetition,
+    getSeasonsYears,
   };
 }
