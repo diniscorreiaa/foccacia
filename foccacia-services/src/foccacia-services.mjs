@@ -50,31 +50,40 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return group;
   }
 
-  async function getCompetitions() {
+  async function getCompetitions(webSiteMode = false) {
     const competitions = await fapiTeams.getCompetitions();
-    if (!competitions) {
+    if (!Array.isArray(competitions)) {
       throw errors.UNEXPECTED("Unhandled error for get competitions operation");
-    }
-
-    for (const competition of competitions) {
-      competition.seasons = await getSeasonYears(competition.code);
-      competitions.competition = {
-        ...competition,
-        seasons: competition.seasons,
-      };
     }
 
     utils.logInfo(`Service: loaded ${competitions.length} competitions`, "");
     return competitions;
   }
 
+  async function getCompetitionsWeb() {
+    const competitions = await getCompetitions(true);
+
+    await Promise.all(
+      competitions.map(async (competition) => {
+        competition.seasons = await getSeasonYears(competition.code);
+      })
+    );
+
+    return competitions;
+  }
+
   async function getSeasonYears(code) {
     const competitionCode = mustString(
       code,
-      "You must provide both competition code and season for this operation"
+      "You must provide competition code for this operation"
     );
 
     const seasons = await fapiTeams.getSeasonsYears(competitionCode);
+    if (seasons === false) {
+      throw errors.TOO_MANY_REQUESTS(
+        "Rate limit exceeded for external API, try again in 1 minute"
+      );
+    }
     if (!seasons) {
       throw errors.UNEXPECTED(
         "Unhandled error for get available seasons operation"
@@ -291,6 +300,6 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     deleteGroup,
     addPlayerToGroup,
     deletePlayerFromGroup,
-    getSeasonYears,
+    getCompetitionsWeb,
   };
 }
