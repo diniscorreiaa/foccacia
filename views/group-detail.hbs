@@ -1,26 +1,37 @@
+{{#with group}}
 <fieldset style="border: 5px solid #ccc; max-width: fit-content; margin: 50px">
-        {{#with group}}
         <h1>{{name}}</h1>
         <h5>{{description}}</h5>
         <h6>Competition: {{competition}}</h6>
         <h6>Season: {{year}}</h6>
         <h6>Players:</h6>
-        {{#each players}}
-        <h6>{{playerName}}</h6>
-        <ul>
-                <li>
-                        <b>Team:</b> {{teamName}}
-                </li>
-                <li>
-                        <b>Position:</b> {{position}}
-                </li>
-                <li>
-                        <b>Country:</b> {{nationality}}
-                </li>
-                <li>
-                        <b>Age:</b> {{age}}
-                </li>
-        </ul>
-        {{/each}}
-        {{/with}}
+        <table class="table">
+            <tr>
+                <th>Name</th>
+                <th>Team</th>
+                <th>Position</th>
+                <th>Country</th>
+                <th>Age</th>
+            </tr>
+            {{#each players}}
+                <tr>
+                    <th>{{playerName}}</th>
+                    <th>{{teamName}}</th>
+                    <th>{{position}}</th>
+                    <th>{{nationality}}</th>
+                    <th>{{age}}</th>
+                    <th>
+                        <form action="/groups/{{../id}}/players/{{id}}" method="post">
+                            <input type="hidden" value="{{../id}}" name="groupId">
+                            <input type="hidden" value="{{id}}" name="playerId">
+                            <input type="submit" value="Delete">
+                        </form>
+                    </th>
+                </tr>
+            {{/each}}
+        </table>
 </fieldset>
+<form action="/groups/{{id}}/players">
+    <input type="submit" value="Add Players">
+</form>
+{{/with}}

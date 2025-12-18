@@ -1,0 +1,46 @@
+{{#with group}}
+    <h1>{{name}}</h1>
+    <h5>{{description}}</h5>
+    <h6>Competition: {{competition}}</h6>
+    <h6>Season: {{year}}</h6>
+    <h6>Add Players</h6>
+{{/with}}
+
+{{#each teams}}
+<h2>{{teamName}}</h2>
+<table class="table">
+    <tr>
+        <th>Name</th>
+        <th>Position</th>
+        <th>Country</th>
+        <th>Age</th>
+        <th></th>
+    </tr>
+        {{#each players}}
+            <tr>
+                <th>{{playerName}}</th>
+                <th>{{position}}</th>
+                <th>{{nationality}}</th>
+                <th>{{age}}</th>
+                <th>
+                    <form action="" method="post">
+                        <input type="hidden" name="playerId" value="{{id}}">
+                        <input type="hidden" name="playerName" value="{{playerName}}">
+                        <input type="hidden" name="playerTeamId" value="{{teamId}}">
+                        <input type="hidden" name="playerTeamCode" value="{{teamCode}}">
+                        <input type="hidden" name="playerTeamName" value="{{teamName}}">
+                        <input type="hidden" name="playerPosition" value="{{position}}">
+                        <input type="hidden" name="playerNationality" value="{{nationality}}">
+                        <input type="hidden" name="playerAge" value="{{age}}">
+
+                        <input type="submit" value="Add" class="addButton">
+                    </form>
+                </th>
+            </tr>
+        {{/each}}
+</table>
+{{/each}}
+
+<script>
+
+</script>
