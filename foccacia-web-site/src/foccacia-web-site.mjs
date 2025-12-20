@@ -16,14 +16,17 @@ const ROUTES = {
 // TODO : ALL => Confirmar a necessidade de todos os parâmetros das funções
 
 export function initWebSite({ services, dto, errors, utils }) {
-  async function insertDummyToken(req, res, next) {
-    const token = "024ee197-0dda-476d-b987-6377d7f17dcc";
-    const userId = await services.getUserIdFromToken(token);
-    req.token = token;
-    req.userId = userId;
+  let userInfo = {};
+
+  async function insertToken(req, res, next) {
+    if (userInfo.id && userInfo.token && userInfo.username) {
+      req.userId = userInfo.id;
+      req.token = userInfo.token;
+    }
 
     next();
   }
+
   async function home(req, res) {
     res.render("home");
   }
@@ -77,7 +80,6 @@ export function initWebSite({ services, dto, errors, utils }) {
   }
 
   async function showUpdateGroupForm(req, res) {
-    console.log(req.body);
     await services.updateGroup({
       userId: req.userId,
       groupId: req.body.groupId,
@@ -126,6 +128,16 @@ export function initWebSite({ services, dto, errors, utils }) {
     res.redirect(`/groups/${req.params.groupId}`);
   }
 
+  async function showCreateUserForm(req, res) {
+    res.render("create-user-form");
+  }
+
+  async function createUser(req, res) {
+    const username = req.body.username;
+    userInfo = await services.createUser(username);
+    res.redirect("/");
+  }
+
   const router = express.Router();
 
   router.get(ROUTES.HOME, home);
@@ -133,10 +145,12 @@ export function initWebSite({ services, dto, errors, utils }) {
   //Rotas Públicas
   router.get(ROUTES.COMPETITIONS, listCompetitions);
   router.get(ROUTES.TEAMS, listTeams);
-  //router.post(ROUTES.USERS, createUser);
+
+  router.get(ROUTES.USERS, showCreateUserForm);
+  router.post(ROUTES.USERS, createUser);
 
   // Middleware de Autenticação
-  router.use(insertDummyToken);
+  router.use(insertToken);
 
   // Rotas Privadas
   router.get(ROUTES.GROUPS, listGroups);
