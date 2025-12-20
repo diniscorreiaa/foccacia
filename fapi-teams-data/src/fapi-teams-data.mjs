@@ -240,7 +240,7 @@ export function initFapiTeams({ domainModel, utils }) {
 
     const teamsRaw = await fetchCompetitionTeamsRaw({ code, season });
     if (teamsRaw === false) return false;
-    if (teamsRaw == null) return null;
+    if (!teamsRaw) return null;
 
     return teamsRaw.map(toTeamDomain);
   }
@@ -268,6 +268,7 @@ export function initFapiTeams({ domainModel, utils }) {
       code: competition,
       season: year,
     });
+    if (teamsRaw === false) return false;
     if (!Array.isArray(teamsRaw) || teamsRaw.length === 0) return null;
 
     const team = teamsRaw.find(

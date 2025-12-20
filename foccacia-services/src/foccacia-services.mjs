@@ -50,7 +50,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return group;
   }
 
-  async function getCompetitions(webSiteMode = false) {
+  async function getCompetitions() {
     const competitions = await fapiTeams.getCompetitions();
     if (!Array.isArray(competitions)) {
       throw errors.UNEXPECTED("Unhandled error for get competitions operation");
@@ -61,7 +61,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   }
 
   async function getCompetitionsWeb() {
-    const competitions = await getCompetitions(true);
+    const competitions = await getCompetitions();
 
     await Promise.all(
       competitions.map(async (competition) => {
