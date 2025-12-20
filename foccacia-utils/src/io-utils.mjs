@@ -63,6 +63,11 @@ export function initIoUtils() {
     return getOutputFootballApiFilePath(fileName);
   }
 
+  function getCompetitionsWebFilePath() {
+    const fileName = "competitions-site.json";
+    return getOutputFootballApiFilePath(fileName);
+  }
+
   function getSeasonsYearsFilePath(code) {
     const fileName = `competitions-${code}-seasons.json`;
     return getOutputFootballApiFilePath(fileName);
@@ -87,5 +92,6 @@ export function initIoUtils() {
     getUsersFilePath,
     getViewsDirPath,
     getSeasonsYearsFilePath,
+    getCompetitionsWebFilePath,
   };
 }

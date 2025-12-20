@@ -60,8 +60,11 @@ export function initWebApi({ services, dto, errors, utils }) {
     next();
   });
 
+  // TODO : Tiago => Sem get seasons
   const getCompetitions = wrapAsync((request, response) =>
-    genericApiRoute(request, response, services.getCompetitions)
+    genericApiRoute(request, response, services.getCompetitions, {
+      transformObj: (competitions) => competitions.map(dto.competitionToDto),
+    })
   );
 
   const getTeams = wrapAsync((request, response) =>

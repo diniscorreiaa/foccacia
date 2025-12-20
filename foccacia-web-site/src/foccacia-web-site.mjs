@@ -17,7 +17,7 @@ const ROUTES = {
 
 export function initWebSite({ services, dto, errors, utils }) {
   async function insertDummyToken(req, res, next) {
-    const token = "a42bc68d-23b0-40e7-a621-f85a87c627c6";
+    const token = "024ee197-0dda-476d-b987-6377d7f17dcc";
     const userId = await services.getUserIdFromToken(token);
     req.token = token;
     req.userId = userId;
@@ -28,22 +28,8 @@ export function initWebSite({ services, dto, errors, utils }) {
     res.render("home");
   }
 
-  async function getAvailableSeasons(code) {
-    const seasons = await services.getSeasonYears(code);
-    if (!seasons) {
-      return [];
-    }
-    return seasons;
-  }
-
   async function listCompetitions(req, res) {
-    const competitions = await services.getCompetitions();
-    // TODO: this is business logic, likely belongs in services. not gonna do it now not to cause conflicts
-    for (const competition of competitions) {
-      const seasons = await getAvailableSeasons(competition.code);
-      competitions.competition = { ...competition, seasons };
-    }
-    console.log(competitions);
+    const competitions = await services.getCompetitionsWeb();
     res.render("competitions", { competitions });
   }
 

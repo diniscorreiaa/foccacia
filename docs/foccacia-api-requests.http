@@ -7,7 +7,7 @@
 
 # IDs usados nos exemplos
 
-@groupId = FEeEJ5sB-OTWexesSJL9
+@groupId = Yw3PMZsBCjmD11QlFPua
 @otherGroupId = 2
 @playerId = 67299
 
@@ -15,8 +15,8 @@
 # 1) Cria primeiro 1 utilizador e copia o token devolvido para @token
 # 2) Cria um 2º utilizador e copia o token para @otherToken (para testar 403)
 
-@token = Bearer c8c2d705-bc06-4d45-8316-c09bd8d78fbd
-@otherToken = Bearer d878e35e-e9a0-452c-9df4-58afcec17e15
+@token = Bearer 024ee197-0dda-476d-b987-6377d7f17dcc
+@otherToken = Bearer 6da14ee8-b239-4031-96fb-346845d31346
 @invalidToken = Bearer invalid-token
 
 ### GET - Todas as Competições Disponíveis (200)

@@ -44,10 +44,18 @@ export function initDto() {
     };
   }
 
+  function competitionToDto(competition) {
+    return {
+      code: competition.code,
+      name: competition.name,
+    };
+  }
+
   return {
     teamToDto,
     groupToDto,
     playerToGroupDto,
     userToDto,
+    competitionToDto,
   };
 }

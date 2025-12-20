@@ -10,6 +10,7 @@ export function initUtils({ logUtils, ioUtils, jsonUtils }) {
     getUsersFilePath,
     getViewsDirPath,
     getSeasonsYearsFilePath,
+    getCompetitionsWebFilePath,
   } = ioUtils;
 
   const { readJson, writeJson } = jsonUtils;
@@ -103,5 +104,6 @@ export function initUtils({ logUtils, ioUtils, jsonUtils }) {
     areSameId,
     toYear,
     getSeasonsYearsFilePath,
+    getCompetitionsWebFilePath,
   };
 }

@@ -1,5 +1,3 @@
-import { isNumeric } from "mocha/lib/utils.js";
-
 const FOOTBALL_API_URI = "https://api.football-data.org/v4";
 
 export function initFapiTeams({ domainModel, utils }) {
@@ -30,6 +28,11 @@ export function initFapiTeams({ domainModel, utils }) {
 
     try {
       const response = await fetch(url, { headers });
+
+      if (response.status === 429) {
+        utils.logError(`FAPI rate limit on ${logContext}`, "");
+        return false;
+      }
 
       if (!response.ok) {
         utils.logError(
@@ -69,7 +72,8 @@ export function initFapiTeams({ domainModel, utils }) {
 
     utils.logInfo(`Fetching ${logContext} from Football Data API`, "");
     const apiJson = await fetchJsonFromApi({ url, logContext });
-    if (!apiJson) return null;
+    if (apiJson === false) return false;
+    if (apiJson == null) return null;
 
     const parsedValue = parse(apiJson);
     if (parsedValue == null) return null;
@@ -98,8 +102,10 @@ export function initFapiTeams({ domainModel, utils }) {
     return competitions.map((c) => ({ code: c.code, name: c.name }));
   }
 
-  async function fetchCompetitionsRaw() {
-    const cachePath = utils.getCompetitionsFilePath();
+  async function fetchCompetitionsRaw(webType) {
+    const cachePath = webType
+      ? utils.getCompetitionsWebFilePath()
+      : utils.getCompetitionsFilePath();
     if (!cachePath) return null;
 
     const url = `${FOOTBALL_API_URI}/competitions`;
@@ -113,22 +119,31 @@ export function initFapiTeams({ domainModel, utils }) {
     });
   }
 
-  function parseSeasonsYears(json) {
-    const items = Array.isArray(json)
-      ? json
-      : Array.isArray(json?.seasons)
-      ? json.seasons
-      : [];
+  function parseSeasonsYears(payload) {
+    const seasons = extractSeasons(payload);
 
-    if (items.length > 0 && isNumeric(items[0])) {
-      return items;
-    }
+    const seasonsYears = seasons
+      .map((season) => {
+        const cachedYear = utils.toYear(season);
+        if (cachedYear != null) return cachedYear;
 
-    const seasons = items
-      .map((item) => utils.getYearFromDate(item?.startDate))
-      .filter((year) => year != null);
+        const year = season?.startDate;
+        return utils.getYearFromDate(year);
+      })
+      .filter((year) => year != null && year > 2022);
 
-    return seasons;
+    return uniqueDescending(seasonsYears);
+  }
+
+  function extractSeasons(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.seasons)) return payload.seasons;
+    return [];
+  }
+
+  function uniqueDescending(years) {
+    const uniqueYears = [...new Set(years)];
+    return uniqueYears.sort((a, b) => b - a);
   }
 
   async function fetchSeasonsYearsRaw(code) {
@@ -202,9 +217,11 @@ export function initFapiTeams({ domainModel, utils }) {
     });
   }
 
-  async function getCompetitions() {
-    const raw = await fetchCompetitionsRaw();
-    if (!raw) return null;
+  async function getCompetitions(webType) {
+    const raw = await fetchCompetitionsRaw(webType);
+    if (raw === false) return false;
+    if (raw == null) return null;
+
     return raw.map(toCompetitionDomain);
   }
 
@@ -212,6 +229,7 @@ export function initFapiTeams({ domainModel, utils }) {
     if (!code) return null;
 
     const raw = await fetchSeasonsYearsRaw(code);
+    if (raw === false) return false;
     if (!raw) return null;
 
     return raw;
@@ -221,6 +239,7 @@ export function initFapiTeams({ domainModel, utils }) {
     if (!code || !season) return null;
 
     const teamsRaw = await fetchCompetitionTeamsRaw({ code, season });
+    if (teamsRaw === false) return false;
     if (!teamsRaw) return null;
 
     return teamsRaw.map(toTeamDomain);
@@ -249,6 +268,7 @@ export function initFapiTeams({ domainModel, utils }) {
       code: competition,
       season: year,
     });
+    if (teamsRaw === false) return false;
     if (!Array.isArray(teamsRaw) || teamsRaw.length === 0) return null;
 
     const team = teamsRaw.find(
