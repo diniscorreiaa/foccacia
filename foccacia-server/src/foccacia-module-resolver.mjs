@@ -14,7 +14,7 @@ import { initServices } from "foccacia-services";
 import { initWebApi } from "foccacia-web-api";
 import { initWebSite } from "foccacia-web-site";
 import { initDto } from "foccacia-web-api/src/foccacia-dto.mjs";
-import { initSendApplicationError } from "foccacia-web-api/src/application-to-http-errors.mjs";
+import { initSendApplicationError } from "./application-to-http-errors.mjs";
 
 // TODO : PROFESSOR SIM! => Persistência ? Carregar users e groups at startup ?
 
