@@ -40,10 +40,10 @@ export function initSendApplicationError({ ERROR_CODES, logError }) {
       err
     );
 
-    return res.status(status).json({
-      uri: req.path,
-      description: err.message,
-    });
+    if (req.path.startsWith("/api"))
+      return res.status(status).json({ uri: req.path, description: err.message });
+    else 
+      return res.status(status).render("http-errors", { status, message: err.message} )
   }
 
   return sendApplicationError;
