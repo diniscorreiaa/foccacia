@@ -281,7 +281,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
 
     return response?.result === "deleted";
   }
-
+  // TODO : TIAGO => Return player
   async function addPlayerToGroup({ groupId, player }) {
     const gid = utils.toId(groupId);
     if (!gid || !player) return null;
@@ -300,7 +300,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     const updated = await persistGroup(group);
     return updated ? group : null;
   }
-
+  // TODO : TIAGO => Return Boolean
   async function deletePlayerFromGroup({ groupId, playerId }) {
     const gid = utils.toId(groupId);
     const pid = utils.toId(playerId);

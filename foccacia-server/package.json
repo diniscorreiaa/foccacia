@@ -10,14 +10,15 @@
     "coverage": "c8 mocha"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^5.2.1",
     "express-handlebars": "^8.0.4",
     "foccacia-errors": "file:../foccacia-errors",
     "foccacia-utils": "file:../foccacia-utils",
+    "foccacia-domain-model": "file:../foccacia-domain-model",
     "fapi-teams-data": "file:../fapi-teams-data",
     "foccacia-data-mem": "file:../foccacia-data-mem",
     "foccacia-services": "file:../foccacia-services",
     "foccacia-web-api": "file:../foccacia-web-api",
-    "foccacia-domain-model": "file:../foccacia-domain-model"
+    "foccacia-web-site": "file:../foccacia-web-site"
   }
 }

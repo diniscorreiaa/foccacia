@@ -43,6 +43,8 @@ export function initWebSite({ services, dto, errors, utils }) {
     });
     res.render("teams", { teams });
   }
+
+  // TODO : ALL => Apenas competições validas
   async function listGroups(req, res) {
     const competitions = await services.getCompetitions();
     const seasons = [];
@@ -79,6 +81,7 @@ export function initWebSite({ services, dto, errors, utils }) {
     res.redirect("/groups");
   }
 
+  // TODO : ALL => UPDATE nao está a funcionar
   async function showUpdateGroupForm(req, res) {
     await services.updateGroup({
       userId: req.userId,
