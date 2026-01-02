@@ -13,9 +13,6 @@ const ROUTES = {
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
 
-const wrapAsync = (fn) => (request, response, next) =>
-  Promise.resolve(fn(request, response, next)).catch(next);
-
 function getToken(request) {
   const auth = request.get("Authorization");
   if (!auth) return "";
@@ -44,7 +41,7 @@ export function initWebApi({ services, errors, utils }) {
     response.json(transformObj(obj));
   }
 
-  const verifyToken = wrapAsync(async (request, response, next) => {
+  const verifyToken = async (request, response, next) => {
     const token = getToken(request);
     if (!token) {
       throw errors.UNAUTHORIZED("Missing or invalid Bearer token");
@@ -60,15 +57,14 @@ export function initWebApi({ services, errors, utils }) {
     );
 
     next();
-  });
+  };
 
-  const getCompetitions = wrapAsync((request, response) =>
+  const getCompetitions = async (request, response) =>
     genericApiRoute(request, response, services.getCompetitions, {
       transformObj: (competitions) => competitions.map(dto.competitionToDto),
-    })
-  );
+    });
 
-  const getTeams = wrapAsync((request, response) =>
+  const getTeams = async (request, response) =>
     genericApiRoute(request, response, services.getTeams, {
       servicesFuncArgs: [
         {
@@ -77,23 +73,21 @@ export function initWebApi({ services, errors, utils }) {
         },
       ],
       transformObj: (teamsArr) => teamsArr.map(dto.teamToDto),
-    })
-  );
+    });
 
-  const createUser = wrapAsync(async (request, response) => {
+  const createUser = async (request, response) => {
     const username = request.body?.username;
     const user = await services.createUser({ username });
     return response.status(201).json(dto.userToDto(user));
-  });
+  };
 
-  const getGroups = wrapAsync((request, response) =>
+  const getGroups = async (request, response) =>
     genericApiRoute(request, response, services.getGroups, {
       servicesFuncArgs: [{ userId: request.userId }],
       transformObj: (groups) => groups.map(dto.groupToDto),
-    })
-  );
+    });
 
-  const createGroup = wrapAsync(async (request, response) => {
+  const createGroup = async (request, response) => {
     const { name, description, competition, year } = request.body ?? {};
     const group = await services.createGroup({
       userId: request.userId,
@@ -103,18 +97,17 @@ export function initWebApi({ services, errors, utils }) {
       year,
     });
     return response.status(201).json(dto.groupToDto(group));
-  });
+  };
 
-  const getGroup = wrapAsync((request, response) =>
+  const getGroup = async (request, response) =>
     genericApiRoute(request, response, services.getGroup, {
       servicesFuncArgs: [
         { userId: request.userId, groupId: request.params.groupId },
       ],
       transformObj: dto.groupToDto,
-    })
-  );
+    });
 
-  const updateGroup = wrapAsync((request, response) =>
+  const updateGroup = async (request, response) =>
     genericApiRoute(request, response, services.updateGroup, {
       servicesFuncArgs: [
         {
@@ -124,10 +117,9 @@ export function initWebApi({ services, errors, utils }) {
         },
       ],
       transformObj: dto.groupToDto,
-    })
-  );
+    });
 
-  const deleteGroup = wrapAsync(async (request, response) => {
+  const deleteGroup = async (request, response) => {
     const result = await services.deleteGroup({
       userId: request.userId,
       groupId: request.params.groupId,
@@ -136,9 +128,9 @@ export function initWebApi({ services, errors, utils }) {
       throw errors.UNEXPECTED("Unexpected internal error");
     }
     return response.sendStatus(204);
-  });
+  };
 
-  const addPlayerToGroup = wrapAsync((request, response) =>
+  const addPlayerToGroup = async (request, response) =>
     genericApiRoute(request, response, services.addPlayerToGroup, {
       servicesFuncArgs: [
         {
@@ -148,10 +140,9 @@ export function initWebApi({ services, errors, utils }) {
         },
       ],
       transformObj: dto.playerToGroupDto,
-    })
-  );
+    });
 
-  const deletePlayerFromGroup = wrapAsync(async (request, response) => {
+  const deletePlayerFromGroup = async (request, response) => {
     const result = await services.deletePlayerFromGroup({
       userId: request.userId,
       groupId: request.params.groupId,
@@ -161,7 +152,7 @@ export function initWebApi({ services, errors, utils }) {
       throw errors.UNEXPECTED("Unexpected internal error");
     }
     return response.sendStatus(204);
-  });
+  };
 
   const router = express.Router();
 
