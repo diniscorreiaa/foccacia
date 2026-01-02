@@ -63,13 +63,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   async function getCompetitionsWeb() {
     const competitions = await getCompetitions();
 
-    await Promise.all(
+    const competitionsWithSeasons = await Promise.all(
       competitions.map(async (competition) => {
         competition.seasons = await getSeasonYears({ code: competition.code });
       })
     );
 
-    return competitions;
+    return competitionsWithSeasons;
   }
 
   async function getSeasonYears({ code }) {
@@ -78,7 +78,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       "You must provide competition code for this operation"
     );
 
-    const seasons = await fapiTeams.getSeasonsYears(competitionCode);
+    const seasons = await fapiTeams.getSeasonsYears({ code: competitionCode });
     if (seasons === false) {
       throw errors.TOO_MANY_REQUESTS(
         "Rate limit exceeded for external API, try again in 1 minute"

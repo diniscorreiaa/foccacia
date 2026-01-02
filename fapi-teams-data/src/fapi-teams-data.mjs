@@ -225,7 +225,7 @@ export function initFapiTeams({ domainModel, utils }) {
     return raw.map(toCompetitionDomain);
   }
 
-  async function getSeasonsYears(code) {
+  async function getSeasonsYears({ code }) {
     if (!code) return null;
 
     const raw = await fetchSeasonsYearsRaw(code);
