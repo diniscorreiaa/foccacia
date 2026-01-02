@@ -1,3 +1,5 @@
+import { initDto } from "./foccacia-dto.mjs";
+
 import express from "express";
 
 // TODO : Francisco => Fazer Routes dinâmicas
@@ -23,7 +25,9 @@ function getToken(request) {
   return value;
 }
 
-export function initWebApi({ services, dto, errors, utils }) {
+export function initWebApi({ services, errors, utils }) {
+  const dto = initDto();
+
   async function genericApiRoute(
     request,
     response,

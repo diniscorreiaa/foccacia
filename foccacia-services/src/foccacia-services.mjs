@@ -52,6 +52,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
   async function getCompetitions() {
     const competitions = await fapiTeams.getCompetitions();
+
+    if (competitions === false) {
+      throw errors.TOO_MANY_REQUESTS(
+        "Rate limit exceeded for external API, try again in 1 minute"
+      );
+    }
+
     if (!Array.isArray(competitions)) {
       throw errors.UNEXPECTED("Unhandled error for get competitions operation");
     }
@@ -292,7 +299,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     });
     if (!removed) throw errors.NOT_FOUND("Player not found in group");
 
-    return removed; // boolean
+    return removed;
   }
 
   return {

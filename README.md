@@ -135,26 +135,22 @@ ___
 
 ```mermaid
 
-graph TD
-    Server["foccacia-server"] --> Resolver["module-resolver (composition root)"]
+flowchart TD
+    Server["foccacia-server"] --> Resolver["foccacia-module-resolver"]
 
-    Resolver --> WebAPI["foccacia-web-api (Express Router)"]
-    Resolver --> WebSite["foccacia-web-site (SSR Handlebars Router)"]
+    Resolver --> WebApi["foccacia-web-api"]
+    Resolver --> WebSite["foccacia-web-site"]
     Resolver --> Services["foccacia-services"]
-    Resolver --> Domain["foccacia-domain-model"]
-    Resolver --> DataElastic["foccacia-db (Elastic via HTTP/fetch)"]
-    Resolver --> Fapi["fapi-teams-data (Football API via HTTP/fetch)"]
+
+    Services --> Fapi["fapi-teams-data"]
+    Services --> Data["foccacia-db<br/>data-elastic"]
+
+    Fapi --> Domain["foccacia-domain-model"]
+    Data --> Domain
+
     Resolver --> Utils["foccacia-utils"]
     Resolver --> Errors["foccacia-errors"]
 
-    WebAPI --> Services
-    WebSite --> Services
-
-    Services --> DataElastic
-    Services --> Fapi
-
-    DataElastic --> Elastic[(ElasticSearch)]
-    Fapi --> Football[(Football Data API)]
 
 
 ```

@@ -1,4 +1,4 @@
-export function initDataMem({ domainModel, utils, errors }) {
+export function initDataMem({ domainModel, utils }) {
   let nextUserId = 1,
     nextGroupId = 1;
 
