@@ -63,13 +63,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   async function getCompetitionsWeb() {
     const competitions = await getCompetitions();
 
-    const competitionsWithSeasons = await Promise.all(
+    await Promise.all(
       competitions.map(async (competition) => {
         competition.seasons = await getSeasonYears({ code: competition.code });
       })
     );
 
-    return competitionsWithSeasons;
+    return competitions;
   }
 
   async function getSeasonYears({ code }) {
@@ -107,6 +107,11 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       season: seasonYear,
     });
 
+    if (teams === false) {
+      throw errors.TOO_MANY_REQUESTS(
+        "Rate limit exceeded for external API, try again in 1 minute"
+      );
+    }
     if (!teams) {
       throw errors.UNEXPECTED("Unhandled error for get teams operation");
     }
@@ -287,12 +292,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     });
     if (!removed) throw errors.NOT_FOUND("Player not found in group");
 
-    return removed;
+    return removed; // boolean
   }
 
   return {
     getCompetitions,
     getTeams,
+    getCompetitionsWeb,
     getUserIdFromToken,
     createUser,
     getGroups,
@@ -302,6 +308,5 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     deleteGroup,
     addPlayerToGroup,
     deletePlayerFromGroup,
-    getCompetitionsWeb,
   };
 }

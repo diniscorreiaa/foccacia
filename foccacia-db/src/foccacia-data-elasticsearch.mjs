@@ -281,7 +281,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
 
     return response?.result === "deleted";
   }
-  // TODO : TIAGO => Return player
+
   async function addPlayerToGroup({ groupId, player }) {
     const gid = utils.toId(groupId);
     if (!gid || !player) return null;

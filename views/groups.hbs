@@ -35,15 +35,13 @@
         {{!--TODO: the update logic and structure is way too complex for such a simple problem, refactor if we have time--}}
         <button type="button" class="cancelUpdate" style="background-color: yellow" disabled>Cancel</button>
         <form action="/groups/{{id}}/update" method="post">
-                <input type="hidden" name="groupId" value="{{id}}">
-                <input class="updateNameForm" type="hidden" name="name" value="">
-                <input class="updateDescriptionForm" type="hidden" name="description" value="">
-                <input class="update" type="submit" value="Update Group" style="background-color:yellow">
+            <input class="updateNameForm" type="hidden" name="name" value="">
+            <input class="updateDescriptionForm" type="hidden" name="description" value="">
+            <input class="update" type="submit" value="Update Group" style="background-color:yellow">
         </form>
 
         <form action="/groups/{{id}}" method="post">
-                <input type="hidden" name="groupId" value="{{id}}">
-                <input type="submit" value="Delete group" style="background-color: red;">
+            <input type="submit" value="Delete group" style="background-color: red;">
         </form>
 </fieldset>
 {{/each}}
