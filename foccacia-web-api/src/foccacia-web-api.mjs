@@ -29,9 +29,9 @@ export function initWebApi({ services, errors, utils }) {
     request,
     response,
     servicesFunc,
-    { transformObj = (obj) => obj, servicesFuncArgs = [] } = {}
+    { transformObj = (obj) => obj, servicesFuncArgs = {} } = {}
   ) {
-    const obj = await servicesFunc(...servicesFuncArgs);
+    const obj = await servicesFunc(servicesFuncArgs);
     const size = Array.isArray(obj) ? obj.length : 1;
 
     utils.logInfo(
@@ -66,12 +66,10 @@ export function initWebApi({ services, errors, utils }) {
 
   const getTeams = async (request, response) =>
     genericApiRoute(request, response, services.getTeams, {
-      servicesFuncArgs: [
-        {
-          code: request.params.competitionCode,
-          season: request.params.seasonYear,
-        },
-      ],
+      servicesFuncArgs: {
+        code: request.params.competitionCode,
+        season: request.params.seasonYear,
+      },
       transformObj: (teamsArr) => teamsArr.map(dto.teamToDto),
     });
 
@@ -83,7 +81,7 @@ export function initWebApi({ services, errors, utils }) {
 
   const getGroups = async (request, response) =>
     genericApiRoute(request, response, services.getGroups, {
-      servicesFuncArgs: [{ userId: request.userId }],
+      servicesFuncArgs: { userId: request.userId },
       transformObj: (groups) => groups.map(dto.groupToDto),
     });
 
@@ -101,21 +99,20 @@ export function initWebApi({ services, errors, utils }) {
 
   const getGroup = async (request, response) =>
     genericApiRoute(request, response, services.getGroup, {
-      servicesFuncArgs: [
-        { userId: request.userId, groupId: request.params.groupId },
-      ],
+      servicesFuncArgs: {
+        userId: request.userId,
+        groupId: request.params.groupId,
+      },
       transformObj: dto.groupToDto,
     });
 
   const updateGroup = async (request, response) =>
     genericApiRoute(request, response, services.updateGroup, {
-      servicesFuncArgs: [
-        {
-          userId: request.userId,
-          groupId: request.params.groupId,
-          changes: request.body,
-        },
-      ],
+      servicesFuncArgs: {
+        userId: request.userId,
+        groupId: request.params.groupId,
+        changes: request.body,
+      },
       transformObj: dto.groupToDto,
     });
 
@@ -132,13 +129,11 @@ export function initWebApi({ services, errors, utils }) {
 
   const addPlayerToGroup = async (request, response) =>
     genericApiRoute(request, response, services.addPlayerToGroup, {
-      servicesFuncArgs: [
-        {
-          userId: request.userId,
-          groupId: request.params.groupId,
-          playerData: request.body,
-        },
-      ],
+      servicesFuncArgs: {
+        userId: request.userId,
+        groupId: request.params.groupId,
+        playerData: request.body,
+      },
       transformObj: dto.playerToGroupDto,
     });
 
