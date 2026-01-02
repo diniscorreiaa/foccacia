@@ -40,7 +40,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       "Make sure you provide the group id for this operation"
     );
 
-    const group = await data.getGroup(gid);
+    const group = await data.getGroup({ groupId: gid });
     if (!group) throw errors.NOT_FOUND("Group not found");
 
     if (!utils.areSameId(group.ownerId, uid)) {
@@ -52,6 +52,13 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
   async function getCompetitions() {
     const competitions = await fapiTeams.getCompetitions();
+
+    if (competitions === false) {
+      throw errors.TOO_MANY_REQUESTS(
+        "Rate limit exceeded for external API, try again in 1 minute"
+      );
+    }
+
     if (!Array.isArray(competitions)) {
       throw errors.UNEXPECTED("Unhandled error for get competitions operation");
     }
@@ -65,20 +72,20 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
     await Promise.all(
       competitions.map(async (competition) => {
-        competition.seasons = await getSeasonYears(competition.code);
+        competition.seasons = await getSeasonYears({ code: competition.code });
       })
     );
 
     return competitions;
   }
 
-  async function getSeasonYears(code) {
+  async function getSeasonYears({ code }) {
     const competitionCode = mustString(
       code,
       "You must provide competition code for this operation"
     );
 
-    const seasons = await fapiTeams.getSeasonsYears(competitionCode);
+    const seasons = await fapiTeams.getSeasonsYears({ code: competitionCode });
     if (seasons === false) {
       throw errors.TOO_MANY_REQUESTS(
         "Rate limit exceeded for external API, try again in 1 minute"
@@ -107,6 +114,11 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       season: seasonYear,
     });
 
+    if (teams === false) {
+      throw errors.TOO_MANY_REQUESTS(
+        "Rate limit exceeded for external API, try again in 1 minute"
+      );
+    }
     if (!teams) {
       throw errors.UNEXPECTED("Unhandled error for get teams operation");
     }
@@ -118,24 +130,24 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return teams;
   }
 
-  async function getUserIdFromToken(token) {
+  async function getUserIdFromToken({ token }) {
     const normalizedToken = utils.toTrimmedString(token);
     if (!normalizedToken) throw errors.UNAUTHORIZED("Invalid token");
 
-    const user = await data.getUserByToken(normalizedToken);
+    const user = await data.getUserByToken({ token: normalizedToken });
     if (!user || !user.id) throw errors.UNAUTHORIZED("Invalid token");
 
     return user.id;
   }
 
-  async function createUser(username) {
+  async function createUser({ username }) {
     const normalizedUsername = mustMinString(
       username,
       3,
       "Username must contain at least 3 characters"
     );
 
-    const user = await data.createUser(normalizedUsername);
+    const user = await data.createUser({ username: normalizedUsername });
     if (!user) throw errors.UNEXPECTED("Unexpected error at user creation");
 
     utils.logInfo(
@@ -144,10 +156,11 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     );
     return user;
   }
-  async function getGroups(userId) {
+
+  async function getGroups({ userId }) {
     const uid = mustId(userId, "You must provide user Id for getting groups");
 
-    const groups = await data.listGroups(uid);
+    const groups = await data.listGroups({ userId: uid });
     if (!groups) throw errors.UNEXPECTED("Unexpected error at getting groups");
 
     utils.logInfo(
@@ -156,7 +169,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     );
     return groups;
   }
-  // TODO : DINIS => Verificar os parametros
+
   async function createGroup({ userId, name, description, competition, year }) {
     const uid = mustAuthUserId(
       userId,
@@ -194,10 +207,11 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   async function updateGroup({ userId, groupId, changes }) {
     await getOwnedGroupOrThrow({ userId, groupId, action: "updating groups" });
 
-    if (!changes)
+    if (!changes) {
       throw errors.INVALID_DATA(
         "Make sure you provide changes for this operation"
       );
+    }
 
     const name = mustMinString(changes.name, 3, "Invalid group name");
     const description = mustMinString(
@@ -215,7 +229,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   async function deleteGroup({ userId, groupId }) {
     await getOwnedGroupOrThrow({ userId, groupId, action: "deleting groups" });
 
-    const deleted = await data.deleteGroup(groupId);
+    const deleted = await data.deleteGroup({ groupId });
     if (!deleted) throw errors.NOT_FOUND("Group not found");
 
     return deleted;
@@ -291,6 +305,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   return {
     getCompetitions,
     getTeams,
+    getCompetitionsWeb,
     getUserIdFromToken,
     createUser,
     getGroups,
@@ -300,6 +315,5 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     deleteGroup,
     addPlayerToGroup,
     deletePlayerFromGroup,
-    getCompetitionsWeb,
   };
 }

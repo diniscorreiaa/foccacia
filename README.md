@@ -1,7 +1,5 @@
 # IPW - Introdução à Programação Web
 
-## TODO : Atualizar para Assignment 3
-
 ## Assignment 3
 ___
 
@@ -133,248 +131,50 @@ ___
 
 ___
 
-# FOCCACIA – Organização dos módulos e plano de trabalho
-
-## TODO : Atualizar
-
-## 1. Módulos e responsabilidades
-
-### 1.1. `foccacia-utils`
-**Responsabilidade:** utilitários genéricos, independentes da lógica de negócio.
-
-- `src/foccacia-utils.mjs`  
-  Reexporta as funções públicas do módulo (ponto único de import).
-- `src/log-utils.mjs`  
-  `logInfo`, `logSuccess`, `logError` (único sítio onde existe `console.log`/`console.error`).
-- `src/json-utils.mjs`  
-  `readJson(filePath)`, `writeJson(data, filePath)` para leitura/escrita de JSON.
-- `src/io-utils.mjs`  
-  Gestão de paths para `docs/input` e `docs/output/football-api-cache`.  
-  Funções: `fileExists`, `getCompetitionsFilePath`, `getCompetitionTeamsFilePath`, `getTeamPlayersFilePath`, `getHeadersFilePath`, etc.
-
----
-
-### 1.2. `foccacia-data-mem`
-**Responsabilidade:** modelo de domínio e armazenamento em memória (USERS e GROUPS).
-
-- `src/domain-model.mjs`
-    - `Competition(code, name)`
-    - `Team(teamId, teamName, country, players)`
-    - `Player(...)` (modelo a alinhar com o uso nos services).
-    - `User(userId, username)` → gera `token` com `randomUUID()` de `node:crypto`.
-    - `Group(userId, groupId, name, description, competitionCode, year, players = [])`.
-- `src/foccacia-data-mem.mjs`
-    - Arrays em memória: `USERS`, `GROUPS`.
-    - Funções:
-        - Users: `createUser`, `findUserByToken`, `getAllUsers`.
-        - Groups: `createGroup`, `getGroupById`/`getGroup`, `listGroups`, `updateGroup`, `deleteGroup`.
-        - Players em grupo: `addPlayerToGroup`, `removePlayerFromGroup`.
-
-> Aqui não há noção de HTTP. É “repositório em memória” puro.
-
----
-
-### 1.3. `fapi-teams-data`
-**Responsabilidade:** acesso à **Football Data API** + cache em ficheiros.
-
-- `src/fapi-teams-data.mjs`
-    - Lê `headers.json` de `docs/input` para obter `X-Auth-Token`.
-    - Usa `fetch` para:
-        - `/competitions`
-        - `/competitions/{code}/teams?season={year}`
-        - `/teams/{teamId}`
-    - Cache:
-        - `competitions.json`
-        - `competition-{code}-{season}-teams.json`
-        - `team-{id}-players.json`
-    - Em caso de erro HTTP:
-        - Mapeia status (ex.: 429) para erros de aplicação (`RATE_LIMIT`, `BAD_GATEWAY`, etc.).
-    - Usa:
-        - `foccacia-utils` para logs e paths.
-        - `foccacia-errors` (no desenho final) para criar erros de aplicação.
-
----
-
-### 1.4. `foccacia-services`
-**Responsabilidade:** **regras de negócio** e orquestração entre dados externos e dados em memória.
-
-- `src/foccacia-services.mjs`
-    - Já implementado:
-        - `getCompetitions()` → chama `fetchCompetitions`, mapeia para `Competition`.
-        - `getTeams(code, season)` → chama `fetchCompetitionTeams` + `fetchTeamWithSquad`, constrói `Team` e `Player` (a ajustar).
-    - A implementar/preencher:
-        - `createUser(username)`
-        - `convertTokenToUserId(token)`
-        - `getGroups(userId)`
-        - `createGroup(userId, groupData)`
-        - `getGroup(userId, groupId)`
-        - `replaceGroup(userId, groupId, groupData)`
-        - `deleteGroup(userId, groupId)`
-        - `addPlayerToGroup(userId, groupId, playerData)`
-        - `deletePlayerFromGroup(userId, groupId, playerId)`
-    - Este módulo:
-        - Trabalha sempre com dados “puros” (sem Express/HTTP).
-        - Usa `foccacia-data-mem` como repositório.
-        - Usa `fapi-teams-data` para validar informação de equipas/jogadores.
-        - Lança erros de domínio com `foccacia-errors`.
-
----
-
-### 1.5. `foccacia-web-api`
-**Responsabilidade:** camada HTTP lógica (handlers Express, DTOs, middleware de auth, mapeamento erro→HTTP).
-
-- `src/foccacia-dto.mjs`
-    - Converte modelos internos em respostas JSON:
-        - `teamToDto(team)`
-        - `playerToDto(player)`
-- `src/application-to-http-errors.mjs` (a mover/renomear para aqui)
-    - Middleware de erro Express (4 argumentos):  
-      `sendApplicationError(err, req, res, next)`.
-    - Mapeia `ApplicationError.code` → HTTP status (400, 401, 403, 404, 422, 429, 502, 500).
-- `src/foccacia-web-api.mjs`
-    - `verifyToken` (middleware de auth Bearer).
-    - Handlers:
-        - Públicos:
-            - `getCompetitions(req, res)`
-            - `getTeams(req, res)`
-            - `createUser(req, res)`
-        - Protegidos por token:
-            - `getGroups`, `createGroup`, `getGroup`, `replaceGroup`,
-              `deleteGroup`, `addPlayerToGroup`, `deletePlayerFromGroup`
-    - Usa:
-        - `foccacia-services` (regra de negócio).
-        - `foccacia-errors` (auth e validações).
-        - `foccacia-utils` (logs).
-        - `sendApplicationError` para devolver JSON de erro.
-
----
-
-### 1.6. `foccacia-server`
-**Responsabilidade:** entrypoint da app, configuração do Express e definição das rotas físicas.
-
-- `src/foccacia-server.mjs`
-    - Cria `express()`.
-    - `app.use(express.json())`.
-    - Define paths:
-        - `/competitions`
-        - `/competitions/:competitionCode/seasons/:seasonYear/teams`
-        - `/users`
-        - `/groups`, `/groups/:groupId`
-        - `/groups/:groupId/player`, `/groups/:groupId/player/:playerId`
-    - Liga cada rota ao handler do `foccacia-web-api`.
-    - Aplica `verifyToken` antes das rotas de grupos.
-    - Regista o middleware de erro `sendApplicationError` no fim.
-    - `app.listen(PORT, ...)`.
-
----
-
-### 1.7. `foccacia-errors`
-**Responsabilidade:** modelo de erro de aplicação, independente de Express/HTTP.
-
-- `src/errors.mjs` (novo)
-    - `ApplicationError(code, message)`.
-    - `ERROR_CODES = { InvalidData, Unauthorized, NotFound, Forbidden, TooManyRequests, Unprocessable, BadGateway }`.
-    - Factory functions:
-        - `INVALID_DATA(msg)`, `UNAUTHORIZED(msg)`, `NOT_FOUND(msg)`, `FORBIDDEN(msg)`,
-          `RATE_LIMIT(msg)`, `UNPROCESSABLE(msg)`, `BAD_GATEWAY(msg)`.
-- Usado por:
-    - `fapi-teams-data` (erros da Football API).
-    - `foccacia-services` (erros de negócio).
-    - `foccacia-web-api` (auth e validações HTTP).
-
----
-
-### 1.8. Outros Modulos
-- TODO
-
-## 2. Dependências entre módulos com Dependency Injection
+## Dependências entre módulos com Dependency Injection
 
 ```mermaid
 
 flowchart TD
-    FS["foccacia-server.mjs"]
-    MR["foccacia-module-resolver.mjs (createFoccaciaApp)"]
+    Server["foccacia-server"] --> Resolver["foccacia-module-resolver"]
 
-%% raiz
-    FS --> MR
+    Resolver --> WebApi["foccacia-web-api"]
+    Resolver --> WebSite["foccacia-web-site"]
+    Resolver --> Services["foccacia-services"]
 
-%% módulos principais criados pelo resolver
-    MR --> App["Express app (app)"]
-    MR --> Api["Web API (initWebApi)"]
-    MR --> Services["Services (initServices)"]
-    MR --> DataMem["Data in memory (initDataMem)"]
-    MR --> Domain["Domain model (initDomainModel)"]
-    MR --> Fapi["Football API wrapper (initFapiTeams)"]
-    MR --> Dto["DTO mappers (initDto)"]
-    MR --> ErrMw["Error middleware (initSendApplicationError)"]
-    MR --> Utils["foccacia-utils (logs, json, io, helpers)"]
-    MR --> Errors["foccacia-errors (ApplicationError + ERROR_CODES)"]
+    Services --> Fapi["fapi-teams-data"]
+    Services --> Data["foccacia-db<br/>data-elastic"]
 
-%% dependências internas
-    Services --> DataMem
-    Services --> Domain
-    Services --> Fapi
-    Services --> Utils
-    Services --> Errors
+    Fapi --> Domain["foccacia-domain-model"]
+    Data --> Domain
 
-    Api --> Services
-    Api --> Dto
-    Api --> Errors
-    Api --> Utils
+    Resolver --> Utils["foccacia-utils"]
+    Resolver --> Errors["foccacia-errors"]
 
-    App --> Api
-    App --> ErrMw
+
 
 ```
 
-## 3. Melhorias e tarefas futuras
+# TODO (standby)
 
-### 3.1. Melhorias/correções no estado atual
+## Login/Auth (fase seguinte)
+- [ ] Substituir login global do SSR por Passport (e sessão/cookies) para suportar múltiplos utilizadores.
 
-#### Web API
+## data-mem (standby)
+- [ ] Alinhar assinaturas e retornos com o contrato do data-elastic (object args).
+- [ ] deleteGroup -> boolean
+- [ ] addPlayerToGroup -> Player
+- [ ] deletePlayerFromGroup -> boolean
 
-- [ ] Refatorar o uso de `wrapAsync` + `genericApiRoute`:
-    - criar um helper que recebe um objeto de handlers e devolve outro com todos embrulhados em `wrapAsync`, **ou**
-    - mover a lógica de `genericApiRoute` para um único factory para handlers, para não repetir o padrão em cada endpoint.
-- [ ] Confirmar que os handlers da web-api apenas:
-    - extraem dados de `req` (params/body/headers),
-    - chamam o services,
-    - transformam resultados em DTOs,
-    - delegam todos os `ApplicationError` para o middleware `sendApplicationError`.
+## OpenAPI (standby)
+- [ ] Alinhar schemas e respostas com a implementação atual (summary vs detail, playerId vs id, deletes 204 vs 200).
 
-#### Web Site (HTML/Handlebars)
+## Testes (standby)
+- [ ] Unit tests do services com mocks (data + fapiTeams).
+- [ ] (Opcional) supertest para integração.
 
-- [ ] Implementar o módulo `foccacia-web-site`:
-    - gerar HTML server-side com Handlebars (páginas para listar competições, equipas, grupos, etc.);
-    - operações que na API são `PUT`/`DELETE` passam a ser `POST` com formulários HTML;
-    - o utilizador humano nunca vê/introduz IDs crus (só escolhe em listas, selects, etc.).
-- [ ] Integrar o site no `foccacia-server`:
-    - definir rotas (por ex. `/`, `/groups`, `/groups/:id`…);
-    - instanciar `foccacia-web-site` no `createFoccaciaApp` de forma semelhante à web-api.
 
-#### ElasticSearch / Novo módulo de dados
-
-- [ ] Criar um novo módulo de dados (ex.: `foccacia-db` ou `foccacia-elastic`) que implemente **a mesma interface** pública de `foccacia-data-mem`:
-    - `createUser`, `getUserByToken`, `createGroup`, `listGroups`, `updateGroup`,
-      `deleteGroup`, `getGroup`, `addPlayerToGroup`, `deletePlayerFromGroup`;
-    - internamente fala com ElasticSearch via HTTP (`fetch`), sem SDK externo.
-- [ ] Garantir que trocar Mem ↔ Elastic implica **apenas** alterar o `foccacia-module-resolver.mjs`
-  (escolher `initDataMem` ou `initDataElastic`), sem tocar nos serviços.
-- [ ] Criar um `docker-compose.yml` com ElasticSearch:
-    - serviço elastic (versão free);
-    - documentar (ou automatizar via script npm) como arrancar o compose antes de `npm run start`.
-
-#### 7. Testes / Qualidade
-
-- [ ] Atualizar/adicionar testes de unidade.
-- [ ] [Opcional] Criar testes de integração da API com `supertest`.
----
-
-### 3.2. Novas features para cumprir o enunciado
-
----
-
-## 4. Divisão de tarefas
+## Divisão de tarefas
 
 ### Perfis
 
@@ -389,23 +189,21 @@ flowchart TD
 
 ---
 
-### 4.1. Fase 1 – Arquitetura e dependências (Tiago Nevoa)
-
-**Done**
+### Fase 1 – Arquitetura e dependências (Tiago Névoa)
 
 ---
 
-### 4.2. Fase 2 – Erros e autenticação (Dinis Correia)
+### Fase 2 – Erros e autenticação (Dinis Correia)
 
 ---
 
-### 4.3. Fase 3 – Refactor e regras de negócio (Francisco Mendes)
+### Fase 3 – Refactor e regras de negócio (Francisco Mendes)
 
 ---
 
-### 4.4. Fase 4 – Integração final e documentação
+### Fase 4 – Integração final e documentação
 
-1. Dev Tiago Nevoa:
+1. Dev Tiago Névoa:
     - 
     - 
 2. Dev Dinis Correia:

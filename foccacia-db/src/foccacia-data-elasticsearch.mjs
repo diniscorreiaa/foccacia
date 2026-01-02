@@ -173,7 +173,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     return false;
   }
 
-  async function createUser(username) {
+  async function createUser({ username }) {
     const normalizedUsername = utils.toTrimmedString(username);
     if (!normalizedUsername) return null;
 
@@ -190,7 +190,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     return user;
   }
 
-  async function getUserByToken(token) {
+  async function getUserByToken({ token }) {
     const normalizedToken = utils.toTrimmedString(token);
     if (!normalizedToken) return null;
 
@@ -227,7 +227,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     return group;
   }
 
-  async function getGroup(groupId) {
+  async function getGroup({ groupId }) {
     const gid = utils.toId(groupId);
     if (!gid) return null;
 
@@ -239,7 +239,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     return mapHitToGroup(response);
   }
 
-  async function listGroups(userId) {
+  async function listGroups({ userId }) {
     const uid = utils.toId(userId);
     if (!uid) return null;
 
@@ -260,7 +260,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     const gid = utils.toId(groupId);
     if (!gid || !name || !description) return null;
 
-    const group = await getGroup(gid);
+    const group = await getGroup({ groupId: gid });
     if (!group) return null;
 
     if (utils.isString(name)) group.name = name;
@@ -270,7 +270,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     return updated ? group : null;
   }
 
-  async function deleteGroup(groupId) {
+  async function deleteGroup({ groupId }) {
     const gid = utils.toId(groupId);
     if (!gid) return false;
 
@@ -286,7 +286,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     const gid = utils.toId(groupId);
     if (!gid || !player) return null;
 
-    const group = await getGroup(gid);
+    const group = await getGroup({ groupId: gid });
     if (!group) return null;
 
     const playerBody = toPlayerBody(player);
@@ -298,7 +298,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     group.players.push(playerDomain);
 
     const updated = await persistGroup(group);
-    return updated ? group : null;
+    return updated ? playerDomain : null;
   }
 
   async function deletePlayerFromGroup({ groupId, playerId }) {
@@ -306,7 +306,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     const pid = utils.toId(playerId);
     if (!gid || !pid) return false;
 
-    const group = await getGroup(gid);
+    const group = await getGroup({ groupId: gid });
     if (!group) return false;
 
     const idx = group.players.findIndex((p) => utils.areSameId(p.id, pid));
@@ -315,7 +315,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
     group.players.splice(idx, 1);
 
     const updated = await persistGroup(group);
-    return updated ? group : null;
+    return updated;
   }
 
   void ensureIndex(USERS_INDEX);

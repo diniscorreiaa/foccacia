@@ -1,4 +1,4 @@
-export function initDataMem({ domainModel, utils, errors }) {
+export function initDataMem({ domainModel, utils }) {
   let nextUserId = 1,
     nextGroupId = 1;
 
@@ -99,7 +99,7 @@ export function initDataMem({ domainModel, utils, errors }) {
     if (!groupId || !player) {
       return Promise.resolve(null);
     }
-    const group = getGroup(groupId);
+    const group = await getGroup(groupId);
     if (!group) {
       return Promise.resolve(null);
     }

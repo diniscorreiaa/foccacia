@@ -1,6 +1,5 @@
 import express from "express";
 
-// TODO : Francisco => Fazer Routes dinâmicas
 const ROUTES = {
   HOME: "/",
   COMPETITIONS: "/competitions",
@@ -13,17 +12,17 @@ const ROUTES = {
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
 
-// TODO : ALL => Confirmar a necessidade de todos os parâmetros das funções
-
-export function initWebSite({ services, dto, errors, utils }) {
+export function initWebSite({ services, errors }) {
   let userInfo = {};
 
-  async function insertToken(req, res, next) {
-    if (userInfo.id && userInfo.token && userInfo.username) {
-      req.userId = userInfo.id;
-      req.token = userInfo.token;
+  function insertToken(req, res, next) {
+    if (!userInfo?.id || !userInfo?.token || !userInfo?.username) {
+      throw errors.UNAUTHORIZED(
+        "You must create a user before using this page"
+      );
     }
-
+    req.userId = userInfo.id;
+    req.token = userInfo.token;
     next();
   }
 
@@ -43,21 +42,39 @@ export function initWebSite({ services, dto, errors, utils }) {
     });
     res.render("teams", { teams });
   }
+
+  async function showCreateUserForm(req, res) {
+    res.render("create-user-form");
+  }
+
+  async function createUser(req, res) {
+    userInfo = await services.createUser({ username: req.body.username });
+    res.redirect("/");
+  }
+
+  // TODO : Francisco & Dinis => Apenas competitions validas usar getCompetitionsWeb que ja tem as competitions validas
   async function listGroups(req, res) {
     const competitions = await services.getCompetitions();
-    const seasons = [];
-    for (let i = new Date().getFullYear(); i >= 2000; i--) {
-      seasons.push(i);
-    }
-    const groups = await services.getGroups(req.userId);
+
+    const currentYear = new Date().getFullYear();
+    const seasons = Array.from(
+      { length: currentYear - 1999 },
+      (_, i) => currentYear - i
+    );
+
+    const groups = await services.getGroups({ userId: req.userId });
     res.render("groups", { groups, competitions, seasons });
   }
+
   async function showGroup(req, res) {
-    const groupId = req.params.groupId;
-    const group = await services.getGroup({ userId: req.userId, groupId });
+    const group = await services.getGroup({
+      userId: req.userId,
+      groupId: req.params.groupId,
+    });
     res.render("group-detail", { group });
   }
-  async function showCreateGroupForm(req, res) {
+
+  async function createGroup(req, res) {
     await services.createGroup({
       userId: req.userId,
       name: req.body.name,
@@ -67,37 +84,35 @@ export function initWebSite({ services, dto, errors, utils }) {
     });
     res.redirect("/groups");
   }
-  async function postCreateGroup(req, res) {
-    /* TODO : Fransisco & Dinis */
-  }
 
-  async function showDeleteGroupForm(req, res) {
+  async function deleteGroup(req, res) {
     await services.deleteGroup({
       userId: req.userId,
-      groupId: req.body.groupId,
+      groupId: req.params.groupId, // from URL
     });
     res.redirect("/groups");
   }
 
-  async function showUpdateGroupForm(req, res) {
+  async function updateGroup(req, res) {
     await services.updateGroup({
       userId: req.userId,
-      groupId: req.body.groupId,
-      changes: {
-        name: req.body.name,
-        description: req.body.description,
-      },
+      groupId: req.params.groupId, // from URL
+      changes: { name: req.body.name, description: req.body.description },
     });
     res.redirect("/groups");
   }
 
   async function showPlayers(req, res) {
-    const groupId = req.params.groupId;
-    const group = await services.getGroup({ userId: req.userId, groupId });
+    const group = await services.getGroup({
+      userId: req.userId,
+      groupId: req.params.groupId,
+    });
+
     const teams = await services.getTeams({
       code: group.competition,
       season: group.year,
     });
+
     res.render("addPlayers", { group, teams });
   }
 
@@ -116,6 +131,7 @@ export function initWebSite({ services, dto, errors, utils }) {
         age: req.body.playerAge,
       },
     });
+
     res.redirect(`/groups/${req.params.groupId}/players`);
   }
 
@@ -128,21 +144,9 @@ export function initWebSite({ services, dto, errors, utils }) {
     res.redirect(`/groups/${req.params.groupId}`);
   }
 
-  async function showCreateUserForm(req, res) {
-    res.render("create-user-form");
-  }
-
-  async function createUser(req, res) {
-    const username = req.body.username;
-    userInfo = await services.createUser(username);
-    res.redirect("/");
-  }
-
   const router = express.Router();
 
   router.get(ROUTES.HOME, home);
-
-  //Rotas Públicas
   router.get(ROUTES.COMPETITIONS, listCompetitions);
   router.get(ROUTES.TEAMS, listTeams);
 
@@ -155,12 +159,14 @@ export function initWebSite({ services, dto, errors, utils }) {
   // Rotas Privadas
   router.get(ROUTES.GROUPS, listGroups);
   router.get(ROUTES.GROUP, showGroup);
-  router.post(ROUTES.GROUPS, showCreateGroupForm);
-  router.post(ROUTES.GROUP_UPDATE, showUpdateGroupForm); // PUT
-  router.post(ROUTES.GROUP, showDeleteGroupForm); // DELETE
+
+  router.post(ROUTES.GROUPS, createGroup);
+  router.post(ROUTES.GROUP_UPDATE, updateGroup);
+  router.post(ROUTES.GROUP, deleteGroup);
+
   router.get(ROUTES.GROUP_PLAYERS, showPlayers);
   router.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
-  router.post(ROUTES.GROUP_PLAYER, deletePlayerFromGroup); // DELETE
+  router.post(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
 
   return router;
 }

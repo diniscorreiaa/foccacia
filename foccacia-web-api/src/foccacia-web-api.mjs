@@ -1,3 +1,5 @@
+import { initDto } from "./foccacia-dto.mjs";
+
 import express from "express";
 
 // TODO : Francisco => Fazer Routes dinâmicas
@@ -11,13 +13,11 @@ const ROUTES = {
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
 
-// TODO : TIAGO => Verificar as calls a funções async que nao estao a usar await
-// TODO : ALL => Refatorar para evitar duplicação de código, melhorar e modular
 const wrapAsync = (fn) => (request, response, next) =>
   Promise.resolve(fn(request, response, next)).catch(next);
 
-async function getToken(request) {
-  const auth = await request.get("Authorization");
+function getToken(request) {
+  const auth = request.get("Authorization");
   if (!auth) return "";
 
   const [type, value] = auth.split(" ");
@@ -25,7 +25,9 @@ async function getToken(request) {
   return value;
 }
 
-export function initWebApi({ services, dto, errors, utils }) {
+export function initWebApi({ services, errors, utils }) {
+  const dto = initDto();
+
   async function genericApiRoute(
     request,
     response,
@@ -42,16 +44,16 @@ export function initWebApi({ services, dto, errors, utils }) {
     response.json(transformObj(obj));
   }
 
-  // TODO : ALL => Em modular ainda mais as funcoes para evitar duplicacao de codigo, os middlewares, etc, podem ser chamados no return para nao contaminar visualmente as funcoes
   const verifyToken = wrapAsync(async (request, response, next) => {
-    const token = await getToken(request);
+    const token = getToken(request);
     if (!token) {
       throw errors.UNAUTHORIZED("Missing or invalid Bearer token");
     }
 
-    const userId = await services.getUserIdFromToken(token);
+    const userId = await services.getUserIdFromToken({ token });
     request.token = token;
     request.userId = userId;
+
     utils.logInfo(
       `Request authorized for user ${userId} ${request.method} ${request.path}`,
       ""
@@ -60,7 +62,6 @@ export function initWebApi({ services, dto, errors, utils }) {
     next();
   });
 
-  // TODO : Tiago => Sem get seasons
   const getCompetitions = wrapAsync((request, response) =>
     genericApiRoute(request, response, services.getCompetitions, {
       transformObj: (competitions) => competitions.map(dto.competitionToDto),
@@ -81,13 +82,13 @@ export function initWebApi({ services, dto, errors, utils }) {
 
   const createUser = wrapAsync(async (request, response) => {
     const username = request.body?.username;
-    const user = await services.createUser(username);
+    const user = await services.createUser({ username });
     return response.status(201).json(dto.userToDto(user));
   });
 
   const getGroups = wrapAsync((request, response) =>
     genericApiRoute(request, response, services.getGroups, {
-      servicesFuncArgs: [request.userId],
+      servicesFuncArgs: [{ userId: request.userId }],
       transformObj: (groups) => groups.map(dto.groupToDto),
     })
   );
@@ -113,9 +114,8 @@ export function initWebApi({ services, dto, errors, utils }) {
     })
   );
 
-  const updateGroup = wrapAsync((request, response) => {
-    const { name, description } = request.body ?? {};
-    return genericApiRoute(request, response, services.updateGroup, {
+  const updateGroup = wrapAsync((request, response) =>
+    genericApiRoute(request, response, services.updateGroup, {
       servicesFuncArgs: [
         {
           userId: request.userId,
@@ -124,8 +124,8 @@ export function initWebApi({ services, dto, errors, utils }) {
         },
       ],
       transformObj: dto.groupToDto,
-    });
-  });
+    })
+  );
 
   const deleteGroup = wrapAsync(async (request, response) => {
     const result = await services.deleteGroup({

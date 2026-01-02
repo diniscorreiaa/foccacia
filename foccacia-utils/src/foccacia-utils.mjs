@@ -1,4 +1,12 @@
-export function initUtils({ logUtils, ioUtils, jsonUtils }) {
+import { initLogUtils } from "./log-utils.mjs";
+import { initIoUtils } from "./io-utils.mjs";
+import { initJsonUtils } from "./json-utils.mjs";
+
+export function initUtils() {
+  const logUtils = initLogUtils();
+  const ioUtils = initIoUtils();
+  const jsonUtils = initJsonUtils({ ioUtils });
+
   const { logInfo, logSuccess, logError } = logUtils;
 
   const {
