@@ -29,8 +29,14 @@ export function initWebApi({ services, errors, utils }) {
     request,
     response,
     servicesFunc,
-    { transformObj = (obj) => obj, servicesFuncArgs = {} } = {}
+    {
+      transformObj = (obj) => obj,
+      servicesFuncArgs = {},
+      statusCode = 200,
+    } = {}
   ) {
+    if (statusCode < 200 || statusCode > 299)
+      console.log("TEMP: Status code inválido.");
     const obj = await servicesFunc(servicesFuncArgs);
     const size = Array.isArray(obj) ? obj.length : 1;
 
@@ -38,7 +44,7 @@ export function initWebApi({ services, errors, utils }) {
       `API: responding with ${size} item(s) for path ${request.path}`,
       ""
     );
-    response.json(transformObj(obj));
+    response.status(statusCode).json(transformObj(obj));
   }
 
   const verifyToken = async (request, response, next) => {
@@ -73,11 +79,12 @@ export function initWebApi({ services, errors, utils }) {
       transformObj: (teamsArr) => teamsArr.map(dto.teamToDto),
     });
 
-  const createUser = async (request, response) => {
-    const username = request.body?.username;
-    const user = await services.createUser({ username });
-    return response.status(201).json(dto.userToDto(user));
-  };
+  const createUser = async (request, response) =>
+    await genericApiRoute(request, response, services.createUser, {
+      servicesFuncArgs: { username: request.body?.username },
+      statusCode: 201,
+      transformObj: (user) => dto.userToDto(user),
+    });
 
   const getGroups = async (request, response) =>
     genericApiRoute(request, response, services.getGroups, {
@@ -85,17 +92,18 @@ export function initWebApi({ services, errors, utils }) {
       transformObj: (groups) => groups.map(dto.groupToDto),
     });
 
-  const createGroup = async (request, response) => {
-    const { name, description, competition, year } = request.body ?? {};
-    const group = await services.createGroup({
-      userId: request.userId,
-      name,
-      description,
-      competition,
-      year,
+  const createGroup = async (request, response) =>
+    await genericApiRoute(request, response, services.createGroup, {
+      servicesFuncArgs: {
+        userId: request.userId,
+        name: request.body.name,
+        description: request.body.description,
+        competition: request.body.competition,
+        year: request.body.year,
+      },
+      transformObj: (group) => dto.groupToDto(group),
+      statusCode: 201,
     });
-    return response.status(201).json(dto.groupToDto(group));
-  };
 
   const getGroup = async (request, response) =>
     genericApiRoute(request, response, services.getGroup, {
@@ -116,16 +124,14 @@ export function initWebApi({ services, errors, utils }) {
       transformObj: dto.groupToDto,
     });
 
-  const deleteGroup = async (request, response) => {
-    const result = await services.deleteGroup({
-      userId: request.userId,
-      groupId: request.params.groupId,
+  const deleteGroup = async (request, response) =>
+    genericApiRoute(request, response, services.deleteGroup, {
+      servicesFuncArgs: {
+        userId: request.userId,
+        groupId: request.params.groupId,
+      },
+      statusCode: 204,
     });
-    if (!result) {
-      throw errors.UNEXPECTED("Unexpected internal error");
-    }
-    return response.sendStatus(204);
-  };
 
   const addPlayerToGroup = async (request, response) =>
     genericApiRoute(request, response, services.addPlayerToGroup, {
