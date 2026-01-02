@@ -58,7 +58,7 @@ export function initWebSite({ services, errors }) {
 
     const currentYear = new Date().getFullYear();
     const seasons = Array.from(
-      { length: currentYear - 1999 },
+      { length: currentYear - 2022 },
       (_, i) => currentYear - i
     );
 
