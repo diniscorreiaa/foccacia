@@ -2,10 +2,19 @@ export function initSendApplicationError({ ERROR_CODES, logError }) {
   function sendApplicationError(err, req, res, next) {
     if (!err || typeof err.code !== "number") {
       logError(`Unhandled error for ${req.method} ${req.path}`, err);
-      return res.status(500).json({
-        uri: req.path,
-        description: "Internal server error",
-      });
+
+      const status = 500;
+
+      if (req.path.startsWith("/api")) {
+        return res.status(status).json({
+          uri: req.path,
+          description: "Internal server error",
+        });
+      }
+
+      return res
+        .status(status)
+        .render("http-errors", { status, message: "Internal server error" });
     }
 
     let status;

@@ -136,20 +136,34 @@ ___
 ```mermaid
 
 flowchart TD
-    Server["foccacia-server"] --> Resolver["foccacia-module-resolver"]
+%% Client
+    browser["WebClient (Browser)"] -->|HTTP| server["foccacia-server"]
 
-    Resolver --> WebApi["foccacia-web-api"]
-    Resolver --> WebSite["foccacia-web-site"]
-    Resolver --> Services["foccacia-services"]
+%% Node app
+    subgraph app["FOCCACIA Node App (ESM)"]
+        server --> resolver["foccacia-module-resolver\n(composition root)"]
 
-    Services --> Fapi["fapi-teams-data"]
-    Services --> Data["foccacia-db<br/>data-elastic"]
+        resolver --> webapi["foccacia-web-api\nJSON routes"]
+        resolver --> website["foccacia-web-site\nSSR Handlebars"]
+        resolver --> services["foccacia-services\nDomain logic"]
 
-    Fapi --> Domain["foccacia-domain-model"]
-    Data --> Domain
+        resolver --> fapi["fapi-teams-data\nfetch + file cache"]
+        resolver --> db["foccacia-db\nElastic via HTTP fetch"]
 
-    Resolver --> Utils["foccacia-utils"]
-    Resolver --> Errors["foccacia-errors"]
+        resolver --> utils["foccacia-utils"]
+        resolver --> errors["foccacia-errors"]
+        resolver --> domain["foccacia-domain-model"]
+    end
+
+%% Module dependencies (runtime)
+    webapi --> services
+    website --> services
+    services --> fapi
+    services --> db
+
+%% External systems
+    fapi -->|HTTP| football["Football Data API"]
+    db -->|HTTP| elastic["ElasticSearch"]
 
 
 

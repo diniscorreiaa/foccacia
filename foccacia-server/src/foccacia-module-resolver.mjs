@@ -1,6 +1,6 @@
 import errorsLib, { ERROR_CODES } from "foccacia-errors";
 
-import { initUtils } from "foccacia-utils/src/foccacia-utils.mjs";
+import { initUtils } from "foccacia-utils";
 
 import { initFapiTeams } from "fapi-teams-data";
 import { initDomainModel } from "foccacia-domain-model";
