@@ -9,7 +9,7 @@ export function initDataMem({ domainModel, utils }) {
   // USERS
   // TODO : Tiago => read persisted users from file on startup
   // TODO : PROFESSOR SIM! => Confirmar sendo o writeJson async todo depende dele tambem deve ser async?
-  async function createUser(username) {
+  async function createUser({ username }) {
     if (!username) {
       return Promise.resolve(null);
     }
@@ -21,7 +21,7 @@ export function initDataMem({ domainModel, utils }) {
     return Promise.resolve(user);
   }
 
-  async function getUserByToken(token) {
+  async function getUserByToken({ token }) {
     if (!token) {
       return Promise.resolve(null);
     }
@@ -50,7 +50,7 @@ export function initDataMem({ domainModel, utils }) {
     return Promise.resolve(group);
   }
 
-  async function listGroups(userId) {
+  async function listGroups({ userId }) {
     if (!userId) {
       return Promise.resolve(null);
     }
@@ -58,18 +58,18 @@ export function initDataMem({ domainModel, utils }) {
   }
 
   // TODO : Tiago => persist group changes on file
-  async function updateGroup({ groupId, changes }) {
-    if (!groupId || !changes) return Promise.resolve(null);
+  async function updateGroup({ groupId, name, description }) {
+    if (!groupId || !name || !description) return Promise.resolve(null);
     const group = groups.find((group) => group.id === groupId);
     if (!group) {
       return Promise.resolve(null);
     }
 
-    if (utils.isString(changes.name)) {
-      group.name = changes.name;
+    if (utils.isString(name)) {
+      group.name = name;
     }
-    if (utils.isString(changes.description)) {
-      group.description = changes.description;
+    if (utils.isString(description)) {
+      group.description = description;
     }
 
     return Promise.resolve(group);
@@ -84,7 +84,7 @@ export function initDataMem({ domainModel, utils }) {
     return Promise.resolve(true);
   }
 
-  async function getGroup(groupId) {
+  async function getGroup({ groupId }) {
     if (!groupId) {
       return Promise.resolve(null);
     }
@@ -99,7 +99,7 @@ export function initDataMem({ domainModel, utils }) {
     if (!groupId || !player) {
       return Promise.resolve(null);
     }
-    const group = await getGroup(groupId);
+    const group = await getGroup({ groupId });
     if (!group) {
       return Promise.resolve(null);
     }
@@ -112,7 +112,7 @@ export function initDataMem({ domainModel, utils }) {
   async function deletePlayerFromGroup({ groupId, playerId }) {
     if (!groupId || !playerId) return Promise.resolve(false);
 
-    const group = await getGroup(groupId);
+    const group = await getGroup({ groupId });
     if (!group) return Promise.resolve(false);
 
     const idx = group.players.findIndex((player) => player.id === playerId);
