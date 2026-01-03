@@ -1,6 +1,6 @@
 import { initDto } from "./foccacia-dto.mjs";
 
-import express from "express";
+import express, { request } from "express";
 
 // TODO : Francisco => Fazer Routes dinâmicas
 const ROUTES = {
@@ -12,6 +12,119 @@ const ROUTES = {
   GROUP_PLAYERS: "/groups/:groupId/players",
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
+
+function apiRoutesParams(services) {
+  return new Map([
+    [
+      "getCompetitions",
+      (request, dto) => ({
+        servicesFunc: services.getCompetitions,
+        transformObj: (competitions) => competitions.map(dto.competitionToDto),
+      }),
+    ],
+    [
+      "getTeams",
+      (request, dto) => ({
+        servicesFunc: services.getTeams,
+        servicesFuncArgs: {
+          code: request.params.competitionCode,
+          season: request.params.seasonYear,
+        },
+        transformObj: (teamsArr) => teamsArr.map(dto.teamToDto),
+      }),
+    ],
+    [
+      "createUser",
+      (request, dto) => ({
+        servicesFunc: services.createUser,
+        servicesFuncArgs: { username: request.body?.username },
+        statusCode: 201,
+        transformObj: dto.userToDto,
+      }),
+    ],
+    [
+      "getGroups",
+      (request, dto) => ({
+        servicesFunc: services.getGroups,
+        servicesFuncArgs: { userId: request.userId },
+        transformObj: (groups) => groups.map(dto.groupToDto),
+      }),
+    ],
+    [
+      "createGroup",
+      (request, dto) => ({
+        servicesFunc: services.createGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          name: request.body.name,
+          description: request.body.description,
+          competition: request.body.competition,
+          year: request.body.year,
+        },
+        transformObj: dto.groupToDto,
+        statusCode: 201,
+      }),
+    ],
+    [
+      "getGroup",
+      (request, dto) => ({
+        servicesFunc: services.getGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          groupId: request.params.groupId,
+        },
+        transformObj: dto.groupToDto,
+      }),
+    ],
+    [
+      "updateGroup",
+      (request, dto) => ({
+        servicesFunc: services.updateGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          groupId: request.params.groupId,
+          changes: request.body,
+        },
+        transformObj: dto.groupToDto,
+      }),
+    ],
+    [
+      "deleteGroup",
+      (request) => ({
+        servicesFunc: services.deleteGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          groupId: request.params.groupId,
+        },
+        statusCode: 204,
+      }),
+    ],
+    [
+      "addPlayerToGroup",
+      (request, dto) => ({
+        servicesFunc: services.addPlayerToGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          groupId: request.params.groupId,
+          playerData: request.body,
+        },
+        transformObj: dto.playerToGroupDto,
+      }),
+    ],
+    [
+      "deletePlayerFromGroup",
+      (request) => ({
+        servicesFunc: services.deletePlayerFromGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          groupId: request.params.groupId,
+          playerId: request.params.playerId,
+        },
+        statusCode: 204,
+      }),
+    ],
+  ]);
+}
 
 function getToken(request) {
   const auth = request.get("Authorization");
@@ -65,122 +178,32 @@ export function initWebApi({ services, errors, utils }) {
     next();
   };
 
-  const getCompetitions = async (request, response) =>
-    await genericApiRoute(request, response, {
-      servicesFunc: services.getCompetitions,
-      transformObj: (competitions) => competitions.map(dto.competitionToDto),
-    });
-
-  const getTeams = async (request, response) =>
-    await genericApiRoute(request, response, {
-      servicesFunc: services.getTeams,
-      servicesFuncArgs: {
-        code: request.params.competitionCode,
-        season: request.params.seasonYear,
-      },
-      transformObj: (teamsArr) => teamsArr.map(dto.teamToDto),
-    });
-
-  const createUser = async (request, response) =>
-    await genericApiRoute(request, response, {
-      servicesFunc: services.createUser,
-      servicesFuncArgs: { username: request.body?.username },
-      statusCode: 201,
-      transformObj: dto.userToDto,
-    });
-
-  const getGroups = async (request, response) =>
-    await genericApiRoute(request, response, {
-      servicesFunc: services.getGroups,
-      servicesFuncArgs: { userId: request.userId },
-      transformObj: (groups) => groups.map(dto.groupToDto),
-    });
-
-  const createGroup = async (request, response) =>
-    await genericApiRoute(request, response, {
-      servicesFunc: services.createGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        name: request.body.name,
-        description: request.body.description,
-        competition: request.body.competition,
-        year: request.body.year,
-      },
-      transformObj: dto.groupToDto,
-      statusCode: 201,
-    });
-
-  const getGroup = async (request, response) =>
-    await genericApiRoute(request, response, {
-      servicesFunc: services.getGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        groupId: request.params.groupId,
-      },
-      transformObj: dto.groupToDto,
-    });
-
-  const updateGroup = async (request, response) =>
-    await genericApiRoute(request, response, {
-      servicesFunc: services.updateGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        groupId: request.params.groupId,
-        changes: request.body,
-      },
-      transformObj: dto.groupToDto,
-    });
-
-  const deleteGroup = async (request, response) =>
-    await genericApiRoute(request, response, {
-      servicesFunc: services.deleteGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        groupId: request.params.groupId,
-      },
-      statusCode: 204,
-    });
-
-  const addPlayerToGroup = async (request, response) =>
-    await genericApiRoute(request, response, {
-      servicesFunc: services.addPlayerToGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        groupId: request.params.groupId,
-        playerData: request.body,
-      },
-      transformObj: dto.playerToGroupDto,
-    });
-
-  const deletePlayerFromGroup = async (request, response) =>
-    await genericApiRoute(request, response, {
-      servicesFunc: services.deletePlayerFromGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        groupId: request.params.groupId,
-        playerId: request.params.playerId,
-      },
-      statusCode: 204,
-    });
+  const apiRoutes = {};
+  for (const [key, value] of apiRoutesParams(services)) {
+    apiRoutes[key] = async function (request, response) {
+      const obj = value(request, dto);
+      await genericApiRoute(request, response, obj);
+    };
+  }
 
   const router = express.Router();
 
   //Rotas Públicas
-  router.get(ROUTES.COMPETITIONS, getCompetitions);
-  router.get(ROUTES.TEAMS, getTeams);
-  router.post(ROUTES.USERS, createUser);
+  router.get(ROUTES.COMPETITIONS, apiRoutes.getCompetitions);
+  router.get(ROUTES.TEAMS, apiRoutes.getTeams);
+  router.post(ROUTES.USERS, apiRoutes.createUser);
 
   // Middleware de Autenticação
   router.use(verifyToken);
 
   // Rotas Privadas
-  router.get(ROUTES.GROUPS, getGroups);
-  router.get(ROUTES.GROUP, getGroup);
-  router.post(ROUTES.GROUPS, createGroup);
-  router.put(ROUTES.GROUP, updateGroup);
-  router.delete(ROUTES.GROUP, deleteGroup);
-  router.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
-  router.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
+  router.get(ROUTES.GROUPS, apiRoutes.getGroups);
+  router.get(ROUTES.GROUP, apiRoutes.getGroup);
+  router.post(ROUTES.GROUPS, apiRoutes.createGroup);
+  router.put(ROUTES.GROUP, apiRoutes.updateGroup);
+  router.delete(ROUTES.GROUP, apiRoutes.deleteGroup);
+  router.post(ROUTES.GROUP_PLAYERS, apiRoutes.addPlayerToGroup);
+  router.delete(ROUTES.GROUP_PLAYER, apiRoutes.deletePlayerFromGroup);
 
   return router;
 }
