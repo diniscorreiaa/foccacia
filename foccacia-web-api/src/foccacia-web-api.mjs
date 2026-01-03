@@ -13,89 +13,6 @@ const ROUTES = {
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
 
-function apiRoutesParams(services) {
-  return {
-    getCompetitions: (request, dto) => ({
-      servicesFunc: services.getCompetitions,
-      transformObj: (competitions) => competitions.map(dto.competitionToDto),
-    }),
-    getTeams: (request, dto) => ({
-      servicesFunc: services.getTeams,
-      servicesFuncArgs: {
-        code: request.params.competitionCode,
-        season: request.params.seasonYear,
-      },
-      transformObj: (teamsArr) => teamsArr.map(dto.teamToDto),
-    }),
-    createUser: (request, dto) => ({
-      servicesFunc: services.createUser,
-      servicesFuncArgs: { username: request.body?.username },
-      statusCode: 201,
-      transformObj: dto.userToDto,
-    }),
-    getGroups: (request, dto) => ({
-      servicesFunc: services.getGroups,
-      servicesFuncArgs: { userId: request.userId },
-      transformObj: (groups) => groups.map(dto.groupToDto),
-    }),
-    createGroup: (request, dto) => ({
-      servicesFunc: services.createGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        name: request.body.name,
-        description: request.body.description,
-        competition: request.body.competition,
-        year: request.body.year,
-      },
-      transformObj: dto.groupToDto,
-      statusCode: 201,
-    }),
-    getGroup: (request, dto) => ({
-      servicesFunc: services.getGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        groupId: request.params.groupId,
-      },
-      transformObj: dto.groupToDto,
-    }),
-    updateGroup: (request, dto) => ({
-      servicesFunc: services.updateGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        groupId: request.params.groupId,
-        changes: request.body,
-      },
-      transformObj: dto.groupToDto,
-    }),
-    deleteGroup: (request) => ({
-      servicesFunc: services.deleteGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        groupId: request.params.groupId,
-      },
-      statusCode: 204,
-    }),
-    addPlayerToGroup: (request, dto) => ({
-      servicesFunc: services.addPlayerToGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        groupId: request.params.groupId,
-        playerData: request.body,
-      },
-      transformObj: dto.playerToGroupDto,
-    }),
-    deletePlayerFromGroup: (request) => ({
-      servicesFunc: services.deletePlayerFromGroup,
-      servicesFuncArgs: {
-        userId: request.userId,
-        groupId: request.params.groupId,
-        playerId: request.params.playerId,
-      },
-      statusCode: 204,
-    }),
-  };
-}
-
 function getToken(request) {
   const auth = request.get("Authorization");
   if (!auth) return "";
@@ -107,6 +24,89 @@ function getToken(request) {
 
 export function initWebApi({ services, errors, utils }) {
   const dto = initDto();
+
+  function apiRoutesParams() {
+    return {
+      getCompetitions: () => ({
+        servicesFunc: services.getCompetitions,
+        transformObj: (competitions) => competitions.map(dto.competitionToDto),
+      }),
+      getTeams: (request) => ({
+        servicesFunc: services.getTeams,
+        servicesFuncArgs: {
+          code: request.params.competitionCode,
+          season: request.params.seasonYear,
+        },
+        transformObj: (teamsArr) => teamsArr.map(dto.teamToDto),
+      }),
+      createUser: (request) => ({
+        servicesFunc: services.createUser,
+        servicesFuncArgs: { username: request.body?.username },
+        statusCode: 201,
+        transformObj: dto.userToDto,
+      }),
+      getGroups: (request) => ({
+        servicesFunc: services.getGroups,
+        servicesFuncArgs: { userId: request.userId },
+        transformObj: (groups) => groups.map(dto.groupToDto),
+      }),
+      createGroup: (request) => ({
+        servicesFunc: services.createGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          name: request.body.name,
+          description: request.body.description,
+          competition: request.body.competition,
+          year: request.body.year,
+        },
+        transformObj: dto.groupToDto,
+        statusCode: 201,
+      }),
+      getGroup: (request) => ({
+        servicesFunc: services.getGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          groupId: request.params.groupId,
+        },
+        transformObj: dto.groupToDto,
+      }),
+      updateGroup: (request) => ({
+        servicesFunc: services.updateGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          groupId: request.params.groupId,
+          changes: request.body,
+        },
+        transformObj: dto.groupToDto,
+      }),
+      deleteGroup: (request) => ({
+        servicesFunc: services.deleteGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          groupId: request.params.groupId,
+        },
+        statusCode: 204,
+      }),
+      addPlayerToGroup: (request) => ({
+        servicesFunc: services.addPlayerToGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          groupId: request.params.groupId,
+          playerData: request.body,
+        },
+        transformObj: dto.playerToGroupDto,
+      }),
+      deletePlayerFromGroup: (request) => ({
+        servicesFunc: services.deletePlayerFromGroup,
+        servicesFuncArgs: {
+          userId: request.userId,
+          groupId: request.params.groupId,
+          playerId: request.params.playerId,
+        },
+        statusCode: 204,
+      }),
+    };
+  }
 
   async function genericApiRoute(
     request,
