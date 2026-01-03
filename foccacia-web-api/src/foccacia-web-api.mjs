@@ -28,8 +28,8 @@ export function initWebApi({ services, errors, utils }) {
   async function genericApiRoute(
     request,
     response,
-    servicesFunc,
     {
+      servicesFunc,
       transformObj = (obj) => obj,
       servicesFuncArgs = {},
       statusCode = 200,
@@ -66,12 +66,14 @@ export function initWebApi({ services, errors, utils }) {
   };
 
   const getCompetitions = async (request, response) =>
-    await genericApiRoute(request, response, services.getCompetitions, {
+    await genericApiRoute(request, response, {
+      servicesFunc: services.getCompetitions,
       transformObj: (competitions) => competitions.map(dto.competitionToDto),
     });
 
   const getTeams = async (request, response) =>
-    await genericApiRoute(request, response, services.getTeams, {
+    await genericApiRoute(request, response, {
+      servicesFunc: services.getTeams,
       servicesFuncArgs: {
         code: request.params.competitionCode,
         season: request.params.seasonYear,
@@ -80,20 +82,23 @@ export function initWebApi({ services, errors, utils }) {
     });
 
   const createUser = async (request, response) =>
-    await genericApiRoute(request, response, services.createUser, {
+    await genericApiRoute(request, response, {
+      servicesFunc: services.createUser,
       servicesFuncArgs: { username: request.body?.username },
       statusCode: 201,
-      transformObj: (user) => dto.userToDto(user),
+      transformObj: dto.userToDto,
     });
 
   const getGroups = async (request, response) =>
-    await genericApiRoute(request, response, services.getGroups, {
+    await genericApiRoute(request, response, {
+      servicesFunc: services.getGroups,
       servicesFuncArgs: { userId: request.userId },
       transformObj: (groups) => groups.map(dto.groupToDto),
     });
 
   const createGroup = async (request, response) =>
-    await genericApiRoute(request, response, services.createGroup, {
+    await genericApiRoute(request, response, {
+      servicesFunc: services.createGroup,
       servicesFuncArgs: {
         userId: request.userId,
         name: request.body.name,
@@ -101,12 +106,13 @@ export function initWebApi({ services, errors, utils }) {
         competition: request.body.competition,
         year: request.body.year,
       },
-      transformObj: (group) => dto.groupToDto(group),
+      transformObj: dto.groupToDto,
       statusCode: 201,
     });
 
   const getGroup = async (request, response) =>
-    await genericApiRoute(request, response, services.getGroup, {
+    await genericApiRoute(request, response, {
+      servicesFunc: services.getGroup,
       servicesFuncArgs: {
         userId: request.userId,
         groupId: request.params.groupId,
@@ -115,7 +121,8 @@ export function initWebApi({ services, errors, utils }) {
     });
 
   const updateGroup = async (request, response) =>
-    await genericApiRoute(request, response, services.updateGroup, {
+    await genericApiRoute(request, response, {
+      servicesFunc: services.updateGroup,
       servicesFuncArgs: {
         userId: request.userId,
         groupId: request.params.groupId,
@@ -125,7 +132,8 @@ export function initWebApi({ services, errors, utils }) {
     });
 
   const deleteGroup = async (request, response) =>
-    await genericApiRoute(request, response, services.deleteGroup, {
+    await genericApiRoute(request, response, {
+      servicesFunc: services.deleteGroup,
       servicesFuncArgs: {
         userId: request.userId,
         groupId: request.params.groupId,
@@ -134,7 +142,8 @@ export function initWebApi({ services, errors, utils }) {
     });
 
   const addPlayerToGroup = async (request, response) =>
-    await genericApiRoute(request, response, services.addPlayerToGroup, {
+    await genericApiRoute(request, response, {
+      servicesFunc: services.addPlayerToGroup,
       servicesFuncArgs: {
         userId: request.userId,
         groupId: request.params.groupId,
@@ -144,7 +153,8 @@ export function initWebApi({ services, errors, utils }) {
     });
 
   const deletePlayerFromGroup = async (request, response) =>
-    await genericApiRoute(request, response, services.deletePlayerFromGroup, {
+    await genericApiRoute(request, response, {
+      servicesFunc: services.deletePlayerFromGroup,
       servicesFuncArgs: {
         userId: request.userId,
         groupId: request.params.groupId,
