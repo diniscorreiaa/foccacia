@@ -1,7 +1,11 @@
 const FOOTBALL_API_URI = "https://api.football-data.org/v4";
+const MIN_SEASON_YEAR = 2023;
 
 export function initFapiTeams({ domainModel, utils }) {
   let cachedHeaders = null;
+
+  const isRateLimit = (x) => x === false;
+  const isMissing = (x) => x == null;
 
   async function loadAuthHeaders() {
     if (cachedHeaders) return cachedHeaders;
@@ -59,9 +63,7 @@ export function initFapiTeams({ domainModel, utils }) {
     const cacheExists = await utils.fileExists(cachePath);
 
     if (cacheExists) {
-      utils.logInfo(`Using cache for ${logContext} at ${cachePath}`, "");
       const cachedJson = await utils.readJson(cachePath);
-
       if (cachedJson) return parse(cachedJson);
 
       utils.logError(
@@ -70,16 +72,20 @@ export function initFapiTeams({ domainModel, utils }) {
       );
     }
 
-    utils.logInfo(`Fetching ${logContext} from Football Data API`, "");
+    utils.logInfo(
+      `Cache miss -> fetching ${logContext} from Football Data API`,
+      ""
+    );
+
     const apiJson = await fetchJsonFromApi({ url, logContext });
-    if (apiJson === false) return false;
-    if (apiJson == null) return null;
+    if (isRateLimit(apiJson)) return false;
+    if (isMissing(apiJson)) return null;
 
     const parsedValue = parse(apiJson);
-    if (parsedValue == null) return null;
+    if (isMissing(parsedValue)) return null;
 
     const cacheJson = buildCache(parsedValue, apiJson);
-    if (cacheJson == null) return null;
+    if (isMissing(cacheJson)) return null;
 
     const saved = await utils.writeJson({
       data: cacheJson,
@@ -120,7 +126,7 @@ export function initFapiTeams({ domainModel, utils }) {
   }
 
   function toCompetitionDomain(rawCompetition) {
-    const seasons = Array.isArray(rawCompetition.seasons)
+    const seasons = Array.isArray(rawCompetition?.seasons)
       ? rawCompetition.seasons
       : [];
     return new domainModel.Competition(
@@ -132,8 +138,8 @@ export function initFapiTeams({ domainModel, utils }) {
 
   async function getCompetitions() {
     const raw = await fetchCompetitionsRaw();
-    if (raw === false) return false;
-    if (raw == null) return null;
+    if (isRateLimit(raw)) return false;
+    if (isMissing(raw)) return null;
 
     return raw.map(toCompetitionDomain);
   }
@@ -147,8 +153,7 @@ export function initFapiTeams({ domainModel, utils }) {
   }
 
   function uniqueDescending(years) {
-    const uniqueYears = [...new Set(years)];
-    return uniqueYears.sort((a, b) => b - a);
+    return [...new Set(years)].sort((a, b) => b - a);
   }
 
   function parseSeasonsYears(payload) {
@@ -161,7 +166,7 @@ export function initFapiTeams({ domainModel, utils }) {
 
         return utils.getYearFromDate(season?.startDate);
       })
-      .filter((year) => year != null && year > 2022); // free-tier
+      .filter((year) => year != null && year >= MIN_SEASON_YEAR);
 
     return uniqueDescending(years);
   }
@@ -185,7 +190,7 @@ export function initFapiTeams({ domainModel, utils }) {
     if (!code) return null;
 
     const raw = await fetchSeasonsYearsRaw(code);
-    if (raw === false) return false;
+    if (isRateLimit(raw)) return false;
     if (!raw) return null;
 
     return raw;
@@ -245,7 +250,7 @@ export function initFapiTeams({ domainModel, utils }) {
     if (!code || !season) return null;
 
     const teamsRaw = await fetchCompetitionTeamsRaw({ code, season });
-    if (teamsRaw === false) return false;
+    if (isRateLimit(teamsRaw)) return false;
     if (!teamsRaw) return null;
 
     return teamsRaw.map(toTeamDomain);
@@ -274,7 +279,7 @@ export function initFapiTeams({ domainModel, utils }) {
       code: competition,
       season: year,
     });
-    if (teamsRaw === false) return false;
+    if (isRateLimit(teamsRaw)) return false;
     if (!Array.isArray(teamsRaw) || teamsRaw.length === 0) return null;
 
     const team = teamsRaw.find(

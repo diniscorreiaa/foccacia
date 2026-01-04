@@ -57,10 +57,8 @@ export function initWebSite({ services, errors }) {
     const competitions = await services.getCompetitions();
 
     const currentYear = new Date().getFullYear();
-    const seasons = Array.from(
-      { length: currentYear - 1999 },
-      (_, i) => currentYear - i
-    );
+    const seasons = [];
+    for (let year = 2023; year <= currentYear; year++) seasons.push(year);
 
     const groups = await services.getGroups({ userId: req.userId });
     res.render("groups", { groups, competitions, seasons });
