@@ -255,7 +255,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
 
     const players = group.players ?? [];
 
-    if (players.some((p) => utils.areSameId(p.id, playerId))) {
+    if (players.some((player) => utils.areSameId(player.id, playerId))) {
       throw errors.UNPROCESSABLE("Player is already in this group");
     }
 
