@@ -37,7 +37,7 @@ export function initWebApi({ services, errors, utils }) {
         code: request.params.competitionCode,
         season: request.params.seasonYear,
       },
-      dtoApply: (teamsArr) => teamsArr.map(dto.teamToDto),
+      dtoApply: (teams) => teams.map(dto.teamToDto),
     }),
     createUser: (request) => ({
       servicesFunction: services.createUser,
@@ -117,9 +117,15 @@ export function initWebApi({ services, errors, utils }) {
       statusCode = DEFAULT_ROUTE_STATUS_CODE,
     } = {}
   ) {
-    if (statusCode < 200 || statusCode > 299) throw errors.serverError;
+    if (statusCode < 200 || statusCode > 299)
+      throw errors.NOT_IMPLEMENTED("Not Implemented");
 
     const servicesReturn = await servicesFunction(parametersToServicesFunction);
+
+    if (statusCode === 204) {
+      return response.status(204).end();
+    }
+
     const size = Array.isArray(servicesReturn) ? servicesReturn.length : 1;
 
     utils.logInfo(

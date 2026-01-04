@@ -13,6 +13,7 @@ export const ERROR_CODES = {
   BadGateway: 7,
   IO_Error: 8,
   Unexpected: 9,
+  Not_Implemented: 10,
 };
 
 export default {
@@ -39,4 +40,7 @@ export default {
 
   UNEXPECTED: (message) =>
     new ApplicationError(ERROR_CODES.Unexpected, message),
+
+  NOT_IMPLEMENTED: (message) =>
+    new ApplicationError(ERROR_CODES.Not_Implemented, message),
 };

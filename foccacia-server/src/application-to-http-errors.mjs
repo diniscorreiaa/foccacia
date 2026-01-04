@@ -31,6 +31,9 @@ export function initSendApplicationError({ ERROR_CODES, logError }) {
       case ERROR_CODES.BadGateway:
         status = 502;
         break;
+      case ERROR_CODES.Not_Implemented:
+        status = 501;
+        break;
       default:
         status = 500;
     }
