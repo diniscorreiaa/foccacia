@@ -36,7 +36,7 @@ export function initDataMem({ domainModel, utils }) {
       return Promise.resolve(null);
     }
     const group = new domainModel.Group({
-      id: nextGroupId++,
+      id: String(nextGroupId++),
       userId,
       name,
       description,
