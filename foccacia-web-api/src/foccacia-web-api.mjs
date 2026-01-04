@@ -2,7 +2,6 @@ import { initDto } from "./foccacia-dto.mjs";
 
 import express from "express";
 
-// TODO : Francisco => Fazer Routes dinâmicas
 const ROUTES = {
   COMPETITIONS: "/competitions",
   TEAMS: "/competitions/:competitionCode/seasons/:seasonYear/teams",
@@ -13,8 +12,7 @@ const ROUTES = {
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
 
-const wrapAsync = (fn) => (request, response, next) =>
-  Promise.resolve(fn(request, response, next)).catch(next);
+const DEFAULT_ROUTE_STATUS_CODE = 200;
 
 function getToken(request) {
   const auth = request.get("Authorization");
@@ -28,23 +26,110 @@ function getToken(request) {
 export function initWebApi({ services, errors, utils }) {
   const dto = initDto();
 
+  const routesConfig = {
+    getCompetitions: () => ({
+      servicesFunction: services.getCompetitions,
+      dtoApply: (competitions) => competitions.map(dto.competitionToDto),
+    }),
+    getTeams: (request) => ({
+      servicesFunction: services.getTeams,
+      parametersToServicesFunction: {
+        code: request.params.competitionCode,
+        season: request.params.seasonYear,
+      },
+      dtoApply: (teamsArr) => teamsArr.map(dto.teamToDto),
+    }),
+    createUser: (request) => ({
+      servicesFunction: services.createUser,
+      parametersToServicesFunction: { username: request.body?.username },
+      statusCode: 201,
+      dtoApply: dto.userToDto,
+    }),
+    getGroups: (request) => ({
+      servicesFunction: services.getGroups,
+      parametersToServicesFunction: { userId: request.userId },
+      dtoApply: (groups) => groups.map(dto.groupToDto),
+    }),
+    createGroup: (request) => ({
+      servicesFunction: services.createGroup,
+      parametersToServicesFunction: {
+        userId: request.userId,
+        name: request.body.name,
+        description: request.body.description,
+        competition: request.body.competition,
+        year: request.body.year,
+      },
+      dtoApply: dto.groupToDto,
+      statusCode: 201,
+    }),
+    getGroup: (request) => ({
+      servicesFunction: services.getGroup,
+      parametersToServicesFunction: {
+        userId: request.userId,
+        groupId: request.params.groupId,
+      },
+      dtoApply: dto.groupToDto,
+    }),
+    updateGroup: (request) => ({
+      servicesFunction: services.updateGroup,
+      parametersToServicesFunction: {
+        userId: request.userId,
+        groupId: request.params.groupId,
+        changes: request.body,
+      },
+      dtoApply: dto.groupToDto,
+    }),
+    deleteGroup: (request) => ({
+      servicesFunction: services.deleteGroup,
+      parametersToServicesFunction: {
+        userId: request.userId,
+        groupId: request.params.groupId,
+      },
+      statusCode: 204,
+    }),
+    addPlayerToGroup: (request) => ({
+      servicesFunction: services.addPlayerToGroup,
+      parametersToServicesFunction: {
+        userId: request.userId,
+        groupId: request.params.groupId,
+        playerData: request.body,
+      },
+      dtoApply: dto.playerToGroupDto,
+    }),
+    deletePlayerFromGroup: (request) => ({
+      servicesFunction: services.deletePlayerFromGroup,
+      parametersToServicesFunction: {
+        userId: request.userId,
+        groupId: request.params.groupId,
+        playerId: request.params.playerId,
+      },
+      statusCode: 204,
+    }),
+  };
+
   async function genericApiRoute(
     request,
     response,
-    servicesFunc,
-    { transformObj = (obj) => obj, servicesFuncArgs = [] } = {}
+    {
+      servicesFunction,
+      dtoApply = (servicesFunctionReturn) => servicesFunctionReturn,
+      parametersToServicesFunction = {},
+      statusCode = DEFAULT_ROUTE_STATUS_CODE,
+    } = {}
   ) {
-    const obj = await servicesFunc(...servicesFuncArgs);
-    const size = Array.isArray(obj) ? obj.length : 1;
+    if (statusCode < 200 || statusCode > 299) throw errors.serverError;
+
+    const servicesReturn = await servicesFunction(parametersToServicesFunction);
+    const size = Array.isArray(servicesReturn) ? servicesReturn.length : 1;
 
     utils.logInfo(
       `API: responding with ${size} item(s) for path ${request.path}`,
       ""
     );
-    response.json(transformObj(obj));
+    response.status(statusCode).json(dtoApply(servicesReturn));
   }
 
-  const verifyToken = wrapAsync(async (request, response, next) => {
+  const verifyToken = async (request, response, next) => {
     const token = getToken(request);
     if (!token) {
       throw errors.UNAUTHORIZED("Missing or invalid Bearer token");
@@ -60,127 +145,34 @@ export function initWebApi({ services, errors, utils }) {
     );
 
     next();
-  });
+  };
 
-  const getCompetitions = wrapAsync((request, response) =>
-    genericApiRoute(request, response, services.getCompetitions, {
-      transformObj: (competitions) => competitions.map(dto.competitionToDto),
-    })
-  );
-
-  const getTeams = wrapAsync((request, response) =>
-    genericApiRoute(request, response, services.getTeams, {
-      servicesFuncArgs: [
-        {
-          code: request.params.competitionCode,
-          season: request.params.seasonYear,
-        },
-      ],
-      transformObj: (teamsArr) => teamsArr.map(dto.teamToDto),
-    })
-  );
-
-  const createUser = wrapAsync(async (request, response) => {
-    const username = request.body?.username;
-    const user = await services.createUser({ username });
-    return response.status(201).json(dto.userToDto(user));
-  });
-
-  const getGroups = wrapAsync((request, response) =>
-    genericApiRoute(request, response, services.getGroups, {
-      servicesFuncArgs: [{ userId: request.userId }],
-      transformObj: (groups) => groups.map(dto.groupToDto),
-    })
-  );
-
-  const createGroup = wrapAsync(async (request, response) => {
-    const { name, description, competition, year } = request.body ?? {};
-    const group = await services.createGroup({
-      userId: request.userId,
-      name,
-      description,
-      competition,
-      year,
-    });
-    return response.status(201).json(dto.groupToDto(group));
-  });
-
-  const getGroup = wrapAsync((request, response) =>
-    genericApiRoute(request, response, services.getGroup, {
-      servicesFuncArgs: [
-        { userId: request.userId, groupId: request.params.groupId },
-      ],
-      transformObj: dto.groupToDto,
-    })
-  );
-
-  const updateGroup = wrapAsync((request, response) =>
-    genericApiRoute(request, response, services.updateGroup, {
-      servicesFuncArgs: [
-        {
-          userId: request.userId,
-          groupId: request.params.groupId,
-          changes: request.body,
-        },
-      ],
-      transformObj: dto.groupToDto,
-    })
-  );
-
-  const deleteGroup = wrapAsync(async (request, response) => {
-    const result = await services.deleteGroup({
-      userId: request.userId,
-      groupId: request.params.groupId,
-    });
-    if (!result) {
-      throw errors.UNEXPECTED("Unexpected internal error");
-    }
-    return response.sendStatus(204);
-  });
-
-  const addPlayerToGroup = wrapAsync((request, response) =>
-    genericApiRoute(request, response, services.addPlayerToGroup, {
-      servicesFuncArgs: [
-        {
-          userId: request.userId,
-          groupId: request.params.groupId,
-          playerData: request.body,
-        },
-      ],
-      transformObj: dto.playerToGroupDto,
-    })
-  );
-
-  const deletePlayerFromGroup = wrapAsync(async (request, response) => {
-    const result = await services.deletePlayerFromGroup({
-      userId: request.userId,
-      groupId: request.params.groupId,
-      playerId: request.params.playerId,
-    });
-    if (!result) {
-      throw errors.UNEXPECTED("Unexpected internal error");
-    }
-    return response.sendStatus(204);
-  });
+  const routesCallbacks = {};
+  for (const [methodName, getObjParams] of Object.entries(routesConfig)) {
+    routesCallbacks[methodName] = async function (request, response) {
+      const objParams = getObjParams(request);
+      await genericApiRoute(request, response, objParams);
+    };
+  }
 
   const router = express.Router();
 
-  //Rotas Públicas
-  router.get(ROUTES.COMPETITIONS, getCompetitions);
-  router.get(ROUTES.TEAMS, getTeams);
-  router.post(ROUTES.USERS, createUser);
+  // Rotas Públicas
+  router.get(ROUTES.COMPETITIONS, routesCallbacks.getCompetitions);
+  router.get(ROUTES.TEAMS, routesCallbacks.getTeams);
+  router.post(ROUTES.USERS, routesCallbacks.createUser);
 
   // Middleware de Autenticação
   router.use(verifyToken);
 
   // Rotas Privadas
-  router.get(ROUTES.GROUPS, getGroups);
-  router.get(ROUTES.GROUP, getGroup);
-  router.post(ROUTES.GROUPS, createGroup);
-  router.put(ROUTES.GROUP, updateGroup);
-  router.delete(ROUTES.GROUP, deleteGroup);
-  router.post(ROUTES.GROUP_PLAYERS, addPlayerToGroup);
-  router.delete(ROUTES.GROUP_PLAYER, deletePlayerFromGroup);
+  router.get(ROUTES.GROUPS, routesCallbacks.getGroups);
+  router.get(ROUTES.GROUP, routesCallbacks.getGroup);
+  router.post(ROUTES.GROUPS, routesCallbacks.createGroup);
+  router.put(ROUTES.GROUP, routesCallbacks.updateGroup);
+  router.delete(ROUTES.GROUP, routesCallbacks.deleteGroup);
+  router.post(ROUTES.GROUP_PLAYERS, routesCallbacks.addPlayerToGroup);
+  router.delete(ROUTES.GROUP_PLAYER, routesCallbacks.deletePlayerFromGroup);
 
   return router;
 }
