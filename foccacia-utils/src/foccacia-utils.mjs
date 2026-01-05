@@ -19,6 +19,7 @@ export function initUtils() {
     getViewsDirPath,
     getSeasonsYearsFilePath,
     getCompetitionsWebFilePath,
+    getCodesImagesDirPath,
   } = ioUtils;
 
   const { readJson, writeJson } = jsonUtils;
@@ -113,5 +114,6 @@ export function initUtils() {
     toYear,
     getSeasonsYearsFilePath,
     getCompetitionsWebFilePath,
+    getCodesImagesDirPath,
   };
 }

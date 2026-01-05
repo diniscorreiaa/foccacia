@@ -52,13 +52,15 @@ app.use(
   })
 );
 
-app.use(passport.session());
 app.use(passport.initialize());
+app.use(passport.session());
 
 // Registering handlebars view engine
 app.engine(".hbs", engine({ extname: ".hbs" }));
 app.set("view engine", ".hbs");
 app.set("views", viewsPath);
+
+app.use("/codes", express.static(utils.getCodesImagesDirPath()));
 
 app.use("/api", apiRouter);
 app.use(siteRouter);

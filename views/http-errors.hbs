@@ -4,8 +4,24 @@
         <div>{{message}}</div>
     </div>
 
-    <a class="btn btn-outline-secondary" href="/">Back to Home</a>
-    {{#if user}}
-        <a class="btn btn-primary" href="/groups">Go to Groups</a>
-    {{/if}}
+    <div class="row g-3 align-items-start">
+        <div class="col-md-6">
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary" href="/">Back to Home</a>
+                {{#if user}}
+                    <a class="btn btn-primary" href="/groups">Go to Groups</a>
+                {{/if}}
+            </div>
+        </div>
+
+        <div class="col-md-6 text-center">
+            {{#if imageUrl}}
+                <img
+                        src="{{imageUrl}}"
+                        alt="Error {{status}}"
+                        class="img-fluid rounded border"
+                >
+            {{/if}}
+        </div>
+    </div>
 </section>
