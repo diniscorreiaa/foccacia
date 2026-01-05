@@ -1,1 +1,18 @@
-<h1>HOME FOCCACIA</h1>
+<h1>FOCCACIA</h1>
+
+<ul>
+    <li><a href="/competitions">Competitions</a></li>
+    <li><a href="/groups">Groups</a> (requires login)</li>
+    <li><a href="/register">Register</a></li>
+    <li><a href="/login">Login</a></li>
+</ul>
+
+{{#if user}}
+    <p>Logged in as: <b>{{user.username}}</b></p>
+
+    <form method="post" action="/logout">
+        <input type="submit" value="Logout">
+    </form>
+{{else}}
+    <p>Not logged in.</p>
+{{/if}}

@@ -2,9 +2,16 @@ import express from "express";
 
 const ROUTES = {
   HOME: "/",
+
+  REGISTER: "/register",
+  LOGIN: "/login",
+  LOGOUT: "/logout",
+
   COMPETITIONS: "/competitions",
   TEAMS: "/competitions/:competitionCode/seasons/:seasonYear/teams",
+
   USERS: "/users",
+
   GROUPS: "/groups",
   GROUP: "/groups/:groupId",
   GROUP_UPDATE: "/groups/:groupId/update",
@@ -12,19 +19,26 @@ const ROUTES = {
   GROUP_PLAYER: "/groups/:groupId/players/:playerId",
 };
 
-export function initWebSite({ services, errors }) {
-  let userInfo = {};
+export function initWebSite({ services }) {
+  function isAuthenticated(req) {
+    if (typeof req.isAuthenticated === "function") return req.isAuthenticated();
+    return !!req.user;
+  }
 
-  function insertToken(req, res, next) {
-    if (!userInfo?.id || !userInfo?.token || !userInfo?.username) {
-      throw errors.UNAUTHORIZED(
-        "You must create a user before using this page"
-      );
-    }
-    req.userId = userInfo.id;
-    req.token = userInfo.token;
+  function redirectIfAuthenticated(req, res, next) {
+    if (isAuthenticated(req)) return res.redirect(ROUTES.GROUPS);
     next();
   }
+
+  function requireAuth(req, res, next) {
+    if (!isAuthenticated(req) || !req.user?.id)
+      return res.redirect(ROUTES.LOGIN);
+
+    req.userId = req.user.id;
+    next();
+  }
+
+  // ---------- PUBLIC ----------
 
   async function home(req, res) {
     res.render("home");
@@ -43,16 +57,49 @@ export function initWebSite({ services, errors }) {
     res.render("teams", { teams });
   }
 
-  async function showCreateUserForm(req, res) {
-    res.render("create-user-form");
+  // ---------- AUTH (SSR) ----------
+
+  async function showRegisterForm(req, res) {
+    res.render("register");
   }
 
-  async function createUser(req, res) {
-    userInfo = await services.createUser({ username: req.body.username });
-    res.redirect("/");
+  async function register(req, res, next) {
+    const user = await services.registerUser({
+      username: req.body.username,
+      password: req.body.password,
+    });
+
+    req.login(user, (err) => {
+      if (err) return next(err);
+      res.redirect(ROUTES.GROUPS);
+    });
   }
 
-  // TODO : Francisco & Dinis => Apenas competitions validas usar getCompetitionsWeb que ja tem as competitions validas
+  async function showLoginForm(req, res) {
+    res.render("login");
+  }
+
+  async function login(req, res, next) {
+    const user = await services.validateCredentials({
+      username: req.body.username,
+      password: req.body.password,
+    });
+
+    req.login(user, (err) => {
+      if (err) return next(err);
+      res.redirect(ROUTES.GROUPS);
+    });
+  }
+
+  async function logout(req, res, next) {
+    req.logout((err) => {
+      if (err) return next(err);
+      res.redirect(ROUTES.HOME);
+    });
+  }
+
+  // ---------- GROUPS (SSR, session-protected) ----------
+
   async function listGroups(req, res) {
     const competitions = await services.getCompetitions();
 
@@ -80,24 +127,24 @@ export function initWebSite({ services, errors }) {
       competition: req.body.competitions,
       year: req.body.seasons,
     });
-    res.redirect("/groups");
+    res.redirect(ROUTES.GROUPS);
   }
 
   async function deleteGroup(req, res) {
     await services.deleteGroup({
       userId: req.userId,
-      groupId: req.params.groupId, // from URL
+      groupId: req.params.groupId,
     });
-    res.redirect("/groups");
+    res.redirect(ROUTES.GROUPS);
   }
 
   async function updateGroup(req, res) {
     await services.updateGroup({
       userId: req.userId,
-      groupId: req.params.groupId, // from URL
+      groupId: req.params.groupId,
       changes: { name: req.body.name, description: req.body.description },
     });
-    res.redirect("/groups");
+    res.redirect(ROUTES.GROUPS);
   }
 
   async function showPlayers(req, res) {
@@ -144,17 +191,31 @@ export function initWebSite({ services, errors }) {
 
   const router = express.Router();
 
+  // Public routes
+
   router.get(ROUTES.HOME, home);
   router.get(ROUTES.COMPETITIONS, listCompetitions);
   router.get(ROUTES.TEAMS, listTeams);
 
-  router.get(ROUTES.USERS, showCreateUserForm);
-  router.post(ROUTES.USERS, createUser);
+  // Auth routes
 
-  // Middleware de Autenticação
-  router.use(insertToken);
+  router.get(ROUTES.REGISTER, redirectIfAuthenticated, showRegisterForm);
+  router.post(ROUTES.REGISTER, redirectIfAuthenticated, register);
 
-  // Rotas Privadas
+  router.get(ROUTES.LOGIN, redirectIfAuthenticated, showLoginForm);
+  router.post(ROUTES.LOGIN, redirectIfAuthenticated, login);
+
+  router.post(ROUTES.LOGOUT, logout);
+
+  // Legacy redirect (P2)
+
+  router.get(ROUTES.USERS, (req, res) => res.redirect(ROUTES.REGISTER));
+  router.post(ROUTES.USERS, (req, res) => res.redirect(ROUTES.REGISTER));
+
+  // Private routes (require authentication)
+
+  router.use(ROUTES.GROUPS, requireAuth);
+
   router.get(ROUTES.GROUPS, listGroups);
   router.get(ROUTES.GROUP, showGroup);
 
