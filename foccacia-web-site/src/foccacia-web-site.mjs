@@ -105,14 +105,32 @@ export function initWebSite({ services }) {
   // ---------- GROUPS (SSR, session-protected) ----------
 
   async function listGroups(req, res) {
-    const competitions = await services.getCompetitions();
+    const competitionsRaw = await services.getCompetitions();
 
-    const currentYear = new Date().getFullYear();
-    const seasons = [];
-    for (let year = 2023; year <= currentYear; year++) seasons.push(year);
+    const selectedCompetition =
+      (req.query?.competition && String(req.query.competition)) ||
+      (competitionsRaw[0] ? competitionsRaw[0].code : null);
+
+    const seasons =
+      selectedCompetition != null
+        ? await services.getSeasonYears({ code: selectedCompetition })
+        : [];
+
+    const competitions = competitionsRaw.map((competition) => ({
+      code: competition.code,
+      name: competition.name,
+      selected:
+        selectedCompetition != null && competition.code === selectedCompetition,
+    }));
 
     const groups = await services.getGroups({ userId: req.userId });
-    renderView(req, res, "groups", { groups, competitions, seasons });
+
+    res.render("groups", {
+      groups,
+      competitions,
+      seasons,
+      selectedCompetition,
+    });
   }
 
   async function showGroup(req, res) {
@@ -157,12 +175,36 @@ export function initWebSite({ services }) {
       groupId: req.params.groupId,
     });
 
-    const teams = await services.getTeams({
+    const allTeams = await services.getTeams({
       code: group.competition,
       season: group.year,
     });
 
-    renderView(req, res, "addPlayers", { group, teams });
+    const requestedTeamId = req.query.teamId ? String(req.query.teamId) : null;
+
+    const defaultTeamId = allTeams.length > 0 ? String(allTeams[0].id) : null;
+
+    const selectedTeamId = requestedTeamId ?? defaultTeamId;
+
+    const selectedTeam =
+      selectedTeamId != null
+        ? allTeams.find((team) => String(team.id) === selectedTeamId) ?? null
+        : null;
+
+    const teamOptions = allTeams.map((team) => ({
+      id: team.id,
+      name: team.teamName,
+      selected:
+        selectedTeamId != null && String(team.id) === String(selectedTeamId),
+    }));
+
+    const teams = selectedTeam ? [selectedTeam] : [];
+
+    renderView(req, res, "addPlayers", {
+      group,
+      teamOptions,
+      teams,
+    });
   }
 
   async function addPlayerToGroup(req, res) {

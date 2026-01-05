@@ -371,6 +371,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     getCompetitions,
     getTeams,
     getCompetitionsWeb,
+    getSeasonYears,
     getUserIdFromToken,
     createUser,
     registerUser,

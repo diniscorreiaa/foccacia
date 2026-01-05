@@ -13,6 +13,20 @@
             <a class="btn btn-outline-secondary btn-sm" href="/groups/{{id}}">Back to Group</a>
         </div>
     {{/with}}
+
+    <hr class="my-3">
+
+    <form method="get" action="/groups/{{group.id}}/players" class="d-flex gap-2 align-items-center">
+        <label class="form-label m-0">Team</label>
+
+        <select class="form-select" name="teamId" required>
+            {{#each teamOptions}}
+                <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>
+            {{/each}}
+        </select>
+
+        <button type="submit" class="btn btn-primary btn-sm">Load</button>
+    </form>
 </section>
 
 {{#each teams}}
@@ -63,4 +77,8 @@
             <div class="alert alert-info mb-0">No players available for this team.</div>
         {{/if}}
     </section>
+{{else}}
+    <div class="alert alert-info">
+        No team selected (or no teams available).
+    </div>
 {{/each}}
