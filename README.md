@@ -16,13 +16,13 @@ ___
 
 ## Foccacia
 
-Projeto multi-modulos em Node.js (ESM) - documentação curta para instalação, testes e cobertura.
+Projeto multi-modulos em Node.js - documentação curta para instalação, testes e cobertura.
 
 ### Estrutura verificada
 - `foccacia-server` (Express entrypoint + configuração)
 - `foccacia-module-resolver` (composition root / DI)
 - `foccacia-web-api` (API JSON)
-- `foccacia-web-site` (SSR Handlebars + forms)
+- `foccacia-web-site` (Handlebars + forms)
 - `foccacia-services` (lógica + validações)
 - `foccacia-domain-model` (entidades internas)
 - `fapi-teams-data` (Football Data API via fetch + cache)
@@ -30,7 +30,7 @@ Projeto multi-modulos em Node.js (ESM) - documentação curta para instalação,
 - `foccacia-data-mem` (standby / compatibilidade)
 - `foccacia-errors` (erros tipados)
 - `foccacia-utils` (helpers / logging / IO)
-- 
+
 ### Requisitos
 - Node.js >= 18
 - npm >= 9
@@ -53,12 +53,12 @@ Com o conteúdo:
 ```
 
 ### 2) ElasticSearch (Docker)
-Subir:
+Run:
 ```sh
 npm run docker:up
 ```
 
-Parar:
+Stop:
 ```sh
 npm run docker:down
 ```
@@ -83,7 +83,8 @@ npm start
 ```
 
 - Website: `http://localhost:1904/`
-- API: `http://localhost:1904/api/...`
+- API: `http://localhost:1904/api/`
+- ElasticSearch: `http://localhost:9200/`
 
 ---
 
@@ -215,83 +216,189 @@ flowchart TB
 
 ---
 
-# TODO (P3)
+# TODO
 
-## Auth real (Passport + sessão)
-- [ ] Implementar sessões (express-session + FileStore) no `foccacia-server`.
-- [ ] Inicializar Passport corretamente (initialize + session).
-- [ ] `serializeUser`: guardar `userId`.
-- [ ] `deserializeUser`: carregar user pelo `userId` (via services) e expor subset seguro em `req.user`.
+## Documentacao:
+- [ ] Atualizar OpenAPI: `groupId` como string + exemplos de erros (401/403/422/429)
+- [ ] Documentar no OpenAPI que a API aceita Bearer e/ou sessao (cookie) durante transicao
 
-## Users (Elastic + services)
-- [ ] Guardar credenciais no utilizador (hash + salt) no Elastic.
-- [ ] Garantir `username` único.
-- [ ] Data provider (`foccacia-db`):
-    - [ ] `getUserByUsername(username)`
-    - [ ] `getUserById(id)`
-- [ ] Services:
-    - [ ] `registerUser({ username, password })`
-    - [ ] `validateCredentials({ username, password })`
-    - [ ] `getUserSafeById(id)` (para `deserializeUser`)
-- [ ] (Opcional transição) Manter Bearer token na API até remover completamente.
+## Runbook e dados:
+- [ ] Explicitar reset total:
+    - `npm run docker:down:clean` (apaga ES)
+    - apagar `sessions/` (logout total)
+    - opcional: apagar `docs/output/football-api-cache/` (refaz cache)
+- [ ] (opcional) seed de demo: 2 users + 1 grupo + 1-2 players
 
-## SSR flows
-- [ ] GET/POST `/register` (form)
-- [ ] GET/POST `/login` (form)
-- [ ] POST `/logout`
-- [ ] Proteger `/groups*` com `requireAuth` (redirect -> `/login`).
-- [ ] Remover “user global” no SSR (usar sempre `req.user.id`).
-
-## API protegida
-- [ ] Todas as rotas `/api/groups*` só com auth:
-    - [ ] sessão (cookie) e/ou (opcional) Bearer durante transição
-    - [ ] `401` quando não autenticado
-- [ ] Garantir owner-only em todas as operações (listar/ver/criar/editar/apagar/add/remove players).
-
-## OpenAPI + .http
-- [ ] `groupId` como string (Elastic `_id`).
-- [ ] Alinhar status codes (ex.: deletes 204).
-- [ ] Documentar autenticação (cookie session + bearer se aplicável).
-- [ ] Atualizar `docs/foccacia-api-requests.http` com fluxos de login.
-
-## Testes
-- [ ] Remover boilerplate “hello world”.
-- [ ] Unit tests do `foccacia-services` com mocks (`db`, `fapiTeams`).
-- [ ] (Opcional) integração com supertest (login + cookie + rotas protegidas).
-
-## Standby / compatibilidade
-- [ ] `foccacia-data-mem`: alinhar assinaturas e retornos com o contrato do data-elastic.
+## Qualidade:
+- [ ] Unit tests nos services com mocks (data, fapiTeams) 
+- [ ] (opcional) testes de integracao com supertest 
 
 ---
 
-## Wiki/Relatório (para ires já avançando)
+## Wiki/Relatório
 
-### Estrutura da aplicação
-- [ ] Descrever módulos (1–2 linhas cada).
-- [ ] Colocar o diagrama Mermaid da arquitetura (acima).
-- [ ] Explicar fluxos SSR: register/login/logout + groups.
+Sugestao de estrutura (curta, alinhada com o enunciado):
 
-### ElasticSearch (desenho e dados)
-- [ ] Índices usados (ex.: `foccacia-users`, `foccacia-groups`).
-- [ ] Campos por documento (users e groups).
-- [ ] Relação: `group.ownerId -> user.id`.
+1) Visao geral
+    - API JSON + Website SSR
+    - Node ESM, Express, Handlebars, Passport, ElasticSearch
 
-### Mapping ES ↔ Domain model
-- [ ] Explicar como `User` e `Group` são persistidos (campos e conversões).
-- [ ] Explicar players em group como “snapshot” (id/nome/equipa/posição/etc).
+2) Estrutura da aplicacao
+    - 1-2 linhas por modulo (secao "Estrutura do projeto")
+    - diagramas Mermaid (secao "Arquitetura")
 
-### Server API + Auth
-- [ ] Referir OpenAPI.
-- [ ] Explicar como autenticar (cookie session; e Bearer só se mantiveres transição).
+3) Armazenamento (ElasticSearch)
+    - indices: `foccacia-users`, `foccacia-groups`
+    - propriedades dos documentos (exemplos JSON)
+    - relacao: `group.ownerId -> userId`
 
-### Runbook (< 5 min)
-- [ ] Pré-requisitos (Node/Docker).
-- [ ] `npm install`
-- [ ] `npm run docker:up`
-- [ ] criar `docs/input/headers.json`
-- [ ] `npm start`
-- [ ] `npm run test:all`
-- [ ] (TODO) seed automático de dados de teste
+4) Mapping ES <-> Domain model
+    - `User` e `Group` mapeados 1:1 (campos principais)
+    - `players` guardados como snapshot (nao normalizado)
+
+5) Autenticacao e autorizacao
+    - SSR: sessoes (Passport + express-session + FileStore)
+    - API: sessao ou Bearer token (transicao)
+    - owner-only: enforced nos services em todas as operacoes
+
+6) API documentation
+    - OpenAPI + `.http`
+
+7) Como executar e testar
+    - runbook < 5 min
+    - smoke tests SSR + sequencia `.http`
+
+
+### Autenticacao
+
+#### SSR (Passport + sessao)
+
+Rotas:
+- `GET /register` + `POST /register`
+- `GET /login` + `POST /login`
+- `POST /logout`
+- Tudo em `/groups` exige autenticacao (redirect para `/login`)
+
+A sessao e guardada em ficheiros (session-file-store) na pasta `sessions/`.
+
+#### API (sessao ou Bearer token)
+
+As rotas privadas em `/api/groups` aceitam:
+1) Cookie de sessao (se fizeres login no Website e depois chamares `/api/` no browser), ou
+2) Bearer token, obtido via `POST /api/users`.
+
+---
+
+### Armazenamento (ElasticSearch)
+
+Indices (criados automaticamente no arranque):
+- `foccacia-users`
+- `foccacia-groups`
+
+#### Documentos
+
+User (`foccacia-users/_doc/<id>`):
+
+```json
+{
+  "username": "grupo1",
+  "password": "123",
+  "token": "uuid..."
+}
+```
+
+Group (`foccacia-groups/_doc/<id>`):
+
+```json
+{
+  "ownerId": "<userId>",
+  "name": "Melhores da Primeira Liga",
+  "description": "Onze ideal da Primeira Liga 2025",
+  "competition": "PPL",
+  "year": 2025,
+  "players": [
+    {
+      "id": 67299,
+      "playerName": "Vangelis Pavlidis",
+      "teamId": 1903,
+      "teamCode": "BEN",
+      "teamName": "SL Benfica",
+      "position": "Offence",
+      "nationality": "Greece",
+      "age": 27
+    }
+  ]
+}
+```
+
+Notas:
+- `groupId` e `userId` sao o `_id` do ElasticSearch (string).
+- players sao guardados como snapshot (campos principais quando foram adicionados).
+
+---
+
+### Cache Football Data API (rate limit)
+
+`fapi-teams-data` faz cache em ficheiros (para reduzir chamadas):
+- `docs/output/football-api-cache/competitions.json`
+- `docs/output/football-api-cache/competitions-<CODE>-seasons.json`
+- `docs/output/football-api-cache/competition-<CODE>-<YEAR>-teams.json`
+
+Quando a Football API devolve `429`, o service responde `429` (Too Many Requests)
+
+---
+
+### Erros (API vs Website)
+
+Existe um middleware central no server:
+- Para `/api/` -> JSON `{ uri, description }`
+- Para SSR -> `views/http-errors.hbs` + imagem por status code: `public/codes/<status>.jpg`
+
+---
+
+## Scripts uteis
+
+- `npm start` - arranca ES (se necessario) e inicia servidor
+- `npm run docker:up` / `docker:down` / `docker:down:clean`
+- `npm run test:all` - testes (quando forem relevantes)
+- `npm run coverage:all` - coverage (quando forem relevantes)
+
+## API endpoints
+
+Publicos:
+- `GET /api/competitions`
+- `GET /api/competitions/:competitionCode/seasons/:seasonYear/teams`
+- `POST /api/users` -> cria user e devolve `{ id, username, token }`
+
+Privados (auth: sessao ou Bearer token):
+- `GET /api/groups`
+- `POST /api/groups`
+- `GET /api/groups/:groupId`
+- `PUT /api/groups/:groupId`
+- `DELETE /api/groups/:groupId`
+- `POST /api/groups/:groupId/players`
+- `DELETE /api/groups/:groupId/players/:playerId`
+
+> Nota: `groupId` e o `_id` do ElasticSearch (string).
+
+## Website (SSR) - rotas principais
+
+Publicas:
+- `GET /` (Home)
+- `GET /competitions`
+- `GET /competitions/:competitionCode/seasons/:seasonYear/teams`
+- `GET/POST /register`
+- `GET/POST /login`
+
+Privadas (exigem login):
+- `GET /groups`
+- `GET /groups/:groupId`
+- `GET /groups/:groupId/players`
+- `POST /groups` (create)
+- `POST /groups/:groupId/update` (update)
+- `POST /groups/:groupId` (delete)
+- `POST /groups/:groupId/players` (add)
+- `POST /groups/:groupId/players/:playerId` (remove)
 
 ---
 
@@ -309,27 +416,3 @@ flowchart TB
   Foco em organização de módulos, dependências e alinhamento com o enunciado.
 
 ---
-
-### Fase 1 – Arquitetura e dependências (Tiago Névoa)
-
----
-
-### Fase 2 – Erros e autenticação (Dinis Correia)
-
----
-
-### Fase 3 – Refactor e regras de negócio (Francisco Mendes)
-
----
-
-### Fase 4 – Integração final e documentação
-
-1. Dev Tiago Névoa:
-    - 
-    - 
-2. Dev Dinis Correia:
-    - 
-    - 
-3. Dev Francisco Mendes:
-    - 
-    -
