@@ -7,8 +7,7 @@ export function initDataMem({ domainModel, utils }) {
     USERS_CACHE_PATH = utils.getUsersFilePath();
 
   // USERS
-  // TODO : Tiago => read persisted users from file on startup
-  // TODO : PROFESSOR SIM! => Confirmar sendo o writeJson async todo depende dele tambem deve ser async?
+
   async function createUser({ username }) {
     if (!username) {
       return null;
@@ -29,8 +28,7 @@ export function initDataMem({ domainModel, utils }) {
   }
 
   // GROUPS
-  // TODO : Tiago => Create groups persistence on file
-  // TODO : Tiago =>  read persisted groups from file on startup
+
   async function createGroup({ userId, name, description, competition, year }) {
     if (!userId || !name || !description || !competition || !year) {
       return null;
@@ -57,7 +55,6 @@ export function initDataMem({ domainModel, utils }) {
     return groups.filter((group) => group.ownerId === userId);
   }
 
-  // TODO : Tiago => persist group changes on file
   async function updateGroup({ groupId, name, description }) {
     if (!groupId || !name || !description) return null;
     const group = groups.find((group) => group.id === groupId);
@@ -75,7 +72,6 @@ export function initDataMem({ domainModel, utils }) {
     return group;
   }
 
-  // TODO : Tiago => persist group deletion on file
   async function deleteGroup({ groupId }) {
     if (!groupId) return false;
     const idx = groups.findIndex((group) => group.id === groupId);
@@ -92,7 +88,7 @@ export function initDataMem({ domainModel, utils }) {
   }
 
   // GROUP PLAYERS
-  // TODO : Tiago => persist group players changes on file
+
   async function addPlayerToGroup({ groupId, player }) {
     if (!groupId || !player) {
       return null;
@@ -107,7 +103,6 @@ export function initDataMem({ domainModel, utils }) {
     return player;
   }
 
-  // TODO : Tiago => persist group players changes on file
   async function deletePlayerFromGroup({ groupId, playerId }) {
     if (!groupId || !playerId) return false;
 

@@ -147,6 +147,11 @@ export function initServices({ data, fapiTeams, utils, errors }) {
       "Username must contain at least 3 characters"
     );
 
+    const existing = await data.getUserByUsername?.({
+      username: normalizedUsername,
+    });
+    if (existing) throw errors.UNPROCESSABLE("Username already exists");
+
     const user = await data.createUser({ username: normalizedUsername });
     if (!user) throw errors.UNEXPECTED("Unexpected error at user creation");
 
@@ -157,8 +162,68 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     return user;
   }
 
+  async function registerUser({ username, password }) {
+    const normalizedUsername = mustMinString(
+      username,
+      3,
+      "Username must contain at least 3 characters"
+    );
+
+    const normalizedPassword = mustMinString(
+      password,
+      3,
+      "Password must contain at least 3 characters"
+    );
+
+    const existing = await data.getUserByUsername({
+      username: normalizedUsername,
+    });
+    if (existing) throw errors.UNPROCESSABLE("Username already exists");
+
+    const user = await data.createUser({
+      username: normalizedUsername,
+      password: normalizedPassword,
+    });
+
+    if (!user) throw errors.UNEXPECTED("Unexpected error at user registration");
+
+    return { id: user.id, username: user.username };
+  }
+
+  async function validateCredentials({ username, password }) {
+    const normalizedUsername = utils.toTrimmedString(username);
+    const normalizedPassword = utils.toTrimmedString(password);
+
+    if (
+      !normalizedUsername ||
+      normalizedUsername.length < 3 ||
+      !normalizedPassword
+    ) {
+      throw errors.UNAUTHORIZED("Invalid username or password");
+    }
+
+    const user = await data.getUserByUsername({ username: normalizedUsername });
+    if (!user || user.password !== normalizedPassword) {
+      throw errors.UNAUTHORIZED("Invalid username or password");
+    }
+
+    return { id: user.id, username: user.username };
+  }
+
+  async function getUserSafeById({ id }) {
+    const uid = mustId(id, "Invalid user id");
+
+    const user = await data.getUserById({ id: uid });
+    if (!user) return null;
+
+    return { id: user.id, username: user.username };
+  }
+
   async function getGroups({ userId }) {
-    const uid = mustId(userId, "You must provide user Id for getting groups");
+    const uid = mustAuthUserId(
+      userId,
+      "You must authenticate yourself before getting groups"
+    );
 
     const groups = await data.listGroups({ userId: uid });
     if (!groups) throw errors.UNEXPECTED("Unexpected error at getting groups");
@@ -308,6 +373,9 @@ export function initServices({ data, fapiTeams, utils, errors }) {
     getCompetitionsWeb,
     getUserIdFromToken,
     createUser,
+    registerUser,
+    validateCredentials,
+    getUserSafeById,
     getGroups,
     createGroup,
     getGroup,

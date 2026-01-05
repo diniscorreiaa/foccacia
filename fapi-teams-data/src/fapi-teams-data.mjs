@@ -107,7 +107,10 @@ export function initFapiTeams({ domainModel, utils }) {
 
   function parseCompetitions(json) {
     const competitions = json?.competitions ?? json ?? [];
-    return competitions.map((c) => ({ code: c.code, name: c.name }));
+    return competitions.map((competition) => ({
+      code: competition.code,
+      name: competition.name,
+    }));
   }
 
   async function fetchCompetitionsRaw() {
