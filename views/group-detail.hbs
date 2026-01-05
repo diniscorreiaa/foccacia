@@ -1,35 +1,63 @@
 {{#with group}}
-<fieldset style="border: 5px solid #ccc; max-width: fit-content; margin: 50px">
-        <h1>{{name}}</h1>
-        <h5>{{description}}</h5>
-        <h6>Competition: {{competition}}</h6>
-        <h6>Season: {{year}}</h6>
-        <h6>Players:</h6>
-        <table class="table">
-            <tr>
-                <th>Name</th>
-                <th>Team</th>
-                <th>Position</th>
-                <th>Country</th>
-                <th>Age</th>
-            </tr>
-            {{#each players}}
-                <tr>
-                    <th>{{playerName}}</th>
-                    <th>{{teamName}}</th>
-                    <th>{{position}}</th>
-                    <th>{{nationality}}</th>
-                    <th>{{age}}</th>
-                    <th>
-                        <form action="/groups/{{../id}}/players/{{id}}" method="post">
-                            <input type="submit" value="Delete">
-                        </form>
-                    </th>
-                </tr>
-            {{/each}}
-        </table>
-</fieldset>
-<form action="/groups/{{id}}/players">
-    <input type="submit" value="Add Players">
-</form>
+    <section class="p-4 bg-light border rounded mb-4">
+        <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+                <h1 class="h4 mb-1">{{name}}</h1>
+                <p class="text-muted mb-2">{{description}}</p>
+
+                <div class="small text-muted">
+                    Competition: <strong>{{competition}}</strong>
+                    · Season: <strong>{{year}}</strong>
+                    · Players: <strong>{{players.length}}</strong>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary btn-sm" href="/groups">Back to Groups</a>
+                <a class="btn btn-primary btn-sm" href="/groups/{{id}}/players">Add Players</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="p-4 bg-light border rounded">
+        <h2 class="h5 mb-3">Players</h2>
+
+        {{#if players.length}}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Team</th>
+                        <th>Position</th>
+                        <th>Country</th>
+                        <th class="text-end">Age</th>
+                        <th class="text-end"></th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {{#each players}}
+                        <tr>
+                            <td>{{playerName}}</td>
+                            <td>{{teamName}}</td>
+                            <td>{{position}}</td>
+                            <td>{{nationality}}</td>
+                            <td class="text-end">{{age}}</td>
+                            <td class="text-end">
+                                <form method="post" action="/groups/{{../id}}/players/{{playerId}}" class="m-0">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        {{else}}
+            <div class="alert alert-info mb-0">
+                No players yet. Click “Add Players”.
+            </div>
+        {{/if}}
+    </section>
 {{/with}}

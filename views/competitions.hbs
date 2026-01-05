@@ -1,32 +1,58 @@
-<table class="table">
-    <tr>
-        <th>Name</th>
-        <th></th>
-    </tr>
-    {{#each competitions}}
-    <tr>
-        <th>{{name}}</th>
-        <th>
-            <label>Season:
-                <select name="season" class="select">
-                    {{#each seasons}}
-                        <option>{{this}}</option>
-                    {{/each}}
-                </select>
-            </label>
-            <a class="getTeamsRef" href="#" data-base-url="/competitions/{{code}}/seasons/" data-append-to-url="/teams">View Teams</a>
-        </th>
-    </tr>
-    {{/each}}
-</table>
+<section class="p-4 bg-light border rounded">
+    <h1 class="h4 mb-3">Competitions</h1>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th style="width: 360px;">Season</th>
+                <th class="text-end"></th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {{#each competitions}}
+                <tr>
+                    <td>{{name}}</td>
+
+                    <td>
+                        <form class="js-teams-form d-flex gap-2" data-code="{{code}}">
+                            <input
+                                    class="form-control"
+                                    type="number"
+                                    name="season"
+                                    placeholder="e.g. 2025"
+                                    min="2023"
+                                    max="2026"
+                                    required
+                            >
+                            <button type="submit" class="btn btn-primary btn-sm">View Teams</button>
+                        </form>
+                    </td>
+
+                    <td class="text-end text-muted small">
+                        Code: <strong>{{code}}</strong>
+                    </td>
+                </tr>
+            {{/each}}
+            </tbody>
+        </table>
+    </div>
+</section>
 
 <script>
-    [...document.getElementsByClassName("getTeamsRef")].forEach(
-            (node, idx) =>
-                node.onclick = () => {
-                    const availableOptions = document.getElementsByClassName("select")[idx]
-                    const selectedOptionValue = availableOptions.value
-                    node.href = node.dataset.baseUrl + selectedOptionValue + node.dataset.appendToUrl
-                }
-    )
+    document.addEventListener("submit", (e) => {
+        const form = e.target;
+        if (!form.classList || !form.classList.contains("js-teams-form")) return;
+
+        e.preventDefault();
+
+        const code = form.dataset.code;
+        const season = form.querySelector('input[name="season"]').value.trim();
+
+        if (!code || !season) return;
+
+        window.location.href = `/competitions/${code}/seasons/${encodeURIComponent(season)}/teams`;
+    });
 </script>

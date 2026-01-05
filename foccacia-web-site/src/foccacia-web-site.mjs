@@ -25,6 +25,10 @@ export function initWebSite({ services }) {
     return !!req.user;
   }
 
+  function renderView(req, res, view, model = {}) {
+    res.render(view, { ...model, user: req.user ?? null });
+  }
+
   function redirectIfAuthenticated(req, res, next) {
     if (isAuthenticated(req)) return res.redirect(ROUTES.GROUPS);
     next();
@@ -41,12 +45,12 @@ export function initWebSite({ services }) {
   // ---------- PUBLIC ----------
 
   async function home(req, res) {
-    res.render("home");
+    renderView(req, res, "home");
   }
 
   async function listCompetitions(req, res) {
     const competitions = await services.getCompetitionsWeb();
-    res.render("competitions", { competitions });
+    renderView(req, res, "competitions", { competitions });
   }
 
   async function listTeams(req, res) {
@@ -54,13 +58,13 @@ export function initWebSite({ services }) {
       code: req.params.competitionCode,
       season: req.params.seasonYear,
     });
-    res.render("teams", { teams });
+    renderView(req, res, "teams", { teams });
   }
 
   // ---------- AUTH (SSR) ----------
 
   async function showRegisterForm(req, res) {
-    res.render("register");
+    renderView(req, res, "register");
   }
 
   async function register(req, res, next) {
@@ -76,7 +80,7 @@ export function initWebSite({ services }) {
   }
 
   async function showLoginForm(req, res) {
-    res.render("login");
+    renderView(req, res, "login");
   }
 
   async function login(req, res, next) {
@@ -108,7 +112,7 @@ export function initWebSite({ services }) {
     for (let year = 2023; year <= currentYear; year++) seasons.push(year);
 
     const groups = await services.getGroups({ userId: req.userId });
-    res.render("groups", { groups, competitions, seasons });
+    renderView(req, res, "groups", { groups, competitions, seasons });
   }
 
   async function showGroup(req, res) {
@@ -116,7 +120,7 @@ export function initWebSite({ services }) {
       userId: req.userId,
       groupId: req.params.groupId,
     });
-    res.render("group-detail", { group });
+    renderView(req, res, "group-detail", { group });
   }
 
   async function createGroup(req, res) {
@@ -158,7 +162,7 @@ export function initWebSite({ services }) {
       season: group.year,
     });
 
-    res.render("addPlayers", { group, teams });
+    renderView(req, res, "addPlayers", { group, teams });
   }
 
   async function addPlayerToGroup(req, res) {
@@ -207,7 +211,7 @@ export function initWebSite({ services }) {
 
   router.post(ROUTES.LOGOUT, logout);
 
-  // Legacy redirect (P2)
+  // Legacy redirects for /users to /register
 
   router.get(ROUTES.USERS, (req, res) => res.redirect(ROUTES.REGISTER));
   router.post(ROUTES.USERS, (req, res) => res.redirect(ROUTES.REGISTER));

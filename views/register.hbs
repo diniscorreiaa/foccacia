@@ -1,18 +1,20 @@
-<h1>Register</h1>
+<section class="p-4 bg-light border rounded">
+    <h1 class="h4 mb-3">Register</h1>
 
-<form method="post" action="/register">
-    <p>
-        <label>Username:</label>
-        <input type="text" name="username" value="">
-    </p>
+    <form method="post" action="/register" class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label" for="username">Username</label>
+            <input id="username" class="form-control" type="text" name="username" required>
+        </div>
 
-    <p>
-        <label>Password:</label>
-        <input type="password" name="password" value="">
-    </p>
+        <div class="col-md-6">
+            <label class="form-label" for="password">Password</label>
+            <input id="password" class="form-control" type="password" name="password" required>
+        </div>
 
-    <input type="submit" value="Create account">
-</form>
-
-<p><a href="/login">Login</a></p>
-<p><a href="/">Home</a></p>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Create account</button>
+            <a class="btn btn-link" href="/login">Login</a>
+        </div>
+    </form>
+</section>

@@ -1,88 +1,88 @@
-<h1>Groups</h1>
-{{!--TODO: Move styles to a seperate .css file, inline css is not recommended --}}
-<fieldset style="border: 5px solid #020202; max-width: fit-content; margin: 50px">
-        <legend>Create Group</legend>
-        <form method="post">
-                <label>Name</label>
-                <input type="text" name="name"><br>
-                <label>Description</label><br>
-                <textarea name="description" rows="4" cols="50"></textarea><br>
-                <label>Competition</label>
-                <select name="competitions">
-                        {{#each competitions}}
-                                <option value="{{code}}">{{name}}</option>
-                        {{/each}}
-                </select><br>
-                <label>Season</label>
-                <select name="seasons">
-                        {{#each seasons}}
-                                <option>{{this}}</option>
-                        {{/each}}
-                </select><br>
-                <input type="submit" value ="Create group">
-        </form>
-</fieldset>
+<h1 class="h3 mb-4">Groups</h1>
+
+<section class="p-4 bg-light border rounded mb-4">
+    <h2 class="h5 mb-3">Create group</h2>
+
+    <form method="post" action="/groups" class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Name</label>
+            <input class="form-control" type="text" name="name" required>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Competition</label>
+            <select class="form-select" name="competitions" required>
+                {{#each competitions}}
+                    <option value="{{code}}">{{name}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" rows="3"></textarea>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Season</label>
+            <select class="form-select" name="seasons" required>
+                {{#each seasons}}
+                    <option value="{{this}}">{{this}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Create</button>
+        </div>
+    </form>
+</section>
+
+<h2 class="h5 mb-3">Your groups</h2>
+
 {{#each groups}}
-<fieldset style="border: 5px solid #ccc; max-width: fit-content; margin: 50px">
-        <legend class="name" contenteditable="true" data-actual-name="{{name}}">{{name}}</legend>
-        <p class="description" contenteditable="true" data-actual-description="{{description}}">{{description}}</p>
+    <section class="p-4 bg-light border rounded mb-3">
+        <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+                <h3 class="h5 mb-1">{{name}}</h3>
+                <p class="text-muted mb-2">{{description}}</p>
 
-        <form action="groups/{{id}}">
-                <input type="submit" value ="Check group details">
+                <div class="small text-muted">
+                    Competition: <strong>{{competition}}</strong>
+                    · Season: <strong>{{year}}</strong>
+                    · Players: <strong>{{players.length}}</strong>
+                </div>
+            </div>
+
+            <a class="btn btn-outline-secondary btn-sm" href="/groups/{{id}}">Details</a>
+        </div>
+
+        <hr class="my-3">
+
+        <form method="post" action="/groups/{{id}}/update" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">Name</label>
+                <input class="form-control" type="text" name="name" value="{{name}}" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Description</label>
+                <input class="form-control" type="text" name="description" value="{{description}}">
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-warning btn-sm">Update</button>
+            </div>
         </form>
 
-        {{!--TODO: Maybe the content editable can be put directly in the form --}}
-        {{!--TODO: the update logic and structure is way too complex for such a simple problem, refactor if we have time--}}
-        <button type="button" class="cancelUpdate" style="background-color: yellow" disabled>Cancel</button>
-        <form action="/groups/{{id}}/update" method="post">
-            <input class="updateNameForm" type="hidden" name="name" value="">
-            <input class="updateDescriptionForm" type="hidden" name="description" value="">
-            <input class="update" type="submit" value="Update Group" style="background-color:yellow">
-        </form>
+        <hr class="my-3">
 
-        <form action="/groups/{{id}}" method="post">
-            <input type="submit" value="Delete group" style="background-color: red;">
+        <form method="post" action="/groups/{{id}}">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
         </form>
-</fieldset>
+    </section>
+{{else}}
+    <div class="alert alert-info">
+        No groups yet. Create your first group above.
+    </div>
 {{/each}}
-<script> {{!--TODO: Do not rely on idx --}}
-    [...document.getElementsByClassName("cancelUpdate")].forEach(
-            (node, idx) =>
-                node.onclick = () => {
-                    const currentName = document.getElementsByClassName("name")[idx]
-                    const currentDescription = document.getElementsByClassName("description")[idx]
-
-                    currentName.textContent = currentName.dataset.actualName
-                    currentDescription.textContent = currentDescription.dataset.actualDescription
-
-                    node.disabled = true
-                }
-    );
-
-    [...document.getElementsByClassName("name")].forEach(
-            (node, idx) =>
-                    node.oninput = () => {document.getElementsByClassName("cancelUpdate")[idx].disabled = false}
-    );
-
-    [...document.getElementsByClassName("description")].forEach(
-            (node, idx) =>
-                    node.oninput = () => {document.getElementsByClassName("cancelUpdate")[idx].disabled = false}
-    );
-
-    [...document.getElementsByClassName("update")].forEach(
-            (node, idx) => {
-                node.onclick = () => {
-                    document.getElementsByClassName("cancelUpdate")[idx].disabled = true
-
-                    const currentName = document.getElementsByClassName("name")[idx]
-                    const currentDescription = document.getElementsByClassName("description")[idx]
-
-                    currentName.dataset.actualName = currentName.textContent
-                    currentDescription.dataset.actualDescription = currentDescription.textContent
-
-                    document.getElementsByClassName("updateNameForm")[idx].value = currentName.textContent
-                    document.getElementsByClassName("updateDescriptionForm")[idx].value = currentDescription.textContent
-                }
-            }
-    )
-</script>

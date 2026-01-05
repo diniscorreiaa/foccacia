@@ -1,18 +1,6 @@
-<h1>FOCCACIA</h1>
-
-<ul>
-    <li><a href="/competitions">Competitions</a></li>
-    <li><a href="/groups">Groups</a> (requires login)</li>
-    <li><a href="/register">Register</a></li>
-    <li><a href="/login">Login</a></li>
-</ul>
-
-{{#if user}}
-    <p>Logged in as: <b>{{user.username}}</b></p>
-
-    <form method="post" action="/logout">
-        <input type="submit" value="Logout">
-    </form>
-{{else}}
-    <p>Not logged in.</p>
-{{/if}}
+<section class="p-4 bg-light border rounded">
+    <h1 class="h3 mb-2">FOCCACIA</h1>
+    <p class="mb-0">
+        Use the navigation links above to browse competitions and manage your groups.
+    </p>
+</section>

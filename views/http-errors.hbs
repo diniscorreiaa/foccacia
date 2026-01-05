@@ -1,2 +1,11 @@
-<h1 style="color: red;"> Error: {{status}}</h1>
-<legend>{{message}}</legend>
+<section class="p-4 bg-light border rounded">
+    <div class="alert alert-danger mb-3">
+        <strong>Error {{status}}</strong>
+        <div>{{message}}</div>
+    </div>
+
+    <a class="btn btn-outline-secondary" href="/">Back to Home</a>
+    {{#if user}}
+        <a class="btn btn-primary" href="/groups">Go to Groups</a>
+    {{/if}}
+</section>

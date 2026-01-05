@@ -135,10 +135,23 @@ export function initWebApi({ services, errors, utils }) {
     response.status(statusCode).json(dtoApply(servicesReturn));
   }
 
-  const verifyToken = async (request, response, next) => {
+  const verifySessionOrToken = async (request, response, next) => {
+    if (request.user?.id) {
+      request.userId = request.user.id;
+
+      utils.logInfo(
+        `Request authorized (session) for user ${request.userId} ${request.method} ${request.path}`,
+        ""
+      );
+
+      return next();
+    }
+
     const token = getToken(request);
     if (!token) {
-      throw errors.UNAUTHORIZED("Missing or invalid Bearer token");
+      throw errors.UNAUTHORIZED(
+        "Missing authentication (session or Bearer token)"
+      );
     }
 
     const userId = await services.getUserIdFromToken({ token });
@@ -146,7 +159,7 @@ export function initWebApi({ services, errors, utils }) {
     request.userId = userId;
 
     utils.logInfo(
-      `Request authorized for user ${userId} ${request.method} ${request.path}`,
+      `Request authorized (token) for user ${userId} ${request.method} ${request.path}`,
       ""
     );
 
@@ -168,8 +181,8 @@ export function initWebApi({ services, errors, utils }) {
   router.get(ROUTES.TEAMS, routesCallbacks.getTeams);
   router.post(ROUTES.USERS, routesCallbacks.createUser);
 
-  // Middleware de Autenticação
-  router.use(verifyToken);
+  // Middleware de Autenticação (sessão ou token)
+  router.use(verifySessionOrToken);
 
   // Rotas Privadas
   router.get(ROUTES.GROUPS, routesCallbacks.getGroups);

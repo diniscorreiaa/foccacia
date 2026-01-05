@@ -222,7 +222,7 @@ export function initServices({ data, fapiTeams, utils, errors }) {
   async function getGroups({ userId }) {
     const uid = mustAuthUserId(
       userId,
-      "You must authenticate yourself before getting groups"
+      "You must authenticate yourself before listing groups"
     );
 
     const groups = await data.listGroups({ userId: uid });
