@@ -12,8 +12,6 @@ import { initWebApi } from "foccacia-web-api";
 import { initWebSite } from "foccacia-web-site";
 import { initSendApplicationError } from "./application-to-http-errors.mjs";
 
-// TODO : PROFESSOR SIM! => Persistência ? Carregar users e groups at startup ?
-
 export function createFoccaciaApp() {
   const utils = initUtils();
 
@@ -45,11 +43,18 @@ export function createFoccaciaApp() {
     logError: utils.logError,
   });
 
+  const auth = {
+    async loadUserForSession(id) {
+      return services.getUserSafeById({ id });
+    },
+  };
+
   return {
     apiRouter,
     siteRouter,
     sendApplicationError,
     errors: errorsLib,
     utils,
+    auth,
   };
 }
