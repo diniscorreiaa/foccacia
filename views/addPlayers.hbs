@@ -1,5 +1,5 @@
-{{#with group}}
-    <section class="p-4 bg-light border rounded mb-4">
+<section class="p-4 bg-light border rounded mb-4">
+    {{#with group}}
         <div class="d-flex justify-content-between align-items-start gap-3">
             <div>
                 <h1 class="h4 mb-1">Add Players</h1>
@@ -12,8 +12,8 @@
 
             <a class="btn btn-outline-secondary btn-sm" href="/groups/{{id}}">Back to Group</a>
         </div>
-    </section>
-{{/with}}
+    {{/with}}
+</section>
 
 {{#each teams}}
     <section class="p-4 bg-light border rounded mb-3">
@@ -39,9 +39,10 @@
                             <td>{{position}}</td>
                             <td>{{nationality}}</td>
                             <td class="text-end">{{age}}</td>
+
                             <td class="text-end">
-                                <form method="post" action="" class="m-0">
-                                    <input type="hidden" name="playerId" value="{{playerId}}">
+                                <form method="post" action="/groups/{{@root.group.id}}/players" class="m-0">
+                                    <input type="hidden" name="playerId" value="{{id}}">
                                     <input type="hidden" name="playerName" value="{{playerName}}">
                                     <input type="hidden" name="playerTeamId" value="{{teamId}}">
                                     <input type="hidden" name="playerTeamCode" value="{{teamCode}}">
@@ -59,9 +60,7 @@
                 </table>
             </div>
         {{else}}
-            <div class="alert alert-info mb-0">
-                No players available for this team.
-            </div>
+            <div class="alert alert-info mb-0">No players available for this team.</div>
         {{/if}}
     </section>
 {{/each}}

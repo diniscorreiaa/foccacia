@@ -18,15 +18,12 @@
 
                     <td>
                         <form class="js-teams-form d-flex gap-2" data-code="{{code}}">
-                            <input
-                                    class="form-control"
-                                    type="number"
-                                    name="season"
-                                    placeholder="e.g. 2025"
-                                    min="2023"
-                                    max="2026"
-                                    required
-                            >
+                            <select class="form-select" name="season" required>
+                                {{#each seasons}}
+                                    <option value="{{this}}">{{this}}</option>
+                                {{/each}}
+                            </select>
+
                             <button type="submit" class="btn btn-primary btn-sm">View Teams</button>
                         </form>
                     </td>
@@ -49,7 +46,7 @@
         e.preventDefault();
 
         const code = form.dataset.code;
-        const season = form.querySelector('input[name="season"]').value.trim();
+        const season = form.querySelector('select[name="season"]').value;
 
         if (!code || !season) return;
 
