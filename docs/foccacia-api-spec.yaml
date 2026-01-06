@@ -32,6 +32,11 @@ components:
       type: http
       scheme: bearer
       bearerFormat: UUID
+      description: Token UUID gerado na criação do utilizador.
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
 
   parameters:
     competitionCodePath:
@@ -58,7 +63,7 @@ components:
       in: path
       required: true
       schema:
-        type: integer
+        type: string
         minimum: 1
       description: Identificador interno do grupo.
       example: 1
@@ -68,8 +73,8 @@ components:
       in: path
       required: true
       schema:
-        type: integer
-        minimum: 1
+        type: string # alterado devido a verificação mustId no services
+        minimum: 1 # TODO: Ainda faz sentido usar isto aqui?
       description: Identificador do jogador (id do Football Data API).
       example: 67299
 
@@ -89,7 +94,7 @@ components:
       description: Jogador associado a uma equipa (competitions/teams) ou a um grupo.
       properties:
         id:
-          type: integer
+          type: string
           description: Identificador do jogador (Football Data).
           example: 67299
         playerName:
@@ -141,8 +146,8 @@ components:
       description: Grupo pertencente a um utilizador.
       properties:
         id:
-          type: integer
-          example: 1
+          type: string
+          example: nhMekJsBNkrmp8pbael9
         name:
           type: string
           example: Melhores da Champions
@@ -161,34 +166,21 @@ components:
           description: Lista de jogadores atualmente no grupo (máx. 11).
           items:
             $ref: "#/components/schemas/Player"
-
-    GroupSummary:
-      type: object
-      description: Versão resumida de um grupo (sem lista de jogadores).
+# TODO Aparecer todos os grupos listados
+    Groups:
+      type: array
+      description: Listagem de todos os grupos pertencentes a um utilizador.
       properties:
-        id:
-          type: integer
-          example: 1
-        name:
-          type: string
-          example: Melhores da Liga 2025
-        description:
-          type: string
-          example: Onze ideal da Primeira Liga
-        competition:
-          type: string
-          example: PPL
-        year:
-          type: integer
-          example: 2025
+        grupo:
+          $ref: "#/components/schemas/Group" 
 
     User:
       type: object
       description: Utilizador registado na FOCCACIA API.
       properties:
         id:
-          type: integer
-          example: 1
+          type: string
+          example: aJasEoPasQ
         username:
           type: string
           example: grupo1
@@ -196,6 +188,9 @@ components:
           type: string
           format: uuid
           description: Token de autenticação a enviar no cabeçalho Authorization.
+          example: 8fe814ec-434a-49d5-95c0-a66e1edf1c69
+
+######## REQUESTS ################
 
     CreateUserRequest:
       type: object
@@ -204,6 +199,7 @@ components:
       properties:
         username:
           type: string
+          minLength: 3
           example: grupo1
 
     AddPlayerToGroupRequest:
@@ -215,7 +211,7 @@ components:
         - teamName
       properties:
         playerId:
-          type: integer
+          type: string
           description: Identificador do jogador (Football Data).
           example: 67299
         playerName:
@@ -239,9 +235,11 @@ components:
       properties:
         name:
           type: string
+          minLength: 3
           example: Melhores da Champions (Atualizado)
         description:
           type: string
+          minLength: 3
           example: Onze ideal da Champions 2025 (atualizado)
 
     CreateGroupRequest:
@@ -254,23 +252,19 @@ components:
       properties:
         name:
           type: string
+          minLength: 3
           example: Melhores da Champions
         description:
           type: string
+          minLength: 3
           example: Onze ideal da Champions 2025
         competition:
           type: string
           example: CL
         year:
           type: integer
+          minimum: 2023
           example: 2025
-
-    RemovePlayerResult:
-      type: object
-      properties:
-        removed:
-          type: boolean
-          example: true
 
     Error:
       type: object
@@ -416,7 +410,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                type: object
+                properties:
+                  username:
+                    type: string
+                    example: grupo1
+                  token:
+                    type: string
+                    format: uuid
+                    description: Token de autenticação a enviar no cabeçalho Authorization.
+                    example: 8fe814ec-434a-49d5-95c0-a66e1edf1c69
+
         "400":
           $ref: "#/components/responses/ErrorBadRequest"
         "500":
@@ -428,6 +432,7 @@ paths:
         - Groups
       summary: Lista todos os grupos do utilizador autenticado.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       responses:
         "200":
@@ -437,7 +442,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/GroupSummary"
+                  $ref: "#/components/schemas/Groups"
         "401":
           $ref: "#/components/responses/ErrorUnauthorized"
         "500":
@@ -448,6 +453,7 @@ paths:
         - Groups
       summary: Cria um novo grupo “Best XI”.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       requestBody:
         required: true
@@ -477,6 +483,7 @@ paths:
         - Groups
       summary: Obtém os detalhes de um grupo do utilizador autenticado.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       responses:
         "200":
@@ -502,6 +509,7 @@ paths:
         Atualiza apenas o nome e a descrição do grupo. A competição e o ano
         permanecem inalterados.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       requestBody:
         required: true
@@ -532,6 +540,7 @@ paths:
         - Groups
       summary: Remove um grupo.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       responses:
         "204":
@@ -559,6 +568,7 @@ paths:
         - o jogador ainda não existe no grupo;
         - o grupo não excede 11 jogadores.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       requestBody:
         required: true
@@ -595,14 +605,11 @@ paths:
         - Groups
       summary: Remove um jogador de um grupo.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       responses:
-        "200":
-          description: Jogador removido com sucesso.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RemovePlayerResult"
+        "204":
+          description: Jogador removido com sucesso **(sem resposta)**.
         "400":
           $ref: "#/components/responses/ErrorBadRequest"
         "401":
