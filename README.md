@@ -16,19 +16,19 @@ ___
 
 ## Foccacia
 
-Projeto multi-modulos em Node.js - documentação curta para instalação, testes e cobertura.
+Projeto multi-modulos em Node.js - documentação curta para instalação, testes e coverage.
 
 ### Estrutura verificada
 - `foccacia-server` (Express entrypoint + configuração)
 - `foccacia-module-resolver` (composition root / DI)
 - `foccacia-web-api` (API JSON)
-- `foccacia-web-site` (Handlebars + forms)
+- `foccacia-web-site` (SSR + Handlebars + forms)
 - `foccacia-services` (lógica + validações)
 - `foccacia-domain-model` (entidades internas)
 - `fapi-teams-data` (Football Data API via fetch + cache)
 - `foccacia-db` (ElasticSearch via HTTP fetch)
-- `foccacia-data-mem` (standby / compatibilidade)
-- `foccacia-errors` (erros tipados)
+- `foccacia-data-mem` (data em memória)
+- `foccacia-errors` (tipos de erros)
 - `foccacia-utils` (helpers / logging / IO)
 
 ### Requisitos
@@ -227,20 +227,19 @@ flowchart TB
     - `npm run docker:down:clean` (apaga ES)
     - apagar `sessions/` (logout total)
     - opcional: apagar `docs/output/football-api-cache/` (refaz cache)
-- [ ] (opcional) seed de demo: 2 users + 1 grupo + 1-2 players
 
 ## Qualidade:
-- [ ] Unit tests nos services com mocks (data, fapiTeams) 
+- [ ] Unit tests nos services com mocks
 - [ ] (opcional) testes de integracao com supertest 
 
 ---
 
 ## Wiki/Relatório
 
-Sugestao de estrutura (curta, alinhada com o enunciado):
+Sugestao de estrutura:
 
 1) Visao geral
-    - API JSON + Website SSR
+    - API JSON + Website SSR (Server-Side Rendering)
     - Node ESM, Express, Handlebars, Passport, ElasticSearch
 
 2) Estrutura da aplicacao
@@ -254,12 +253,12 @@ Sugestao de estrutura (curta, alinhada com o enunciado):
 
 4) Mapping ES <-> Domain model
     - `User` e `Group` mapeados 1:1 (campos principais)
-    - `players` guardados como snapshot (nao normalizado)
+    - `players` guardados como snapshot (após adição não mudam)
 
 5) Autenticacao e autorizacao
     - SSR: sessoes (Passport + express-session + FileStore)
-    - API: sessao ou Bearer token (transicao)
-    - owner-only: enforced nos services em todas as operacoes
+    - API: sessao ou Bearer token
+    - owner-only: enforced no services em todas as operacoes
 
 6) API documentation
     - OpenAPI + `.http`
@@ -333,7 +332,7 @@ Group (`foccacia-groups/_doc/<id>`):
 
 Notas:
 - `groupId` e `userId` sao o `_id` do ElasticSearch (string).
-- players sao guardados como snapshot (campos principais quando foram adicionados).
+- players sao guardados como snapshot.
 
 ---
 
@@ -351,8 +350,8 @@ Quando a Football API devolve `429`, o service responde `429` (Too Many Requests
 ### Erros (API vs Website)
 
 Existe um middleware central no server:
-- Para `/api/` -> JSON `{ uri, description }`
-- Para SSR -> `views/http-errors.hbs` + imagem por status code: `public/codes/<status>.jpg`
+- Para `/api/` => JSON `{ uri, description }`
+- Para SSR => `views/http-errors.hbs` + imagem por status code: `public/codes/<status>.jpg`
 
 ---
 
@@ -368,7 +367,7 @@ Existe um middleware central no server:
 Publicos:
 - `GET /api/competitions`
 - `GET /api/competitions/:competitionCode/seasons/:seasonYear/teams`
-- `POST /api/users` -> cria user e devolve `{ id, username, token }`
+- `POST /api/users` => cria user e devolve `{ id, username, token }`
 
 Privados (auth: sessao ou Bearer token):
 - `GET /api/groups`
