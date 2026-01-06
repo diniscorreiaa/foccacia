@@ -237,8 +237,8 @@ export function initFapiTeams({ domainModel, utils }) {
 
   function toTeamDomain(teamJson) {
     const squad = Array.isArray(teamJson.squad) ? teamJson.squad : [];
-    const players = squad.map((p) =>
-      toPlayerDomain({ playerJson: p, teamJson })
+    const players = squad.map((player) =>
+      toPlayerDomain({ playerJson: player, teamJson })
     );
 
     return new domainModel.Team({

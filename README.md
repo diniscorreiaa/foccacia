@@ -182,12 +182,13 @@ flowchart LR
     api --> services
 
     services --> fapi["Football Provider\n(fapi-teams-data)"]
-    services --> db["Data Provider\n(foccacia-db)"]
+    services --> db["Data Provider\n"]
 
     fapi --> football{{"Football Data API"}}
-    db --> elastic[("ElasticSearch")]
+    db --> elastic[("ElasticSearch\n(foccacia-db)")]
+    db --> mem[("Data in Memory\n(foccacia-data-mem)")]
 
-    api -. "optional (transition)\nAuthorization: Bearer" .-> bearer["Bearer token"]
+    api -. "Authorization: Bearer" .-> bearer["Bearer token"]
 
 ```
 
@@ -200,17 +201,22 @@ flowchart TB
 
     resolver --> site["Website\n(foccacia-web-site)"]
     resolver --> api["API\n(foccacia-web-api)"]
-    resolver --> services["Services\n(foccacia-services)"]
 
-    services --> domain["Domain Model\n(foccacia-domain-model)"]
-    services --> errors["Errors\n(foccacia-errors)"]
-    services --> utils["Utils\n(foccacia-utils)"]
+    site --> services["Services\n(foccacia-services)"]
+    api --> services["Services\n(foccacia-services)"]
 
+    services --> db["Data Provider\n"]
     services --> fapi["Football Provider\n(fapi-teams-data)"]
-    services --> db["Data Provider\n(foccacia-db)"]
-
+    services --> errors["Errors\n(foccacia-errors)"]
+    
     fapi --> football{{"Football Data API"}}
-    db --> elastic[("ElasticSearch")]
+    fapi --> domain["Domain Model\n(foccacia-domain-model)"]
+    fapi --> utils["Utils\n(foccacia-utils)"]
+
+    db --> elastic[("ElasticSearch\n(foccacia-db)")]
+    db --> mem[("Data in Memory\n(foccacia-data-mem)")]
+    db --> domain["Domain Model\n(foccacia-domain-model)"]
+    db --> utils["Utils\n(foccacia-utils)"]
 
 ```
 
