@@ -32,6 +32,11 @@ components:
       type: http
       scheme: bearer
       bearerFormat: UUID
+      description: Token UUID gerado na criação do utilizador.
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
 
   parameters:
     competitionCodePath:
@@ -58,20 +63,18 @@ components:
       in: path
       required: true
       schema:
-        type: integer
-        minimum: 1
+        type: string
       description: Identificador interno do grupo.
-      example: 1
+      example: "nhMekJsBNkrmp8pbael9" 
 
     playerIdPath:
       name: playerId
       in: path
       required: true
       schema:
-        type: integer
-        minimum: 1
+        type: string
       description: Identificador do jogador (id do Football Data API).
-      example: 67299
+      example: "67299"
 
   schemas:
     Competition:
@@ -89,16 +92,16 @@ components:
       description: Jogador associado a uma equipa (competitions/teams) ou a um grupo.
       properties:
         id:
-          type: integer
+          type: string
           description: Identificador do jogador (Football Data).
-          example: 67299
+          example: "67299"
         playerName:
           type: string
           example: Vangelis Pavlidis
         teamId:
-          type: integer
+          type: string
           description: Identificador da equipa (Football Data).
-          example: 1903
+          example: "1903"
         teamCode:
           type: string
           description: Código curto (tla) da equipa.
@@ -116,14 +119,21 @@ components:
           type: integer
           example: 27
 
+    PlayerBasic:
+      type: object
+      description: Jogador associado a uma equipa (versão resumida para listagens de equipas).
+      properties:
+        playerName:
+          type: string
+          example: Vangelis Pavlidis
+        position:
+          type: string
+          example: Offence
+
     Team:
       type: object
       description: Equipa com o respetivo plantel para uma competição/época.
       properties:
-        id:
-          type: integer
-          description: Identificador da equipa (Football Data).
-          example: 1903
         teamName:
           type: string
           example: Sport Lisboa e Benfica
@@ -134,15 +144,15 @@ components:
         players:
           type: array
           items:
-            $ref: "#/components/schemas/Player"
+            $ref: "#/components/schemas/PlayerBasic"
 
     Group:
       type: object
       description: Grupo pertencente a um utilizador.
       properties:
         id:
-          type: integer
-          example: 1
+          type: string
+          example: nhMekJsBNkrmp8pbael9
         name:
           type: string
           example: Melhores da Champions
@@ -160,35 +170,15 @@ components:
           type: array
           description: Lista de jogadores atualmente no grupo (máx. 11).
           items:
-            $ref: "#/components/schemas/Player"
-
-    GroupSummary:
-      type: object
-      description: Versão resumida de um grupo (sem lista de jogadores).
-      properties:
-        id:
-          type: integer
-          example: 1
-        name:
-          type: string
-          example: Melhores da Liga 2025
-        description:
-          type: string
-          example: Onze ideal da Primeira Liga
-        competition:
-          type: string
-          example: PPL
-        year:
-          type: integer
-          example: 2025
+            $ref: "#/components/schemas/Player" 
 
     User:
       type: object
       description: Utilizador registado na FOCCACIA API.
       properties:
         id:
-          type: integer
-          example: 1
+          type: string
+          example: aJasEoPasQ
         username:
           type: string
           example: grupo1
@@ -196,6 +186,9 @@ components:
           type: string
           format: uuid
           description: Token de autenticação a enviar no cabeçalho Authorization.
+          example: 8fe814ec-434a-49d5-95c0-a66e1edf1c69
+
+######## REQUESTS ################
 
     CreateUserRequest:
       type: object
@@ -204,6 +197,7 @@ components:
       properties:
         username:
           type: string
+          minLength: 3
           example: grupo1
 
     AddPlayerToGroupRequest:
@@ -215,7 +209,7 @@ components:
         - teamName
       properties:
         playerId:
-          type: integer
+          type: string
           description: Identificador do jogador (Football Data).
           example: 67299
         playerName:
@@ -239,9 +233,11 @@ components:
       properties:
         name:
           type: string
+          minLength: 3
           example: Melhores da Champions (Atualizado)
         description:
           type: string
+          minLength: 3
           example: Onze ideal da Champions 2025 (atualizado)
 
     CreateGroupRequest:
@@ -254,23 +250,19 @@ components:
       properties:
         name:
           type: string
+          minLength: 3
           example: Melhores da Champions
         description:
           type: string
+          minLength: 3
           example: Onze ideal da Champions 2025
         competition:
           type: string
           example: CL
         year:
           type: integer
+          minimum: 2023
           example: 2025
-
-    RemovePlayerResult:
-      type: object
-      properties:
-        removed:
-          type: boolean
-          example: true
 
     Error:
       type: object
@@ -361,11 +353,32 @@ paths:
                 items:
                   $ref: "#/components/schemas/Competition"
         "429":
-          $ref: "#/components/responses/ErrorTooManyRequestsExternal"
+          description: Limite de pedidos ao serviço externo de futebol atingido (rate limit).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions"
+                description: "Rate limit exceeded for external API, try again in 1 minute"
         "502":
-          $ref: "#/components/responses/ErrorBadGatewayExternal"
+          description: Erro ao comunicar com o serviço externo de futebol.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions"
+                description: "Error communicating with external football service"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions"
+                description: "Unhandled error for get competitions operation"
 
   /competitions/{competitionCode}/seasons/{seasonYear}/teams:
     get:
@@ -387,15 +400,59 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Team"
+              example:
+                - teamName: "Sport Lisboa e Benfica"
+                  country: "Portugal"
+                  players:
+                    - playerName: "Vangelis Pavlidis"
+                      position: "Offence"
+                    - playerName: "Anatolii Trubin"
+                      position: "Goalkeeper"
+                    - playerName: "Amar Dedić"
+                      position: "Right-Back"
+                - teamName: "Sporting Clube de Portugal"
+                  country: "Portugal"
+                  players:
+                    - playerName: "Viktor Gyökeres"
+                      position: "Centre-Forward"
+                    - playerName: "Franco Israel"
+                      position: "Goalkeeper"
         "404":
-          $ref: "#/components/responses/ErrorNotFound"
+          description: Competição ou época não encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions/PPL/seasons/2025/teams"
+                description: "Competition or season not found"
         "429":
-          $ref: "#/components/responses/ErrorTooManyRequestsExternal"
+          description: Limite de pedidos ao serviço externo de futebol atingido (rate limit).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions/PPL/seasons/2025/teams"
+                description: "Rate limit exceeded for external API, try again in 1 minute"
         "502":
-          $ref: "#/components/responses/ErrorBadGatewayExternal"
+          description: Erro ao comunicar com o serviço externo de futebol.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions/PPL/seasons/2025/teams"
+                description: "Error communicating with external football service"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
-
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions/PPL/seasons/2025/teams"
+                description: "Unhandled error for get teams operation"
   /users:
     post:
       tags:
@@ -416,11 +473,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                type: object
+                properties:
+                  username:
+                    type: string
+                    example: grupo1
+                  token:
+                    type: string
+                    format: uuid
+                    description: Token de autenticação a enviar no cabeçalho Authorization.
+                    example: 8fe814ec-434a-49d5-95c0-a66e1edf1c69
+
         "400":
-          $ref: "#/components/responses/ErrorBadRequest"
+          description: Pedido inválido (dados em falta ou mal formatados).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/users"
+                description: "Username must contain at least 3 characters"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/users"
+                description: "Unexpected error at user creation"
 
   /groups:
     get:
@@ -428,6 +509,7 @@ paths:
         - Groups
       summary: Lista todos os grupos do utilizador autenticado.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       responses:
         "200":
@@ -437,17 +519,86 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/GroupSummary"
+                  $ref: "#/components/schemas/Group"
+              example:
+              - id: "NDJLpZsB41uE1fzWaJ7S"
+                name: "Melhores da Liga 2025"
+                description: "Onze ideal da Primeira Liga"
+                competition: "PPL"
+                year: 2025
+                players:
+                  - id: "67299"
+                    playerName: "Vangelis Pavlidis"
+                    teamId: "1903"
+                    teamName: "SL Benfica"
+                    position: "Offence"
+                    nationality: "Greece"
+                    age: 27
+                  - id: "111481"
+                    playerName: "Anatolii Trubin"
+                    teamId: "1903"
+                    teamName: "SL Benfica"
+                    position: "Goalkeeper"
+                    nationality: "Ukraine"
+                    age: 24
+                  - id: "81816"
+                    playerName: "Amar Dedić"
+                    teamId: "1903"
+                    teamName: "SL Benfica"
+                    position: "Right-Back"
+                    nationality: "Bosnia-Herzegovina"
+                    age: 23
+              - id: "NTJMpZsB41uE1fzWK54W"
+                name: "Grupo vazio"
+                description: "Vazio"
+                competition: "PPL"
+                year: 2025
+                players: [] 
+              - id: "NZ1uE1fzW1uEMpZsB44W"
+                name: "Melhores dos melhores"
+                description: "Onze ideal 2025"
+                competition: "PPL"
+                year: 2025
+                players:
+                  - id: "185610"
+                    playerName: "Antonio Silva"
+                    teamId: "1903"
+                    teamName: "SL Benfica"
+                    position: "Centre-Back"
+                    nationality: "Portugal"
+                    age: 22
+                  - id: "3205"
+                    playerName: "Nicolás Otamendi"
+                    teamId: "1903"
+                    teamName: "SL Benfica"
+                    position: "Centre-Back"
+                    nationality: "Argentina"
+                    age: 37
         "401":
-          $ref: "#/components/responses/ErrorUnauthorized"
+          description: Token de autenticação ausente ou inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups"
+                description: "You must provide user Id for getting groups"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups"
+                description: "Unexpected error at getting groups"
 
     post:
       tags:
         - Groups
       summary: Cria um novo grupo “Best XI”.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       requestBody:
         required: true
@@ -462,12 +613,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Group"
+              example:
+                id: "NDJLpZsB41uE1fzWaJ7S"
+                name: "Melhores da Liga 2025"
+                description: "Onze ideal da Primeira Liga"
+                competition: "PPL"
+                year: 2025
+                players: []
+
         "400":
-          $ref: "#/components/responses/ErrorBadRequest"
+          description: Pedido inválido (dados em falta ou mal formatados).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidName:
+                  summary: Nome do grupo inválido
+                  value:
+                    uri: "/groups"
+                    description: "Invalid group name"
+                invalidDescription:
+                  summary: Descrição do grupo inválida
+                  value:
+                    uri: "/groups"
+                    description: "Invalid group description"
+                invalidCompetition:
+                  summary: Código de competição inválido
+                  value:
+                    uri: "/groups"
+                    description: "Invalid competition"
+                invalidYear:
+                  summary: Ano inválido
+                  value:
+                    uri: "/groups"
+                    description: "Invalid year"
         "401":
-          $ref: "#/components/responses/ErrorUnauthorized"
+          description: Token de autenticação ausente ou inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups"
+                description: "You must authenticate yourself for group creation"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups"
+                description: "Unexpected error at group creation"
 
   /groups/{groupId}:
     parameters:
@@ -477,6 +675,7 @@ paths:
         - Groups
       summary: Obtém os detalhes de um grupo do utilizador autenticado.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       responses:
         "200":
@@ -486,13 +685,41 @@ paths:
               schema:
                 $ref: "#/components/schemas/Group"
         "401":
-          $ref: "#/components/responses/ErrorUnauthorized"
+          description: Token de autenticação ausente ou inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups"
+                description: "You must authenticate yourself before getting group details"
         "403":
-          $ref: "#/components/responses/ErrorForbidden"
+          description: Acesso a recurso pertencente a outro utilizador.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
+                description: "You do not have access to this group"
         "404":
-          $ref: "#/components/responses/ErrorNotFound"
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
+                description: "Group not found"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
+                description: "Unexpected error at getting group details"
 
     put:
       tags:
@@ -502,6 +729,7 @@ paths:
         Atualiza apenas o nome e a descrição do grupo. A competição e o ano
         permanecem inalterados.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       requestBody:
         required: true
@@ -517,33 +745,110 @@ paths:
               schema:
                 $ref: "#/components/schemas/Group"
         "400":
-          $ref: "#/components/responses/ErrorBadRequest"
+          description: Pedido inválido (dados em falta ou mal formatados).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidName:
+                  summary: Nome do grupo inválido
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9"
+                    description: "Invalid group name"
+                invalidDescription:
+                  summary: Descrição do grupo inválida
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9"
+                    description: "Invalid group description"
+                missingChanges:
+                  summary: Dados de alteração em falta
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9"
+                    description: "Make sure you provide changes for this operation"
         "401":
-          $ref: "#/components/responses/ErrorUnauthorized"
+          description: Token de autenticação ausente ou inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
+                description: "You must authenticate yourself before updating groups"
         "403":
-          $ref: "#/components/responses/ErrorForbidden"
+          description: Acesso a recurso pertencente a outro utilizador.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
+                description: "You do not have access to this group"
         "404":
-          $ref: "#/components/responses/ErrorNotFound"
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
+                description: "Group not found"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
-
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
+                description: "Unexpected error at group update"
+              
     delete:
       tags:
         - Groups
       summary: Remove um grupo.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       responses:
         "204":
-          description: Grupo removido com sucesso (sem conteúdo de resposta).
+          description: Grupo removido com sucesso **(sem conteúdo de resposta)**.
         "401":
-          $ref: "#/components/responses/ErrorUnauthorized"
+          description: Token de autenticação ausente ou inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
+                description: "You must authenticate yourself before deleting a group"
         "403":
-          $ref: "#/components/responses/ErrorForbidden"
+          description: Acesso a recurso pertencente a outro utilizador.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
+                description: "You do not have access to this group"
         "404":
-          $ref: "#/components/responses/ErrorNotFound"
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
+                description: "Group not found"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
+                description: "Unexpected error at deleting group"
 
   /groups/{groupId}/players:
     parameters:
@@ -559,6 +864,7 @@ paths:
         - o jogador ainda não existe no grupo;
         - o grupo não excede 11 jogadores.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       requestBody:
         required: true
@@ -574,17 +880,95 @@ paths:
               schema:
                 $ref: "#/components/schemas/Player"
         "400":
-          $ref: "#/components/responses/ErrorBadRequest"
+          description: Pedido inválido (dados em falta ou mal formatados).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                missingData:
+                  summary: Dados do jogador em falta
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Make sure you provide player data for this operation"
+                invalidPlayerId:
+                  summary: ID do jogador inválido
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Invalid playerId"
+                invalidPlayerName:
+                  summary: Nome do jogador inválido
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Invalid playerName"
+                invalidTeamCode:
+                  summary: Código da equipa inválido
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Invalid teamCode"
+                invalidTeamName:
+                  summary: Nome da equipa inválido
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Invalid teamName"
         "401":
-          $ref: "#/components/responses/ErrorUnauthorized"
+          description: Token de autenticação ausente ou inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                description: "You must authenticate yourself before adding players to a group"
         "403":
-          $ref: "#/components/responses/ErrorForbidden"
+          description: Acesso a recurso pertencente a outro utilizador.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                description: "You do not have access to this group"
         "404":
-          $ref: "#/components/responses/ErrorNotFound"
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                description: "Group not found"
         "422":
-          $ref: "#/components/responses/ErrorUnprocessableEntity"
+          description: Violação das regras de negócio.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                playerExists:
+                  summary: Jogador já existe no grupo
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Player is already in this group"
+                groupFull:
+                  summary: Grupo já tem 11 jogadores
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Group already has 11 players"
+                playerNotInCompetition:
+                  summary: Jogador não pertence à competição
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Player does not belong to the competition/year of the group"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                description: "Could not add player to group"
 
   /groups/{groupId}/players/{playerId}:
     parameters:
@@ -595,21 +979,53 @@ paths:
         - Groups
       summary: Remove um jogador de um grupo.
       security:
+        - cookieAuth: []
         - bearerAuth: []
       responses:
-        "200":
-          description: Jogador removido com sucesso.
+        "204":
+          description: Jogador removido com sucesso **(sem resposta)**.
+        "400":
+          description: Pedido inválido (dados em falta ou mal formatados).
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RemovePlayerResult"
-        "400":
-          $ref: "#/components/responses/ErrorBadRequest"
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9/players/175753"
+                description: "Make sure you provide a valid player id"
         "401":
-          $ref: "#/components/responses/ErrorUnauthorized"
+          description: Token de autenticação ausente ou inválida.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9/players/175753"
+                description: "You must authenticate yourself before deleting players from a group"
         "403":
-          $ref: "#/components/responses/ErrorForbidden"
+          description: Acesso a recurso pertencente a outro utilizador.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9/players/175753"
+                description: "You do not have access to this group"
         "404":
-          $ref: "#/components/responses/ErrorNotFound"
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9/players/175753"
+                description: "Player not found in group"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/groups/nhMekJsBNkrmp8pbael9/players/175753"
+                description: "Unexpected error deleting player from group"

@@ -214,12 +214,8 @@ export function initWebSite({ services }) {
       playerData: {
         playerId: req.body.playerId,
         playerName: req.body.playerName,
-        teamId: req.body.playerTeamId,
         teamCode: req.body.playerTeamCode,
-        teamName: req.body.playerTeamName,
-        position: req.body.playerPosition,
-        nationality: req.body.playerNationality,
-        age: req.body.playerAge,
+        teamName: req.body.playerTeamName
       },
     });
 
