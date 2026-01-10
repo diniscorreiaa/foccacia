@@ -119,14 +119,21 @@ components:
           type: integer
           example: 27
 
+    PlayerBasic:
+      type: object
+      description: Jogador associado a uma equipa (versão resumida para listagens de equipas).
+      properties:
+        playerName:
+          type: string
+          example: Vangelis Pavlidis
+        position:
+          type: string
+          example: Offence
+
     Team:
       type: object
       description: Equipa com o respetivo plantel para uma competição/época.
       properties:
-        id:
-          type: string
-          description: Identificador da equipa (Football Data).
-          example: "1903"
         teamName:
           type: string
           example: Sport Lisboa e Benfica
@@ -137,7 +144,7 @@ components:
         players:
           type: array
           items:
-            $ref: "#/components/schemas/Player"
+            $ref: "#/components/schemas/PlayerBasic"
 
     Group:
       type: object
@@ -346,11 +353,32 @@ paths:
                 items:
                   $ref: "#/components/schemas/Competition"
         "429":
-          $ref: "#/components/responses/ErrorTooManyRequestsExternal"
+          description: Limite de pedidos ao serviço externo de futebol atingido (rate limit).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions"
+                description: "Rate limit exceeded for external API, try again in 1 minute"
         "502":
-          $ref: "#/components/responses/ErrorBadGatewayExternal"
+          description: Erro ao comunicar com o serviço externo de futebol.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions"
+                description: "Error communicating with external football service"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions"
+                description: "Unhandled error for get competitions operation"
 
   /competitions/{competitionCode}/seasons/{seasonYear}/teams:
     get:
@@ -372,15 +400,59 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Team"
+              example:
+                - teamName: "Sport Lisboa e Benfica"
+                  country: "Portugal"
+                  players:
+                    - playerName: "Vangelis Pavlidis"
+                      position: "Offence"
+                    - playerName: "Anatolii Trubin"
+                      position: "Goalkeeper"
+                    - playerName: "Amar Dedić"
+                      position: "Right-Back"
+                - teamName: "Sporting Clube de Portugal"
+                  country: "Portugal"
+                  players:
+                    - playerName: "Viktor Gyökeres"
+                      position: "Centre-Forward"
+                    - playerName: "Franco Israel"
+                      position: "Goalkeeper"
         "404":
-          $ref: "#/components/responses/ErrorNotFound"
+          description: Competição ou época não encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions/PPL/seasons/2025/teams"
+                description: "Competition or season not found"
         "429":
-          $ref: "#/components/responses/ErrorTooManyRequestsExternal"
+          description: Limite de pedidos ao serviço externo de futebol atingido (rate limit).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions/PPL/seasons/2025/teams"
+                description: "Rate limit exceeded for external API, try again in 1 minute"
         "502":
-          $ref: "#/components/responses/ErrorBadGatewayExternal"
+          description: Erro ao comunicar com o serviço externo de futebol.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions/PPL/seasons/2025/teams"
+                description: "Error communicating with external football service"
         "500":
-          $ref: "#/components/responses/ErrorInternal"
-
+          description: Erro interno do servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                uri: "/competitions/PPL/seasons/2025/teams"
+                description: "Unhandled error for get teams operation"
   /users:
     post:
       tags:
