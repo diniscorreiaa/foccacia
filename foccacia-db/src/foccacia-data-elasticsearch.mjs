@@ -66,6 +66,7 @@ export function initDataElasticSearch({ domainModel, utils }) {
         new domainModel.User({
           id,
           username: src.username,
+          password: src.password ?? null,
           token: src.token,
         })
     );
@@ -173,14 +174,56 @@ export function initDataElasticSearch({ domainModel, utils }) {
     return false;
   }
 
-  async function createUser({ username }) {
+  // USERS
+
+  async function getUserById({ id }) {
+    const userId = utils.toId(id);
+    if (!userId) return null;
+
+    const response = await elasticSearchRequest(
+      `${USERS_INDEX}/_doc/${userId}`,
+      {
+        method: "GET",
+      }
+    );
+
+    if (!response?.found) return null;
+    return mapHitToUser(response);
+  }
+
+  async function getUserByUsername({ username }) {
     const normalizedUsername = utils.toTrimmedString(username);
     if (!normalizedUsername) return null;
 
-    const user = new domainModel.User({ username: normalizedUsername });
+    const query = {
+      query: { term: { "username.keyword": normalizedUsername } },
+      size: 1,
+    };
+
+    const response = await elasticSearchRequest(`${USERS_INDEX}/_search`, {
+      method: "POST",
+      body: query,
+    });
+
+    const users = mapSearchResponse(response, mapHitToUser);
+    return users[0] ?? null;
+  }
+
+  async function createUser({ username, password = null }) {
+    const normalizedUsername = utils.toTrimmedString(username);
+    if (!normalizedUsername) return null;
+
+    const existing = await getUserByUsername({ username: normalizedUsername });
+    if (existing) return null;
+
+    const user = new domainModel.User({
+      username: normalizedUsername,
+      password,
+    });
 
     const id = await createDocument(USERS_INDEX, {
       username: user.username,
+      password: user.password,
       token: user.token,
     });
 
@@ -207,6 +250,8 @@ export function initDataElasticSearch({ domainModel, utils }) {
     const users = mapSearchResponse(response, mapHitToUser);
     return users[0] ?? null;
   }
+
+  // GROUPS
 
   async function createGroup({ userId, name, description, competition, year }) {
     const uid = utils.toId(userId);
@@ -323,6 +368,8 @@ export function initDataElasticSearch({ domainModel, utils }) {
 
   return {
     createUser,
+    getUserById,
+    getUserByUsername,
     getUserByToken,
     createGroup,
     getGroup,

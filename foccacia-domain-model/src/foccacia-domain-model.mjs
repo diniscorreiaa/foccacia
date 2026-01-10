@@ -35,9 +35,15 @@ export function initDomainModel() {
     this.age = age;
   }
 
-  function User({ id = null, username, token = randomUUID() }) {
+  function User({
+    id = null,
+    username,
+    password = null,
+    token = randomUUID(),
+  }) {
     this.id = id;
     this.username = username;
+    this.password = password;
     this.token = token;
   }
 

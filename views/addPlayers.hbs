@@ -1,46 +1,84 @@
-{{#with group}}
-    <h1>{{name}}</h1>
-    <h5>{{description}}</h5>
-    <h6>Competition: {{competition}}</h6>
-    <h6>Season: {{year}}</h6>
-    <h6>Add Players</h6>
-{{/with}}
+<section class="p-4 bg-light border rounded mb-4">
+    {{#with group}}
+        <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+                <h1 class="h4 mb-1">Add Players</h1>
+                <div class="text-muted">
+                    Group: <strong>{{name}}</strong>
+                    · Competition: <strong>{{competition}}</strong>
+                    · Season: <strong>{{year}}</strong>
+                </div>
+            </div>
+
+            <a class="btn btn-outline-secondary btn-sm" href="/groups/{{id}}">Back to Group</a>
+        </div>
+    {{/with}}
+
+    <hr class="my-3">
+
+    <form method="get" action="/groups/{{group.id}}/players" class="d-flex gap-2 align-items-center">
+        <label class="form-label m-0">Team</label>
+
+        <select class="form-select" name="teamId" required>
+            {{#each teamOptions}}
+                <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>
+            {{/each}}
+        </select>
+
+        <button type="submit" class="btn btn-primary btn-sm">Load</button>
+    </form>
+</section>
 
 {{#each teams}}
-<h2>{{teamName}}</h2>
-<table class="table">
-    <tr>
-        <th>Name</th>
-        <th>Position</th>
-        <th>Country</th>
-        <th>Age</th>
-        <th></th>
-    </tr>
-        {{#each players}}
-            <tr>
-                <th>{{playerName}}</th>
-                <th>{{position}}</th>
-                <th>{{nationality}}</th>
-                <th>{{age}}</th>
-                <th>
-                    <form action="" method="post">
-                        <input type="hidden" name="playerId" value="{{id}}">
-                        <input type="hidden" name="playerName" value="{{playerName}}">
-                        <input type="hidden" name="playerTeamId" value="{{teamId}}">
-                        <input type="hidden" name="playerTeamCode" value="{{teamCode}}">
-                        <input type="hidden" name="playerTeamName" value="{{teamName}}">
-                        <input type="hidden" name="playerPosition" value="{{position}}">
-                        <input type="hidden" name="playerNationality" value="{{nationality}}">
-                        <input type="hidden" name="playerAge" value="{{age}}">
+    <section class="p-4 bg-light border rounded mb-3">
+        <h2 class="h5 mb-3">{{teamName}}</h2>
 
-                        <input type="submit" value="Add" class="addButton">
-                    </form>
-                </th>
-            </tr>
-        {{/each}}
-</table>
+        {{#if players.length}}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Position</th>
+                        <th>Country</th>
+                        <th class="text-end">Age</th>
+                        <th class="text-end"></th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {{#each players}}
+                        <tr>
+                            <td>{{playerName}}</td>
+                            <td>{{position}}</td>
+                            <td>{{nationality}}</td>
+                            <td class="text-end">{{age}}</td>
+
+                            <td class="text-end">
+                                <form method="post" action="/groups/{{@root.group.id}}/players" class="m-0">
+                                    <input type="hidden" name="playerId" value="{{id}}">
+                                    <input type="hidden" name="playerName" value="{{playerName}}">
+                                    <input type="hidden" name="playerTeamId" value="{{teamId}}">
+                                    <input type="hidden" name="playerTeamCode" value="{{teamCode}}">
+                                    <input type="hidden" name="playerTeamName" value="{{teamName}}">
+                                    <input type="hidden" name="playerPosition" value="{{position}}">
+                                    <input type="hidden" name="playerNationality" value="{{nationality}}">
+                                    <input type="hidden" name="playerAge" value="{{age}}">
+
+                                    <button type="submit" class="btn btn-primary btn-sm">Add</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        {{else}}
+            <div class="alert alert-info mb-0">No players available for this team.</div>
+        {{/if}}
+    </section>
+{{else}}
+    <div class="alert alert-info">
+        No team selected (or no teams available).
+    </div>
 {{/each}}
-
-<script>
-
-</script>

@@ -47,11 +47,13 @@ export function initSendApplicationError({ ERROR_CODES, logError }) {
       return res
         .status(status)
         .json({ uri: req.path, description: err.message });
-    else
-      return res
-        .status(status)
-        .render("http-errors", { status, message: err.message });
+    else {
+      return res.status(status).render("http-errors", {
+        status,
+        message: err.message,
+        imageUrl: `/codes/${status}.jpg`,
+      });
+    }
   }
-
   return sendApplicationError;
 }

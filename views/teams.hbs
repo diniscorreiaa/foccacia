@@ -1,10 +1,37 @@
+<section class="p-4 bg-light border rounded mb-4">
+    <h1 class="h4 mb-0">Teams</h1>
+</section>
+
 {{#each teams}}
-<h2>{{teamName}}</h2>
-<h3>{{country}}</h3>
-<h3>Players: </h3>
-<ul>
-{{#each players}}
-    <li>{{playerName}} ({{position}})</li>
-{{/each}}
-</ul>
+    <section class="p-4 bg-light border rounded mb-3">
+        <h2 class="h5 mb-1">{{teamName}}</h2>
+        <div class="text-muted mb-3">{{country}}</div>
+
+        {{#if players.length}}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th>Position</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#each players}}
+                        <tr>
+                            <td>{{playerName}}</td>
+                            <td>
+                                {{#if position}}{{position}}{{else}}-{{/if}}
+                            </td>
+                        </tr>
+                    {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        {{else}}
+            <div class="alert alert-info mb-0">
+                No players available.
+            </div>
+        {{/if}}
+    </section>
 {{/each}}

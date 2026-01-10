@@ -20,6 +20,10 @@ export function initIoUtils() {
     return path.dirname(filePath);
   }
 
+  function getCodesImagesDirPath(fileName = "") {
+    return path.join(ROOT_DIR, "public", "codes", fileName);
+  }
+
   function getInputFilePath(fileName = "") {
     return path.join(ROOT_DIR, "docs", "input", fileName);
   }
@@ -93,5 +97,6 @@ export function initIoUtils() {
     getViewsDirPath,
     getSeasonsYearsFilePath,
     getCompetitionsWebFilePath,
+    getCodesImagesDirPath,
   };
 }
