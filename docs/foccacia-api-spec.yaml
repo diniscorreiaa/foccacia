@@ -64,19 +64,17 @@ components:
       required: true
       schema:
         type: string
-        minimum: 1
       description: Identificador interno do grupo.
-      example: 1
+      example: "nhMekJsBNkrmp8pbael9" 
 
     playerIdPath:
       name: playerId
       in: path
       required: true
       schema:
-        type: string # alterado devido a verificação mustId no services
-        minimum: 1 # TODO: Ainda faz sentido usar isto aqui?
+        type: string
       description: Identificador do jogador (id do Football Data API).
-      example: 67299
+      example: "67299"
 
   schemas:
     Competition:
@@ -101,9 +99,9 @@ components:
           type: string
           example: Vangelis Pavlidis
         teamId:
-          type: integer
+          type: string
           description: Identificador da equipa (Football Data).
-          example: 1903
+          example: "1903"
         teamCode:
           type: string
           description: Código curto (tla) da equipa.
@@ -126,9 +124,9 @@ components:
       description: Equipa com o respetivo plantel para uma competição/época.
       properties:
         id:
-          type: integer
+          type: string
           description: Identificador da equipa (Football Data).
-          example: 1903
+          example: "1903"
         teamName:
           type: string
           example: Sport Lisboa e Benfica
@@ -520,7 +518,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                uri: "/users"
+                uri: "/groups"
                 description: "Unexpected error at getting groups"
 
     post:
@@ -542,25 +540,42 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Group"
+                $ref: "#/components/schemas/Group"
               example:
-              - id: "NDJLpZsB41uE1fzWaJ7S"
+                id: "NDJLpZsB41uE1fzWaJ7S"
                 name: "Melhores da Liga 2025"
                 description: "Onze ideal da Primeira Liga"
                 competition: "PPL"
                 year: 2025
                 players: []
+
         "400":
           description: Pedido inválido (dados em falta ou mal formatados).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              example:
-                uri: "/groups"
-                description: "Invalid group name"
+              examples:
+                invalidName:
+                  summary: Nome do grupo inválido
+                  value:
+                    uri: "/groups"
+                    description: "Invalid group name"
+                invalidDescription:
+                  summary: Descrição do grupo inválida
+                  value:
+                    uri: "/groups"
+                    description: "Invalid group description"
+                invalidCompetition:
+                  summary: Código de competição inválido
+                  value:
+                    uri: "/groups"
+                    description: "Invalid competition"
+                invalidYear:
+                  summary: Ano inválido
+                  value:
+                    uri: "/groups"
+                    description: "Invalid year"
         "401":
           description: Token de autenticação ausente ou inválida.
           content:
@@ -577,7 +592,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                uri: "/users"
+                uri: "/groups"
                 description: "Unexpected error at group creation"
 
   /groups/{groupId}:
@@ -631,7 +646,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                uri: "/users"
+                uri: "/groups/nhMekJsBNkrmp8pbael9"
                 description: "Unexpected error at getting group details"
 
     put:
@@ -663,9 +678,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              example:
-                uri: "/groups/nhMekJsBNkrmp8pbael9"
-                description: "Invalid group name"
+              examples:
+                invalidName:
+                  summary: Nome do grupo inválido
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9"
+                    description: "Invalid group name"
+                invalidDescription:
+                  summary: Descrição do grupo inválida
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9"
+                    description: "Invalid group description"
+                missingChanges:
+                  summary: Dados de alteração em falta
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9"
+                    description: "Make sure you provide changes for this operation"
         "401":
           description: Token de autenticação ausente ou inválida.
           content:
@@ -779,6 +807,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Player"
+        "400":
+          description: Pedido inválido (dados em falta ou mal formatados).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                missingData:
+                  summary: Dados do jogador em falta
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Make sure you provide player data for this operation"
+                invalidPlayerId:
+                  summary: ID do jogador inválido
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Invalid playerId"
+                invalidPlayerName:
+                  summary: Nome do jogador inválido
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Invalid playerName"
+                invalidTeamCode:
+                  summary: Código da equipa inválido
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Invalid teamCode"
+                invalidTeamName:
+                  summary: Nome da equipa inválido
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Invalid teamName"
         "401":
           description: Token de autenticação ausente ou inválida.
           content:
@@ -787,7 +847,7 @@ paths:
                 $ref: "#/components/schemas/Error"
               example:
                 uri: "/groups/nhMekJsBNkrmp8pbael9/players"
-                description: "You must authenticate yourself before adiing players to a group"
+                description: "You must authenticate yourself before adding players to a group"
         "403":
           description: Acesso a recurso pertencente a outro utilizador.
           content:
@@ -807,14 +867,27 @@ paths:
                 uri: "/groups/nhMekJsBNkrmp8pbael9/players"
                 description: "Group not found"
         "422":
-          description: Impossível processar o pedido.
+          description: Violação das regras de negócio.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              example:
-                uri: "/groups/nhMekJsBNkrmp8pbael9/players"
-                description: "Player is already in this group"
+              examples:
+                playerExists:
+                  summary: Jogador já existe no grupo
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Player is already in this group"
+                groupFull:
+                  summary: Grupo já tem 11 jogadores
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Group already has 11 players"
+                playerNotInCompetition:
+                  summary: Jogador não pertence à competição
+                  value:
+                    uri: "/groups/nhMekJsBNkrmp8pbael9/players"
+                    description: "Player does not belong to the competition/year of the group"
         "500":
           description: Erro interno do servidor.
           content:
