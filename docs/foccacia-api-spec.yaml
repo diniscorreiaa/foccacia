@@ -165,14 +165,7 @@ components:
           type: array
           description: Lista de jogadores atualmente no grupo (máx. 11).
           items:
-            $ref: "#/components/schemas/Player"
-# TODO Aparecer todos os grupos listados
-    Groups:
-      type: array
-      description: Listagem de todos os grupos pertencentes a um utilizador.
-      properties:
-        grupo:
-          $ref: "#/components/schemas/Group" 
+            $ref: "#/components/schemas/Player" 
 
     User:
       type: object
@@ -442,7 +435,61 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Groups"
+                  $ref: "#/components/schemas/Group"
+              example:
+              - id: "NDJLpZsB41uE1fzWaJ7S"
+                name: "Melhores da Liga 2025"
+                description: "Onze ideal da Primeira Liga"
+                competition: "PPL"
+                year: 2025
+                players:
+                  - playerId: "67299"
+                    playerName: "Vangelis Pavlidis"
+                    teamId: "1903"
+                    teamName: "SL Benfica"
+                    position: "Offence"
+                    nationality: "Greece"
+                    age: 27
+                  - playerId: "111481"
+                    playerName: "Anatolii Trubin"
+                    teamId: "1903"
+                    teamName: "SL Benfica"
+                    position: "Goalkeeper"
+                    nationality: "Ukraine"
+                    age: 24
+                  - playerId: "81816"
+                    playerName: "Amar Dedić"
+                    teamId: "1903"
+                    teamName: "SL Benfica"
+                    position: "Right-Back"
+                    nationality: "Bosnia-Herzegovina"
+                    age: 23
+              - id: "NTJMpZsB41uE1fzWK54W"
+                name: "Grupo vazio"
+                description: "Vazio"
+                competition: "PPL"
+                year: 2025
+                players: [] 
+              - id: "NZ1uE1fzW1uEMpZsB44W"
+                name: "Melhores dos melhores"
+                description: "Onze ideal 2025"
+                competition: "PPL"
+                year: 2025
+                players:
+                  - playerId: "185610"
+                    playerName: "Antonio Silva"
+                    teamId: "1903"
+                    teamName: "SL Benfica"
+                    position: "Centre-Back"
+                    nationality: "Portugal"
+                    age: 22
+                  - playerId: "3205"
+                    playerName: "Nicolás Otamendi"
+                    teamId: "1903"
+                    teamName: "SL Benfica"
+                    position: "Centre-Back"
+                    nationality: "Argentina"
+                    age: 37
         "401":
           $ref: "#/components/responses/ErrorUnauthorized"
         "500":
