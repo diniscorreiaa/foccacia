@@ -142,16 +142,70 @@ flowchart TB
     db --> utils["Utils\n(foccacia-utils)"]
 ```
 
-# Data storage design (i.e. in ElasticSearch), namely: index or indices; document properties; relations between documents, if exit; etc.
+# Estrutura de Armazenamento em ElasticSearch
 
-No nosso projeto temos à escolha 2 módulos disponíveis para guardar dados,
-o foccacia-data-mem, um solução memory only, e o foccacia-db, que utiliza a base de dados ElasticSearch para guardar
-dados de forma persistente. Para escolher a implementação que queremos, é só alterar no module-resolver a data que é
-injetada no services.
+## Índices e Documentos
 
-Ambas estas soluções entregam dados de volta ao services de acordo com o domain model.
+O módulo `foccacia-db` utiliza dois índices no ElasticSearch:
 
-# Description of the mapping between the ElastictSearch’s FOCCACIA documents and the web application objects model.
+### Índice `foccacia-users`
+Armazena documentos de utilizadores com as seguintes propriedades:
+- `username` (keyword) - Nome de utilizador único
+- `password` (text) - Senha (pode ser nula)
+- `token` (keyword) - Token de autenticação UUID
+
+### Índice `foccacia-groups`
+Armazena documentos de grupos com as seguintes propriedades:
+- `ownerId` (keyword) - ID do dono do grupo
+- `name` (text) - Nome do grupo
+- `description` (text) - Descrição do grupo
+- `competition` (keyword) - Código da competição
+- `year` (integer) - Ano/temporada
+- `players` (nested array) - Lista de jogadores
+
+## Relações entre Documentos
+
+**Relação 1:N (Utilizador → Grupos)**
+- Um utilizador pode ser dono de múltiplos grupos
+- O campo `ownerId` em `foccacia-groups` referencia o `_id` do utilizador
+- Não há chaves estrangeiras explícitas, apenas referências lógicas
+
+**Relação de Composição (Grupo → Jogadores)**
+- Os jogadores são armazenados como nested objects dentro do documento do grupo
+- Não existem como documentos independentes
+- A relação é de composição (o jogador existe apenas no contexto do grupo)
+
+## Mapeamento para Modelo de Domínio
+
+### ElasticSearch → Domínio
+A conversão inversa é feita pelas funções `mapHitToUser` e `mapHitToGroup` no módulo `foccacia-data-elasticsearch.mjs`, que reconstroem os objetos de domínio a partir dos documentos do ElasticSearch.
+
+## Características de Design
+
+1. **IDs Únicos**: Os documentos de User e Group usam IDs gerados pelo ElasticSearch como chave primária
+
+2. **Busca Otimizada**: Campos como `token`, `ownerId` e `username` são do tipo `keyword` para permitir buscas exatas e rápidas
+
+3. **Nested Objects**: Jogadores são armazenados como nested objects para preservar a relação de pertença ao grupo e evitar documentos orfãos
+
+4. **Referências Lógicas**: A relação entre User e Group é mantida através do campo `ownerId`, sem constraints de integridade referencial
+
+## Alternativa: Memória vs ElasticSearch
+
+No `foccacia-module-resolver.mjs`, a escolha é configurável:
+```javascript
+// Para usar memória:
+const services = initServices({
+    data: dataMem,  // foccacia-data-mem
+    // etc...
+});
+
+// Para usar ElasticSearch (atual):
+const services = initServices({
+    data: dataElasticSearch,  // foccacia-db
+    // etc...
+});
+```
 
 # Documentação da API
 
