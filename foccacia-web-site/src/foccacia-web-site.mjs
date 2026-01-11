@@ -215,7 +215,7 @@ export function initWebSite({ services }) {
         playerId: req.body.playerId,
         playerName: req.body.playerName,
         teamCode: req.body.playerTeamCode,
-        teamName: req.body.playerTeamName
+        teamName: req.body.playerTeamName,
       },
     });
 
