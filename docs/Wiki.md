@@ -324,3 +324,9 @@ Ou à football-data através do ficheiro [football-api-requests.http](football-a
 Para utilizar estes ficheiros, precisa ou da
 extensão [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) para o VSCode
 ou da extensão [HTTP Client](https://plugins.jetbrains.com/plugin/13121-http-client) para as IDEs da Jetbrains.
+
+## Reset total
+Para fazer um reset total, que elimine cookies, cache e limpe a DB, faça:
+```sh
+npm run docker:down:clean && rm -r sessions/ docs/output/football-api-cache/
+```
