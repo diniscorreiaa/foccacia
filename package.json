@@ -37,7 +37,8 @@
     "format:mjs": "prettier --write \"**/*.mjs\"",
     "format:yaml": "prettier --write \"**/*.{yaml,yml}\"",
     "format:json": "prettier --write \"**/*.json\"",
-    "format:all": "npm run format:mjs && npm run format:yaml && npm run format:json"
+    "format:all": "npm run format:mjs && npm run format:yaml && npm run format:json",
+    "populate": "node populate.mjs"
   },
   "repository": {
     "type": "git",

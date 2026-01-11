@@ -149,13 +149,17 @@ flowchart TB
 O módulo `foccacia-db` utiliza dois índices no ElasticSearch:
 
 ### Índice `foccacia-users`
+
 Armazena documentos de utilizadores com as seguintes propriedades:
+
 - `username` (keyword) - Nome de utilizador único
 - `password` (text) - Senha (pode ser nula)
 - `token` (keyword) - Token de autenticação UUID
 
 ### Índice `foccacia-groups`
+
 Armazena documentos de grupos com as seguintes propriedades:
+
 - `ownerId` (keyword) - ID do dono do grupo
 - `name` (text) - Nome do grupo
 - `description` (text) - Descrição do grupo
@@ -166,11 +170,13 @@ Armazena documentos de grupos com as seguintes propriedades:
 ## Relações entre Documentos
 
 **Relação 1:N (Utilizador → Grupos)**
+
 - Um utilizador pode ser dono de múltiplos grupos
 - O campo `ownerId` em `foccacia-groups` referencia o `_id` do utilizador
 - Não há chaves estrangeiras explícitas, apenas referências lógicas
 
 **Relação de Composição (Grupo → Jogadores)**
+
 - Os jogadores são armazenados como nested objects dentro do documento do grupo
 - Não existem como documentos independentes
 - A relação é de composição (o jogador existe apenas no contexto do grupo)
@@ -178,21 +184,27 @@ Armazena documentos de grupos com as seguintes propriedades:
 ## Mapeamento para Modelo de Domínio
 
 ### ElasticSearch → Domínio
-A conversão inversa é feita pelas funções `mapHitToUser` e `mapHitToGroup` no módulo `foccacia-data-elasticsearch.mjs`, que reconstroem os objetos de domínio a partir dos documentos do ElasticSearch.
+
+A conversão inversa é feita pelas funções `mapHitToUser` e `mapHitToGroup` no módulo `foccacia-data-elasticsearch.mjs`,
+que reconstroem os objetos de domínio a partir dos documentos do ElasticSearch.
 
 ## Características de Design
 
 1. **IDs Únicos**: Os documentos de User e Group usam IDs gerados pelo ElasticSearch como chave primária
 
-2. **Busca Otimizada**: Campos como `token`, `ownerId` e `username` são do tipo `keyword` para permitir buscas exatas e rápidas
+2. **Busca Otimizada**: Campos como `token`, `ownerId` e `username` são do tipo `keyword` para permitir buscas exatas e
+   rápidas
 
-3. **Nested Objects**: Jogadores são armazenados como nested objects para preservar a relação de pertença ao grupo e evitar documentos orfãos
+3. **Nested Objects**: Jogadores são armazenados como nested objects para preservar a relação de pertença ao grupo e
+   evitar documentos orfãos
 
-4. **Referências Lógicas**: A relação entre User e Group é mantida através do campo `ownerId`, sem constraints de integridade referencial
+4. **Referências Lógicas**: A relação entre User e Group é mantida através do campo `ownerId`, sem constraints de
+   integridade referencial
 
 ## Alternativa: Memória vs ElasticSearch
 
 No `foccacia-module-resolver.mjs`, a escolha é configurável:
+
 ```javascript
 // Para usar memória:
 const services = initServices({
@@ -291,9 +303,24 @@ npm run test:all
 ```
 
 ## Coverage
-
 Gerar coverage de todos:
-
 ```sh
 npm run coverage:all
 ```
+
+## Popular  a base de dados
+
+Com a aplicação a correr, faça:
+
+```sh
+npm run populate
+```
+
+## Testes manuais com os ficheiros .http
+
+Pode experimentar fazer pedidos à nossa API através do ficheiro [foccacia-api-requests.http](foccacia-api-requests.http)
+Ou à football-data através do ficheiro [football-api-requests.http](football-api-requests.http)
+
+Para utilizar estes ficheiros, precisa ou da
+extensão [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) para o VSCode
+ou da extensão [HTTP Client](https://plugins.jetbrains.com/plugin/13121-http-client) para as IDEs da Jetbrains.
