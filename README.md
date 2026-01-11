@@ -14,6 +14,9 @@ ___
 
 ---
 
+## Wiki
+A documentação bem como aspetos importantes das decisões tomados no nosso projeto encontra-se na [Wiki](docs/Wiki.md).
+
 ## GitHub Version Control
 ___
 
