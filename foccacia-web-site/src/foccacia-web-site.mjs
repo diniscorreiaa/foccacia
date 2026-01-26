@@ -125,7 +125,7 @@ export function initWebSite({ services }) {
 
     const groups = await services.getGroups({ userId: req.userId });
 
-    res.render("groups", {
+    renderView(req, res, "groups", {
       groups,
       competitions,
       seasons,
