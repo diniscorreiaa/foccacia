@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { initServices } from "../src/foccacia-services.mjs";
 import { initDomainModel } from "foccacia-domain-model";
 import { initUtils } from "foccacia-utils";
-import errors from "../../foccacia-errors/src/errors.mjs";
+import errors from "foccacia-errors";
 
 describe("Services", () => {
   const domainModel = initDomainModel();
