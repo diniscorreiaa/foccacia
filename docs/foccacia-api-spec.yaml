@@ -527,21 +527,21 @@ paths:
                   competition: "PPL"
                   year: 2025
                   players:
-                    - id: "67299"
+                    - playerId: "67299"
                       playerName: "Vangelis Pavlidis"
                       teamId: "1903"
                       teamName: "SL Benfica"
                       position: "Offence"
                       nationality: "Greece"
                       age: 27
-                    - id: "111481"
+                    - playerId: "111481"
                       playerName: "Anatolii Trubin"
                       teamId: "1903"
                       teamName: "SL Benfica"
                       position: "Goalkeeper"
                       nationality: "Ukraine"
                       age: 24
-                    - id: "81816"
+                    - playerId: "81816"
                       playerName: "Amar Dedić"
                       teamId: "1903"
                       teamName: "SL Benfica"
@@ -560,14 +560,14 @@ paths:
                   competition: "PPL"
                   year: 2025
                   players:
-                    - id: "185610"
+                    - playerId: "185610"
                       playerName: "Antonio Silva"
                       teamId: "1903"
                       teamName: "SL Benfica"
                       position: "Centre-Back"
                       nationality: "Portugal"
                       age: 22
-                    - id: "3205"
+                    - playerId: "3205"
                       playerName: "Nicolás Otamendi"
                       teamId: "1903"
                       teamName: "SL Benfica"
