@@ -91,7 +91,7 @@ components:
       type: object
       description: Jogador associado a uma equipa (competitions/teams) ou a um grupo.
       properties:
-        id:
+        playerId:
           type: string
           description: Identificador do jogador (Football Data).
           example: "67299"
