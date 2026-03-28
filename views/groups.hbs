@@ -90,8 +90,8 @@
 
         <hr class="my-3">
 
-        <form method="post" action="/groups/{{id}}">
-            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        <form method="post" action="/groups/{{id}}" class="js-delete-group" data-group-id="{{id}}">
+        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
         </form>
     </section>
 {{else}}
@@ -101,11 +101,46 @@
 {{/each}}
 
 <script>
-    const sel = document.getElementById("competitionSelect");
-    if (sel) {
-        sel.addEventListener("change", () => {
-            const code = sel.value;
+    const select = document.getElementById("competitionSelect");
+    if (select) {
+        select.addEventListener("change", () => {
+            const code = select.value;
             window.location.href = `/groups?competition=${encodeURIComponent(code)}`;
         });
     }
+
+    document.querySelectorAll("form.js-delete-group").forEach((form) => {
+        form.addEventListener("submit", async (evento) => {
+            evento.preventDefault();
+
+            const groupId = form.dataset.groupId;
+            if (!groupId) return;
+
+            const ok = confirm("Delete this group?");
+            if (!ok) return;
+
+            try {
+                const res = await fetch(`/api/groups/${encodeURIComponent(groupId)}`, {
+                    method: "DELETE",
+                });
+
+                if (res.status === 204) {
+                    window.location.reload();
+                    return;
+                }
+
+                if (res.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+
+                const body = await res.text();
+                alert(`Delete failed (${res.status}).`);
+                console.error(body);
+            } catch (err) {
+                // fallback: mantém comportamento antigo
+                form.submit();
+            }
+        });
+    });
 </script>
