@@ -84,7 +84,7 @@ export function initFapiTeams({ domainModel, utils }) {
     const parsedValue = parse(apiJson);
     if (isMissing(parsedValue)) return null;
 
-    const cacheJson = buildCache(parsedValue, apiJson);
+    const cacheJson = buildCache(parsedValue);
     if (isMissing(cacheJson)) return null;
 
     const saved = await utils.writeJson({
@@ -194,7 +194,7 @@ export function initFapiTeams({ domainModel, utils }) {
 
     const raw = await fetchSeasonsYearsRaw(code);
     if (isRateLimit(raw)) return false;
-    if (!raw) return null;
+    if (isMissing(raw)) return null;
 
     return raw;
   }
@@ -254,7 +254,7 @@ export function initFapiTeams({ domainModel, utils }) {
 
     const teamsRaw = await fetchCompetitionTeamsRaw({ code, season });
     if (isRateLimit(teamsRaw)) return false;
-    if (!teamsRaw) return null;
+    if (isMissing(teamsRaw)) return null;
 
     return teamsRaw.map(toTeamDomain);
   }
