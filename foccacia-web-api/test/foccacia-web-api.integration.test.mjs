@@ -191,7 +191,7 @@ describe("Web API — integration (supertest)", () => {
       .expect(204);
   });
 
-  it("POST /api/groups/:id/players -> 201/200", async () => {
+  it("POST /api/groups/:id/players -> 200", async () => {
     const res = await request(app)
       .post("/api/groups/g1/players")
       .set("Authorization", `Bearer ${VALID_TOKEN}`)
