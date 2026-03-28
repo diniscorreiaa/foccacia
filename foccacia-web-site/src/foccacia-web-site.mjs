@@ -22,7 +22,7 @@ const ROUTES = {
 export function initWebSite({ services }) {
   function isAuthenticated(req) {
     if (typeof req.isAuthenticated === "function") return req.isAuthenticated();
-    return !!req.user;
+    return req.user;
   }
 
   function renderView(req, res, view, model = {}) {
