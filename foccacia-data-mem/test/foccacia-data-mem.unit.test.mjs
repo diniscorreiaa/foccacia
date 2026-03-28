@@ -1,8 +1,8 @@
-import { describe, it } from "node:test";
-import assert from "node:assert";
+import assert from "node:assert/strict";
+
 import { initDataMem } from "../src/foccacia-data-mem.mjs";
-import { initDomainModel } from "../../foccacia-domain-model/src/foccacia-domain-model.mjs";
-import { initUtils } from "../../foccacia-utils/src/foccacia-utils.mjs";
+import { initDomainModel } from "foccacia-domain-model";
+import { initUtils } from "foccacia-utils";
 
 describe("Data Mem", () => {
   const domainModel = initDomainModel();

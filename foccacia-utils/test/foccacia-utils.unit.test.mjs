@@ -1,5 +1,8 @@
-import { describe, it } from "node:test";
-import assert from "node:assert";
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+
 import { initUtils } from "../src/foccacia-utils.mjs";
 
 describe("Utils", () => {
@@ -77,5 +80,31 @@ describe("Utils", () => {
     it("deve retornar null para data inválida", () => {
       assert.strictEqual(utils.getYearFromDate("data-errada"), null);
     });
+  });
+
+  it("json-utils: writeJson/readJson roundtrip", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "foccacia-"));
+    const file = path.join(dir, "x.json");
+
+    const obj = { a: 1, b: { c: "d" } };
+
+    await utils.writeJson({ filePath: file, data: obj });
+
+    const back = await utils.readJson(file);
+
+    assert.deepEqual(back, obj);
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it("log-utils: escreve no console (smoke)", () => {
+    const prev = console.log;
+
+    const lines = [];
+    console.log = (...args) => lines.push(args.join(" "));
+
+    utils.logInfo("hello", "ctx");
+    console.log = prev;
+
+    assert.ok(lines.some((l) => l.includes("hello")));
   });
 });

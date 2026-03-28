@@ -1,8 +1,8 @@
-import { describe, it } from "node:test";
-import assert from "node:assert";
+import assert from "node:assert/strict";
+
 import { initServices } from "../src/foccacia-services.mjs";
-import { initDomainModel } from "../../foccacia-domain-model/src/foccacia-domain-model.mjs";
-import { initUtils } from "../../foccacia-utils/src/foccacia-utils.mjs";
+import { initDomainModel } from "foccacia-domain-model";
+import { initUtils } from "foccacia-utils";
 import errors from "../../foccacia-errors/src/errors.mjs";
 
 describe("Services", () => {
@@ -688,5 +688,82 @@ describe("Services", () => {
         assert.strictEqual(err.code, 2);
       }
     });
+  });
+
+  it("getUserIdFromToken: token inválido -> UNAUTHORIZED", async () => {
+    const data = { getUserByToken: async () => null };
+    const services = initServices({ data, fapiTeams: {}, utils, errors });
+
+    await assert.rejects(
+      () => services.getUserIdFromToken({ token: "bad" }),
+      (error) => error.code === 2 && error.message.includes("Invalid token")
+    );
+  });
+
+  it("registerUser: username repetido -> UNPROCESSABLE", async () => {
+    const data = {
+      getUserByUsername: async () =>
+        new domainModel.User({ id: "u1", username: "joao", password: "x" }),
+      createUser: async () => null,
+    };
+    const services = initServices({ data, fapiTeams: {}, utils, errors });
+
+    await assert.rejects(
+      () => services.registerUser({ username: "joao", password: "123" }),
+      (error) => error.code === 6
+    );
+  });
+
+  it("validateCredentials: password errada -> UNAUTHORIZED", async () => {
+    const data = {
+      getUserByUsername: async () =>
+        new domainModel.User({ id: "u1", username: "joao", password: "aaa" }),
+    };
+    const services = initServices({ data, fapiTeams: {}, utils, errors });
+
+    await assert.rejects(
+      () => services.validateCredentials({ username: "joao", password: "bbb" }),
+      (error) => error.code === 2
+    );
+  });
+
+  it("addPlayerToGroup: não permite > 11 jogadores", async () => {
+    const eleven = Array.from(
+      { length: 11 },
+      (_, i) => new domainModel.Player({ playerId: String(i), playerName: "P" })
+    );
+    const data = {
+      getGroup: async () =>
+        new domainModel.Group({
+          id: "g1",
+          userId: "u1",
+          name: "G",
+          description: "D",
+          competition: "PL",
+          year: 2024,
+          players: eleven,
+        }),
+      addPlayerToGroup: async () => null,
+    };
+    const fapiTeams = {
+      getPlayerForCompetition: async () =>
+        new domainModel.Player({ playerId: "99", playerName: "X" }),
+    };
+    const services = initServices({ data, fapiTeams, utils, errors });
+
+    await assert.rejects(
+      () =>
+        services.addPlayerToGroup({
+          userId: "u1",
+          groupId: "g1",
+          playerData: {
+            playerId: "99",
+            playerName: "X",
+            teamCode: "T",
+            teamName: "TN",
+          },
+        }),
+      (error) => error.code === 6 && error.message.includes("11")
+    );
   });
 });
